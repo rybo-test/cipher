@@ -3,47 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C.I.P.H.E.R. // 1984 COLD BOOT</title>
-  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
+  <title>C.I.P.H.E.R. // Field Receptacle Boot</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.90">
   <style>
-    .boot-stage {
+    .boot-deck {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       padding: 16px;
-      position: relative;
+      gap: 14px;
       background-color: var(--bg-primary);
     }
-    .boot-terminal-box {
-      background-color: #06110a;
+    .switchboard-panel {
+      background-color: var(--bg-surface);
       border: 2px solid var(--border-bright);
       border-radius: 8px;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);
+      gap: 14px;
+      box-shadow: 0 0 24px rgba(0, 230, 118, 0.15);
     }
-    .boot-log {
-      font-family: var(--font-mono);
-      font-size: var(--font-sm);
-      color: var(--text-dim);
-      line-height: 1.45;
-      min-height: 140px;
-      white-space: pre-wrap;
+    .switches-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
     }
-    .boot-log .highlight { color: #ffffff; font-weight: bold; }
-    .boot-log .warn { color: var(--accent-amber); font-weight: bold; }
-    .boot-log .alert { color: var(--accent-alert); font-weight: bold; }
-    .boot-log .bright { color: var(--text-bright); font-weight: bold; }
-    .power-btn-glow {
-      animation: pulse-glow 2s infinite ease-in-out;
+    .toggle-rocker {
+      background-color: #06110a;
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      touch-action: manipulation;
     }
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 4px var(--border-bright); }
-      50% { box-shadow: 0 0 16px var(--border-bright); }
-      100% { box-shadow: 0 0 4px var(--border-bright); }
+    .toggle-rocker.engaged {
+      border-color: var(--border-bright);
+      background-color: var(--bg-surface-raised);
+    }
+    .rocker-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: #1a3320;
+    }
+    .toggle-rocker.engaged .rocker-indicator {
+      background-color: var(--border-bright);
+      box-shadow: 0 0 10px var(--border-bright);
+    }
+    .charge-stage {
+      background-color: #06110a;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-starter-ignite {
+      min-height: 52px;
+      border-radius: 6px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      cursor: pointer;
+      user-select: none;
+      touch-action: none;
+    }
+    .tuner-slider {
+      width: 100%;
+      accent-color: var(--border-bright);
+      cursor: pointer;
+      min-height: 44px;
     }
   </style>
 </head>
@@ -51,59 +86,114 @@
 
   <div class="app-container">
     <header class="status-header">
-      <span class="brand-title">RSI SURPLUS HARDWARE // MK-IV</span>
-      <span class="telemetry-pill" style="color: var(--accent-amber);">BUS: 11.8V LOW</span>
+      <span class="brand-title">RSI SURPLUS HARDWARE // CHASSIS MK-IV</span>
+      <span id="top-bus-tag" class="telemetry-pill" style="color: var(--accent-amber);">BUS: 0.0V COLD</span>
     </header>
 
-    <main class="boot-stage">
-      <section class="boot-terminal-box" aria-labelledby="boot-title">
-        <div class="section-category-tag" id="boot-title">PROPERTY OF THE RAT PACK // FIELD TERMINAL</div>
+    <main class="boot-deck">
+      <section class="switchboard-panel" aria-labelledby="switch-title">
+        <div class="section-category-tag" id="switch-title">POWER RECEPTACLE // COLD START PROCEDURE</div>
 
-        <!-- Initial Power On Trigger -->
-        <div id="power-cta" style="text-align: center; padding: 20px 0;">
-          <button class="btn-cipher primary-solid power-btn-glow" style="min-height: 52px; font-size: 16px;" onclick="BootController.initiateColdBoot()">
-            ⚡ ENGAGE TERMINAL POWER
-          </button>
-          <div style="font-size: 13px; color: var(--text-dim); margin-top: 10px;">
-            Physical battery latch detected. Tap to close circuit.
+        <!-- Step 1: Rocker Switches -->
+        <div id="step-switches">
+          <div style="font-size: var(--font-sm); color: #ffffff; margin-bottom: 8px;">
+            1. ENGAGE ANALOG ISOLATION ROCKERS:
+          </div>
+          <div class="switches-grid">
+            <button id="sw-bus" class="toggle-rocker" onclick="BootEngine.toggleRocker('sw-bus')">
+              <div class="rocker-indicator"></div>
+              <span style="font-size: 11px; font-weight: bold; color: #ffffff;">MAIN BUS</span>
+              <span class="state-txt" style="font-size: 10px; color: var(--text-dim);">[OFF]</span>
+            </button>
+            <button id="sw-coil" class="toggle-rocker" onclick="BootEngine.toggleRocker('sw-coil')">
+              <div class="rocker-indicator"></div>
+              <span style="font-size: 11px; font-weight: bold; color: #ffffff;">RELAY COIL</span>
+              <span class="state-txt" style="font-size: 10px; color: var(--text-dim);">[OFF]</span>
+            </button>
+            <button id="sw-crt" class="toggle-rocker" onclick="BootEngine.toggleRocker('sw-crt')">
+              <div class="rocker-indicator"></div>
+              <span style="font-size: 11px; font-weight: bold; color: #ffffff;">CRT HEATER</span>
+              <span class="state-txt" style="font-size: 10px; color: var(--text-dim);">[OFF]</span>
+            </button>
           </div>
         </div>
 
-        <!-- Monospace Boot Log -->
-        <div id="boot-terminal-log" class="boot-log" style="display: none;" role="status" aria-live="polite"></div>
+        <!-- Step 2: Hold to Charge Starter Loop -->
+        <div id="step-charge" class="charge-stage" style="display: none;">
+          <div style="display: flex; justify-content: space-between; font-size: var(--font-sm);">
+            <span>2. CAPACITOR STARTER LOOP:</span>
+            <strong id="charge-volt-txt" style="color: var(--accent-amber);">0.0 V</strong>
+          </div>
+          <div style="height: 10px; background-color: #050a06; border: 1px solid var(--border-color); border-radius: 5px; overflow: hidden;">
+            <div id="charge-bar" style="width: 0%; height: 100%; background-color: var(--accent-amber); transition: width 0.05s linear;"></div>
+          </div>
+          <button 
+            id="btn-starter" 
+            class="btn-cipher primary-solid btn-starter-ignite"
+            onpointerdown="BootEngine.startCharge(event)" 
+            onpointerup="BootEngine.stopCharge(event)"
+            onpointerleave="BootEngine.stopCharge(event)"
+          >
+            ⚡ HOLD TO CHARGE STARTER
+          </button>
+          <div style="font-size: 12px; color: var(--text-dim); text-align: center;">
+            Hold contact until capacitor reaches 11.8V bus threshold.
+          </div>
+        </div>
 
-        <!-- Callsign / Handle Registration Form -->
-        <form id="callsign-form" style="display: none; flex-direction: column; gap: 10px; margin-top: 6px;" onsubmit="event.preventDefault(); BootController.registerCallsign();">
-          <label for="username-input" class="section-category-tag">OPERATOR IDENTIFICATION PROTOCOL:</label>
+        <!-- Step 3: Radio Tuner Sweep -->
+        <div id="step-tuner" class="charge-stage" style="display: none;">
+          <div style="display: flex; justify-content: space-between; font-size: var(--font-sm);">
+            <span>3. TUNE RF SQUELCH (CLEAR THE STATIC):</span>
+            <strong id="freq-txt" style="color: var(--accent-amber);">144.100 MHz</strong>
+          </div>
+          <input 
+            type="range" 
+            id="tuner-input" 
+            class="tuner-slider" 
+            min="144" 
+            max="148" 
+            step="0.025" 
+            value="144.100" 
+            oninput="BootEngine.tuneFrequency(this.value)"
+          >
+          <div style="font-size: 12px; color: var(--text-dim); text-align: center;">
+            Rotate carrier frequency to align with Rat Pack simplex channel (146.520 MHz).
+          </div>
+        </div>
+
+        <!-- Step 4: Callsign Registration Form -->
+        <form id="step-callsign" style="display: none; flex-direction: column; gap: 10px;" onsubmit="event.preventDefault(); BootEngine.commitCallsign();">
+          <div class="section-category-tag" style="color: var(--text-bright);">TRANSMISSION LOCKED // IDENTIFY OPERATOR</div>
           <div style="font-size: var(--font-base); color: #ffffff;">
-            Input your official geocaching handle to provision device custody:
+            Enter your official Geocaching Handle to take custody of this field terminal:
           </div>
           <input 
             type="text" 
-            id="username-input" 
+            id="cacher-name-input" 
             class="cipher-input" 
-            placeholder="GEOCACHING USERNAME..." 
+            placeholder="ENTER CACHER CALLSIGN..." 
             autocomplete="off"
             autocorrect="off"
             autocapitalize="characters"
             spellcheck="false"
             required
           >
-          <button type="submit" class="btn-cipher primary-solid" style="min-height: 48px;">
-            INITIALIZE RECEPTACLE ➔
+          <button type="submit" class="btn-cipher primary-solid">
+            PROVISION TERMINAL CUSTODY ➔
           </button>
         </form>
 
-        <!-- Bootstrap Complete Confirmation -->
-        <div id="boot-done-card" style="display: none; flex-direction: column; gap: 12px; margin-top: 6px;">
-          <div class="section-category-tag" style="color: var(--text-bright);">✔ SYSTEM READY // SYNCKEY GENERATED</div>
-          <div id="new-synckey-display" style="font-size: var(--font-xl); color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono);">
+        <!-- Final Unlock Card -->
+        <div id="step-complete" style="display: none; flex-direction: column; gap: 10px;">
+          <div class="section-category-tag" style="color: var(--text-bright);">✔ CUSTODY REGISTERED // CALIBRATION ACTIVE</div>
+          <div id="out-synckey" style="font-size: var(--font-xl); color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono);">
             CT-NEZZ-2026
           </div>
           <p style="font-size: var(--font-base); color: var(--text-dim); line-height: 1.4;">
-            Custody locked to your session. Initial field calibration mission loaded in your PACK.
+            Device locked to your session. Initial field decryption card loaded in your PACK.
           </p>
-          <button class="btn-cipher primary-solid" style="min-height: 48px;" onclick="window.location.href='pack.html'">
+          <button class="btn-cipher primary-solid" onclick="window.location.href='pack.html'">
             OPEN FIELD PACK ➔
           </button>
         </div>
@@ -114,13 +204,13 @@
         <span class="rat-comms-channel">CH 19</span>
         <div class="s-meter-block" aria-hidden="true">
           <div class="s-meter-bar">
-            <div id="boot-meter-1" class="s-meter-seg"></div>
-            <div id="boot-meter-2" class="s-meter-seg"></div>
-            <div id="boot-meter-3" class="s-meter-seg"></div>
-            <div id="boot-meter-4" class="s-meter-seg"></div>
+            <div id="m-seg1" class="s-meter-seg"></div>
+            <div id="m-seg2" class="s-meter-seg"></div>
+            <div id="m-seg3" class="s-meter-seg"></div>
+            <div id="m-seg4" class="s-meter-seg"></div>
           </div>
         </div>
-        <div id="boot-comms-ticker" class="rat-comms-ticker">[RADIO CARRIER: SILENT]</div>
+        <div id="boot-comms-log" class="rat-comms-ticker">[STATIC HISS - NO CARRIER]</div>
       </aside>
     </main>
   </div>
@@ -128,77 +218,104 @@
   <script src="js/cipher-audio.js"></script>
   <script src="js/cipher-core.js"></script>
   <script>
-    const BootController = {
-      initiateColdBoot: function() {
-        document.getElementById('power-cta').style.display = 'none';
-        const logBox = document.getElementById('boot-terminal-log');
-        logBox.style.display = 'block';
+    const BootEngine = {
+      rockers: { 'sw-bus': false, 'sw-coil': false, 'sw-crt': false },
+      chargeTimer: null,
+      chargeLevel: 0,
 
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.micClick();
-          CipherAudio.click();
+      toggleRocker: function(id) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        this.rockers[id] = !this.rockers[id];
+        const el = document.getElementById(id);
+        el.classList.toggle('engaged', this.rockers[id]);
+        el.querySelector('.state-txt').textContent = this.rockers[id] ? '[ENGAGED]' : '[OFF]';
+
+        if (this.rockers['sw-bus'] && this.rockers['sw-coil'] && this.rockers['sw-crt']) {
+          document.getElementById('step-charge').style.display = 'flex';
+          document.getElementById('top-bus-tag').textContent = 'BUS: 2.4V TRICKLE';
+          if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
         }
-
-        const lines = [
-          { text: "ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", cls: "highlight", delay: 300 },
-          { text: "CHASSIS DETECT: MK-IV FIELD TRANSLATOR [TIER-0]", cls: "", delay: 700 },
-          { text: "POWER BUS: 11.8V [BROWNOUT WARNING // FLOAT UNSTABLE]", cls: "warn", delay: 1200 },
-          { text: "CPU TEST: MOS 6502 @ 1.77 MHz ............ OK", cls: "", delay: 1700 },
-          { text: "RAM TEST: 64KB BASELINE .................. OK", cls: "", delay: 2200 },
-          { text: "NON-STANDARD RAT-MOD FIRMWARE IDENTIFIED", cls: "alert", delay: 2700 },
-          { text: "RADIO INTERCEPT SINK ENGAGED: MONITORING CH 19", cls: "bright", delay: 3200 }
-        ];
-
-        lines.forEach(item => {
-          setTimeout(() => {
-            const p = document.createElement('div');
-            p.className = item.cls;
-            p.textContent = item.text;
-            logBox.appendChild(p);
-            if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-          }, item.delay);
-        });
-
-        // Incoming Crew CB Banter Intercept
-        setTimeout(() => {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.squelchTail();
-          document.querySelectorAll('.s-meter-seg').forEach(s => s.classList.add('lit'));
-          document.getElementById('boot-comms-ticker').textContent = '[NEZZ] "Auxiliary terminal carrier is live! Who pulled it out of the ammo can?"';
-        }, 3800);
-
-        setTimeout(() => {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.squelchTail();
-          document.getElementById('boot-comms-ticker').textContent = '[CHED] "Check the log sheet. If it\'s a muggle, pull the circuit breaker."';
-        }, 5800);
-
-        // Speech Prompt and Form Reveal
-        setTimeout(() => {
-          if (typeof CipherAudio !== 'undefined') {
-            CipherAudio.speak("Operator presence detected. Identify yourself under official geocaching protocol.");
-          }
-          document.getElementById('callsign-form').style.display = 'flex';
-          document.getElementById('username-input').focus();
-        }, 7500);
       },
 
-      registerCallsign: function() {
-        const input = document.getElementById('username-input');
+      startCharge: function(e) {
+        e.preventDefault();
+        clearInterval(this.chargeTimer);
+        this.chargeTimer = setInterval(() => {
+          this.chargeLevel += 3.5;
+          const volts = (this.chargeLevel / 100) * 11.8;
+          document.getElementById('charge-volt-txt').textContent = `${volts.toFixed(1)} V`;
+          document.getElementById('charge-bar').style.width = `${Math.min(100, this.chargeLevel)}%`;
+          
+          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+
+          if (this.chargeLevel >= 100) {
+            clearInterval(this.chargeTimer);
+            this.finishCharge();
+          }
+        }, 80);
+      },
+
+      stopCharge: function(e) {
+        e.preventDefault();
+        if (this.chargeLevel < 100) {
+          clearInterval(this.chargeTimer);
+          this.chargeLevel = 0;
+          document.getElementById('charge-bar').style.width = '0%';
+          document.getElementById('charge-volt-txt').textContent = '0.0 V';
+          if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
+        }
+      },
+
+      finishCharge: function() {
+        document.getElementById('btn-starter').disabled = true;
+        document.getElementById('btn-starter').textContent = '✔ BUS ENERGIZED (11.8V)';
+        document.getElementById('top-bus-tag').textContent = 'BUS: 11.8V FLOAT';
+        document.getElementById('top-bus-tag').style.color = 'var(--text-bright)';
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.squelchTail();
+          CipherAudio.speak("Chassis ignition verified. Radio stage active.");
+        }
+        document.getElementById('step-tuner').style.display = 'flex';
+      },
+
+      tuneFrequency: function(val) {
+        document.getElementById('freq-txt').textContent = `${parseFloat(val).toFixed(3)} MHz`;
+        const diff = Math.abs(146.520 - parseFloat(val));
+        
+        const segs = [document.getElementById('m-seg1'), document.getElementById('m-seg2'), document.getElementById('m-seg3'), document.getElementById('m-seg4')];
+        segs.forEach(s => s.classList.remove('lit'));
+
+        if (diff < 0.8) segs[0].classList.add('lit');
+        if (diff < 0.4) segs[1].classList.add('lit');
+        if (diff < 0.15) segs[2].classList.add('lit');
+
+        if (diff < 0.05) {
+          segs[3].classList.add('lit');
+          document.getElementById('tuner-input').disabled = true;
+          document.getElementById('freq-txt').style.color = 'var(--text-bright)';
+          document.getElementById('boot-comms-log').textContent = '[NEZZ] "Auxiliary terminal carrier is locked! Identify yourself, cacher!"';
+          if (typeof CipherAudio !== 'undefined') {
+            CipherAudio.chime();
+            CipherAudio.speak("Signal lock confirmed. Cacher registration open.");
+          }
+          document.getElementById('step-callsign').style.display = 'flex';
+          document.getElementById('cacher-name-input').focus();
+        }
+      },
+
+      commitCallsign: function() {
+        const input = document.getElementById('cacher-name-input');
         const user = input.value.trim().toUpperCase();
         if (!user) return;
 
-        if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
-
-        // Provision State via CipherCore
         const syncKey = CipherCore.bootstrapUser(user);
-
-        document.getElementById('callsign-form').style.display = 'none';
-        document.getElementById('new-synckey-display').textContent = syncKey;
-        document.getElementById('boot-done-card').style.display = 'flex';
-
-        document.getElementById('boot-comms-ticker').textContent = `[MISF] "Callsign verified: ${user}. Relaying calibration coordinates."`;
+        document.getElementById('step-callsign').style.display = 'none';
+        document.getElementById('out-synckey').textContent = syncKey;
+        document.getElementById('step-complete').style.display = 'flex';
+        document.getElementById('boot-comms-log').textContent = `[MISF] "Callsign verified: ${user}. Relaying calibration coordinates to GZ."`;
 
         if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.speak(`Welcome, ${user}. System initialized. Check your pack.`);
+          CipherAudio.speak(`Welcome to C.I.P.H.E.R., cacher ${user}. Check your pack for initial field gear.`);
         }
       }
     };
