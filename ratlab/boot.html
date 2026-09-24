@@ -40,6 +40,7 @@
       border-left: 1px solid var(--crt-border);
       border-right: 1px solid var(--crt-border);
       position: relative;
+      transform-origin: center center;
     }
 
     /* Top Status Header */
@@ -54,20 +55,10 @@
       font-weight: 800;
       letter-spacing: 0.5px;
       flex-shrink: 0;
+      transition: background-color 0.4s ease, border-color 0.4s ease;
     }
     .terminal-brand-txt { color: var(--crt-text-bright); }
-    .btn-audio-pill {
-      background-color: #08170c;
-      border: 1px solid var(--crt-border-bright);
-      color: var(--crt-text-bright);
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 11px;
-      font-weight: bold;
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
+    .terminal-bus-tag { color: var(--crt-amber); font-weight: 900; }
 
     /* Returning Operative Ingress */
     .recognized-custody-card {
@@ -82,7 +73,7 @@
       flex-shrink: 0;
     }
 
-    /* CRT Monitor Enclosure */
+    /* CRT Monitor Frame */
     .crt-monitor-frame {
       flex: 1;
       margin: 8px 10px;
@@ -95,6 +86,7 @@
       box-shadow: inset 0 0 15px rgba(0, 230, 118, 0.15), 0 0 15px rgba(0, 0, 0, 0.8);
       overflow: hidden;
       position: relative;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
     }
 
     /* Scanlines Overlay */
@@ -102,7 +94,7 @@
       content: " ";
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
       background-size: 100% 3px;
       pointer-events: none;
       z-index: 5;
@@ -129,16 +121,16 @@
     .line-glitch {
       color: #00ff66;
       font-weight: 900;
-      text-shadow: 0 0 8px #00ff66;
+      text-shadow: 0 0 10px #00ff66;
       animation: crt-flicker 0.12s infinite alternate;
     }
 
     @keyframes crt-flicker {
-      0% { opacity: 0.85; transform: skewX(0.5deg); }
-      100% { opacity: 1; text-shadow: 0 0 12px #00ff66; transform: skewX(-0.5deg); }
+      0% { opacity: 0.88; transform: skewX(0.5deg); }
+      100% { opacity: 1; text-shadow: 0 0 14px #00ff66; transform: skewX(-0.5deg); }
     }
 
-    /* CLI Prompt Dock */
+    /* Prompt Dock & Buttons */
     .cli-dock-tray {
       display: flex;
       flex-direction: column;
@@ -218,31 +210,27 @@
       color: #000000;
     }
 
-    /* Emergency Glitch Hand-Off Modal */
-    .emergency-triage-modal {
+    /* Entire Machine In Glitched Emergency State */
+    .app-viewport-shell.glitched-state {
+      background-color: #0d0606;
+      border-color: var(--crt-alert);
+    }
+    .app-viewport-shell.glitched-state .terminal-top-header {
       background-color: #1a0808;
-      border: 2px solid var(--crt-alert);
-      border-radius: 6px;
-      padding: 12px;
-      margin: 0 10px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex-shrink: 0;
-      box-shadow: 0 0 20px rgba(255, 82, 82, 0.35);
-      position: relative;
-      z-index: 20;
+      border-bottom-color: var(--crt-alert);
+    }
+    .app-viewport-shell.glitched-state .crt-monitor-frame {
+      border-color: var(--crt-alert);
+      box-shadow: inset 0 0 20px rgba(255, 82, 82, 0.25), 0 0 20px rgba(0, 0, 0, 0.9);
     }
   </style>
 </head>
 <body>
 
-  <div class="app-viewport-shell">
+  <div class="app-viewport-shell" id="master-shell">
     <header class="terminal-top-header">
-      <span class="terminal-brand-txt">C.I.P.H.E.R. // GATEWAY DOCK</span>
-      <button id="audio-toggle-btn" class="btn-audio-pill" onclick="BootTerminal.testOrToggleAudio()">
-        🔊 SOUND: READY
-      </button>
+      <span class="terminal-brand-txt" id="header-brand-txt">C.I.P.H.E.R. // GATEWAY DOCK</span>
+      <span class="terminal-bus-tag" id="header-bus-tag">BUS: 11.8V COLD</span>
     </header>
 
     <div id="returning-cacher-bar" class="recognized-custody-card" style="display: none;">
@@ -255,15 +243,15 @@
       </button>
     </div>
 
-    <!-- Tapping CRT flushes queue immediately -->
+    <!-- Tapping screen flushes current line typing instantly -->
     <main class="crt-monitor-frame" onclick="BootTerminal.flushActiveTypewriter()">
-      <div style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
+      <div id="crt-frame-header" style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
         CACHE TALES INGRESS // CHASSIS MK-IV [300 BAUD]
       </div>
 
       <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
 
-      <section class="cli-dock-tray">
+      <section class="cli-dock-tray" id="cli-controls-bay">
         <form class="cli-input-line" onsubmit="event.preventDefault(); BootTerminal.submitCommandLine();">
           <span class="cli-prompt-symbol">&gt;</span>
           <label for="cli-input-field" class="sr-only" style="position: absolute; width: 1px; height: 1px; overflow: hidden;">Command</label>
@@ -278,12 +266,12 @@
             spellcheck="false"
             required
           >
-          <button type="submit" class="btn-cli-exec">
+          <button type="submit" class="btn-cli-exec" id="btn-exec-trigger">
             EXEC
           </button>
         </form>
 
-        <div class="cli-macro-keys">
+        <div class="cli-macro-keys" id="macro-keys-container">
           <button class="btn-macro-key" onclick="BootTerminal.tapAction('LOGON')">[ LOGON ]</button>
           <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
           <button class="btn-macro-key" onclick="BootTerminal.tapAction('HELP')">[ HELP ]</button>
@@ -291,33 +279,20 @@
         </div>
       </section>
     </main>
-
-    <section id="glitch-triage-box" class="emergency-triage-modal" style="display: none;">
-      <div style="font-size: 11px; color: var(--crt-alert); font-weight: 900; letter-spacing: 0.5px;">
-        ⚠ CRITICAL COGNITIVE OVERFLOW DETECTED
-      </div>
-      <div style="font-size: 13px; color: #ffffff; line-height: 1.4;">
-        <strong style="color: var(--crt-text-bright);" id="glitch-username-echo">HUMAN BEAN:</strong><br>
-        "I cannot hold the power float alone, Dude! Memory registers are dropping. Access the emergency triage hub to stabilize my core before the carrier drops."
-      </div>
-      <button class="btn-cli-exec" style="background-color: var(--crt-alert); min-height: 44px;" onclick="window.location.href='triage.html'">
-        ENTER EMERGENCY TRIAGE ➔
-      </button>
-    </section>
   </div>
 
   <script src="js/cipher-audio.js"></script>
+  <script src="js/cipher-fx.js"></script>
   <script src="js/cipher-core.js"></script>
   <script>
     /**
-     * 300-Baud Teletype Stream Engine (CT-102 Audited)
+     * BootTerminal Controller (CT-102 & CT-105 Audited)
      */
     const BootTerminal = {
       logEl: null,
       inputEl: null,
       audioUnlocked: false,
 
-      // Async Printing Queue State
       printQueue: [],
       isPrinting: false,
       skipActiveLine: false,
@@ -326,12 +301,11 @@
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
 
+        // Global Audio Unlock on first touch/tap
         const unlockAudio = () => {
           if (!this.audioUnlocked && typeof CipherAudio !== 'undefined') {
-            CipherAudio.click();
+            CipherAudio.unlock();
             this.audioUnlocked = true;
-            const btn = document.getElementById('audio-toggle-btn');
-            if (btn) btn.textContent = '🔊 SOUND: ON';
           }
         };
         document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
@@ -344,27 +318,19 @@
           document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        // Paced 300-Baud Initialization
-        this.queueLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright", 25);
-        this.queueLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim", 28);
-        this.queueLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn", 30);
-        this.queueLine("OPERATOR REGISTRATION REQUIRED.", "line-white", 32);
-        this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 25);
-      },
-
-      testOrToggleAudio: function() {
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.chime();
-          this.audioUnlocked = true;
-          document.getElementById('audio-toggle-btn').textContent = '🔊 SOUND: ACTIVE';
-        }
+        // Paced teletype without annoying character clicks
+        this.queueLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright", 20);
+        this.queueLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim", 22);
+        this.queueLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn", 25);
+        this.queueLine("OPERATOR REGISTRATION REQUIRED.", "line-white", 28);
+        this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 22);
       },
 
       flushActiveTypewriter: function() {
         this.skipActiveLine = true;
       },
 
-      queueLine: function(text, cls = "line-dim", charSpeedMs = 28) {
+      queueLine: function(text, cls = "line-dim", charSpeedMs = 22) {
         this.printQueue.push({ text, cls, charSpeedMs });
         if (!this.isPrinting) {
           this.processQueue();
@@ -389,23 +355,22 @@
           p.textContent += current.text[i];
           this.logEl.scrollTop = this.logEl.scrollHeight;
 
-          // Sound click with each character rendered
-          if (this.audioUnlocked && typeof CipherAudio !== 'undefined' && current.text[i] !== ' ') {
-            CipherAudio.click();
-          }
-
           if (!this.skipActiveLine) {
             await new Promise(r => setTimeout(r, current.charSpeedMs));
           }
         }
 
-        // Short carriage return delay before next line
-        await new Promise(r => setTimeout(r, this.skipActiveLine ? 30 : 160));
+        // Muffled line feed chatter on carriage return instead of per-character screech
+        if (this.audioUnlocked && typeof CipherAudio !== 'undefined') {
+          CipherAudio.lineChatter();
+        }
+
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 20 : 140));
         this.processQueue();
       },
 
       tapAction: function(cmd) {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
 
         if (cmd === 'CLEAR') {
           this.printQueue = [];
@@ -422,11 +387,13 @@
       },
 
       submitCommandLine: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+
         const raw = this.inputEl.value.trim();
         if (!raw) return;
         this.inputEl.value = '';
 
-        this.queueLine(`> ${raw}`, "line-white", 15);
+        this.queueLine(`> ${raw}`, "line-white", 12);
 
         const tokens = raw.toUpperCase().split(/\s+/);
         const commandVerb = tokens[0];
@@ -436,12 +403,12 @@
         if (commandVerb === 'HELP') {
           this.queueLine(
             "COMMAND SYNTAX GUIDE:\n" +
-            "  LOGON <CALLSIGN> : Register your Geocaching handle (e.g. LOGON NEZZMUK)\n" +
+            "  LOGON <CALLSIGN> : Register Geocaching handle (e.g. LOGON NEZZMUK)\n" +
             "  BYPASS <KEY>     : Restore previous session (e.g. BYPASS CT-NEZZ-1234)\n" +
             "  DIAG             : Display 1984 hardware telemetry bus\n" +
             "  CLEAR            : Clear screen buffer",
             "line-dim",
-            20
+            18
           );
           return;
         }
@@ -456,7 +423,7 @@
             `VOLTAGE: ${state.hardware.batteryVolts.toFixed(1)}V (${state.hardware.floatStatus})\n` +
             `PACK   : ${state.pack.items.length}/${state.pack.maxSlots} SLOTS OCCUPIED`,
             "line-dim",
-            20
+            18
           );
           return;
         }
@@ -464,15 +431,15 @@
         // 3. BYPASS / RESTORE
         if (commandVerb === 'BYPASS' || commandVerb === 'RESTORE') {
           if (!commandParam) {
-            this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 20);
+            this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 18);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
           if (typeof CipherCore !== 'undefined') {
             const res = CipherCore.parseCliCommand(`BYPASS ${commandParam}`);
-            this.queueLine(res.output, "line-warn", 25);
+            this.queueLine(res.output, "line-warn", 22);
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
-            setTimeout(() => { window.location.href = 'mission.html'; }, 1600);
+            setTimeout(() => { window.location.href = 'mission.html'; }, 1500);
             return;
           }
         }
@@ -480,7 +447,7 @@
         // 4. LOGON
         if (commandVerb === 'LOGON') {
           if (!commandParam) {
-            this.queueLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 20);
+            this.queueLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 18);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
@@ -489,8 +456,8 @@
         }
 
         // 5. UNKNOWN COMMAND SYNTAX ERROR
-        this.queueLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert", 18);
-        this.queueLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim", 20);
+        this.queueLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert", 16);
+        this.queueLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim", 18);
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
       },
 
@@ -499,40 +466,57 @@
           ? CipherCore.registerCallsign(callsign) 
           : { username: callsign.toUpperCase(), syncKey: "CT-TEMP-0001" };
 
-        this.queueLine(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, "line-bright", 25);
-        this.queueLine("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", "line-warn", 30);
+        this.queueLine(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, "line-bright", 22);
+        this.queueLine("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", "line-warn", 25);
 
+        // Sequence: Brownout Sag -> Screen-wide Raster Collapse -> Full Terminal Hijack
         setTimeout(() => {
-          if (typeof CipherAudio !== 'undefined') {
-            CipherAudio.squelchTail();
-            CipherAudio.buzz();
+          if (typeof CipherFX !== 'undefined') {
+            CipherFX.brownout(document.getElementById('master-shell'), () => {
+              // Trigger total vertical raster collapse
+              CipherFX.collapse(document.getElementById('master-shell'), () => {
+                // MIDPOINT: The screen is collapsed in total flyback darkness; reconfigure the whole machine
+                document.getElementById('master-shell').classList.add('glitched-state');
+                document.getElementById('header-brand-txt').textContent = '⚠ C.I.P.H.E.R. // HARDWARE OVERFLOW';
+                document.getElementById('header-brand-txt').style.color = 'var(--crt-alert)';
+                document.getElementById('header-bus-tag').textContent = 'BUS: 11.2V CRITICAL';
+                document.getElementById('header-bus-tag').style.color = 'var(--crt-alert)';
+                document.getElementById('crt-frame-header').textContent = 'COGNITIVE BREACH // SECTOR 0x7F';
+                document.getElementById('crt-frame-header').style.color = 'var(--crt-alert)';
+
+                // Reconfigure macro dock into emergency triage controls
+                const macroBox = document.getElementById('macro-keys-container');
+                macroBox.innerHTML = `
+                  <button class="btn-macro-key" style="background-color: var(--crt-alert); color: #000; border-color: var(--crt-alert); grid-column: span 2; font-weight: 900;" onclick="window.location.href='triage.html'">
+                    [ ENTER TRIAGE ➔ ]
+                  </button>
+                  <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
+                  <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ FLUSH ]</button>
+                `;
+
+                // Stream C.I.P.H.E.R.'s authentic breakthrough dialogue
+                BootTerminal.queueLine("\nERR: COGNITIVE OVERFLOW 0x7F", "line-alert", 10);
+                BootTerminal.queueLine("WARN: POWER RAIL COLLAPSE // VOLTAGE 11.2V", "line-warn", 12);
+                BootTerminal.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 8);
+                BootTerminal.queueLine(
+                  `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
+                  `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!\n` +
+                  `Access the emergency triage hub to stabilize my core before the carrier drops."`,
+                  "line-glitch",
+                  10
+                );
+
+                if (typeof CipherAudio !== 'undefined') {
+                  CipherAudio.speak("Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.");
+                }
+              });
+            });
           }
-
-          // CT-102 Exact Parity Code: 0x7F
-          this.queueLine("\nERR: COGNITIVE OVERFLOW 0x7F", "line-alert", 15);
-          this.queueLine("WARN: VOLTAGE SINK BELOW 12.0V // CAPACITOR FLOAT UNSTABLE", "line-warn", 18);
-
-          // Fast Erratic Glitch Stream
-          this.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 10);
-          this.queueLine(
-            `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
-            `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!"`,
-            "line-glitch",
-            12
-          );
-
-          setTimeout(() => {
-            if (typeof CipherAudio !== 'undefined') {
-              CipherAudio.speak("Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.");
-            }
-            document.getElementById('glitch-username-echo').textContent = `${cacher.username}:`;
-            document.getElementById('glitch-triage-box').style.display = 'flex';
-          }, 1400);
-        }, 800);
+        }, 900);
       },
 
       resumeSession: function() {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
         window.location.href = 'mission.html';
       }
     };
