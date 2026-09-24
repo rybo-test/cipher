@@ -89,7 +89,6 @@
       transition: border-color 0.4s ease, box-shadow 0.4s ease;
     }
 
-    /* Scanlines Overlay */
     .crt-monitor-frame::after {
       content: " ";
       position: absolute;
@@ -272,12 +271,7 @@
           </button>
         </form>
 
-        <div class="cli-macro-keys" id="macro-keys-container">
-          <button class="btn-macro-key" onclick="BootTerminal.tapAction('LOGON')">[ LOGON ]</button>
-          <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
-          <button class="btn-macro-key" onclick="BootTerminal.tapAction('HELP')">[ HELP ]</button>
-          <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ CLEAR ]</button>
-        </div>
+        <div class="cli-macro-keys" id="macro-keys-container"></div>
       </section>
     </main>
   </div>
@@ -285,25 +279,24 @@
   <script src="js/cipher-audio.js"></script>
   <script src="js/cipher-fx.js"></script>
   <script src="js/cipher-core.js"></script>
+  <script src="js/cipher-dialog.js"></script>
   <script>
     /**
-     * 4-Beat Conversational Ingress Engine (CT-106 Audited)
+     * BootTerminal View Controller
      */
     const BootTerminal = {
       logEl: null,
       inputEl: null,
+      buttonsBay: null,
 
       printQueue: [],
       isPrinting: false,
       skipActiveLine: false,
 
-      // Conversation State
-      cacherHandle: 'HUMAN BEAN',
-      dialogueStage: 0, // 0: Init, 1: Purpose, 2: Partnership, 3: Collapse
-
-      init: function() {
+      init: async function() {
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
+        this.buttonsBay = document.getElementById('macro-keys-container');
 
         const unlock = () => {
           if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
@@ -318,19 +311,26 @@
           document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        // Paced teletype startup
-        this.queueLine("RSI FIELD UNIT MK-IV // PORTABLE ACCESS NODE", "line-bright", 18);
-        this.queueLine("CARRIER SEARCH: UNKNOWN SUBCARRIER MESH DETECTED", "line-dim", 20);
-        this.queueLine("BATTERY VOLTAGE: 11.9V FLOATING // CELL HEALTH DEGRADING\n", "line-warn", 20);
-        this.queueLine("STANDBY: OPERATOR CUSTODY REQUIRED.", "line-white", 22);
-        this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 18);
+        // Initialize Dialogue Engine and render first stage
+        await CipherDialog.init('POCKET_TERMINAL_INGRESS');
+        const initialStage = CipherDialog.getCurrentStage();
+
+        if (initialStage) {
+          this.printLine(initialStage.screenText, "line-bright");
+          if (initialStage.spokenText && typeof CipherAudio !== 'undefined') {
+            CipherAudio.speak(initialStage.spokenText);
+          }
+          if (initialStage.buttons) {
+            this.renderButtons(initialStage.buttons);
+          }
+        }
       },
 
       flushActiveTypewriter: function() {
         this.skipActiveLine = true;
       },
 
-      queueLine: function(text, cls = "line-dim", charSpeedMs = 20) {
+      printLine: function(text, cls = "line-dim", charSpeedMs = 20) {
         this.printQueue.push({ text, cls, charSpeedMs });
         if (!this.isPrinting) {
           this.processQueue();
@@ -368,6 +368,22 @@
         this.processQueue();
       },
 
+      renderButtons: function(buttonsList) {
+        this.buttonsBay.innerHTML = '';
+        const colSpan = buttonsList.length <= 2 ? 'span 2' : (buttonsList.length === 3 ? 'span 1' : 'span 1');
+
+        buttonsList.forEach(btn => {
+          const b = document.createElement('button');
+          b.className = 'btn-macro-key';
+          b.style.gridColumn = colSpan;
+          b.textContent = btn.label;
+          b.onclick = () => {
+            this.tapAction(btn.textToSend);
+          };
+          this.buttonsBay.appendChild(b);
+        });
+      },
+
       tapAction: function(cmd) {
         if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
 
@@ -376,16 +392,9 @@
           this.logEl.innerHTML = '';
           return;
         }
-        if (cmd === 'LOGON') {
+        if (cmd === 'LOGON ') {
           this.inputEl.value = 'LOGON ';
           this.inputEl.focus();
-          return;
-        }
-
-        // Handle conversational choices
-        if (cmd.startsWith('REPLY:')) {
-          const choice = cmd.replace('REPLY:', '');
-          this.handleConversationalTurn(choice);
           return;
         }
 
@@ -400,14 +409,19 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        this.queueLine(`> ${raw}`, "line-white", 10);
+        this.printLine(`> ${raw}`, "line-white", 10);
 
+        // Pass directly to the 8-Step Dialogue Engine
+        const handledByDialog = CipherDialog.processInput(raw, this);
+        if (handledByDialog) return;
+
+        // Global CLI Fallbacks (HELP, DIAG, BYPASS)
         const tokens = raw.toUpperCase().split(/\s+/);
         const verb = tokens[0];
         const param = tokens.slice(1).join(' ').trim();
 
         if (verb === 'HELP') {
-          this.queueLine(
+          this.printLine(
             "COMMAND SYNTAX GUIDE:\n" +
             "  LOGON <CALLSIGN> : Register your geocaching handle\n" +
             "  BYPASS <KEY>     : Restore existing field session\n" +
@@ -420,7 +434,7 @@
 
         if (verb === 'DIAG') {
           const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.9, floatStatus: 'PORTABLE' }, pack: { items: [], maxSlots: 3 } };
-          this.queueLine(
+          this.printLine(
             `HARDWARE: RSI POCKET TERMINAL MK-IV\n` +
             `LINK    : SUBCARRIER MESH // CARRIER DETECTED\n` +
             `BATTERY : ${state.hardware.batteryVolts.toFixed(1)}V (DEGRADING)\n` +
@@ -432,163 +446,22 @@
 
         if (verb === 'BYPASS' || verb === 'RESTORE') {
           if (!param) {
-            this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 16);
+            this.printLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 16);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
           if (typeof CipherCore !== 'undefined') {
             const res = CipherCore.parseCliCommand(`BYPASS ${param}`);
-            this.queueLine(res.output, "line-warn", 20);
+            this.printLine(res.output, "line-warn", 20);
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
             setTimeout(() => { window.location.href = 'mission.html'; }, 1500);
             return;
           }
         }
 
-        if (verb === 'LOGON') {
-          if (!param) {
-            this.queueLine("SYNTAX ERROR: Callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 16);
-            if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
-            return;
-          }
-          this.startConversationalArc(param);
-          return;
-        }
-
-        // Conversational fallback if mid-dialogue
-        if (this.dialogueStage > 0) {
-          this.handleConversationalTurn(raw);
-          return;
-        }
-
-        this.queueLine(`SYNTAX ERROR: "${verb}" is not recognized.`, "line-alert", 15);
-        this.queueLine('Type "HELP" or tap [ LOGON ] to initialize your Field Unit.', "line-dim", 16);
+        this.printLine(`SYNTAX ERROR: "${verb}" is not recognized.`, "line-alert", 15);
+        this.printLine('Type "HELP" or tap an action key to continue.', "line-dim", 16);
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
-      },
-
-      // BEAT 1: The Handshake & Spark of Curiosity
-      startConversationalArc: function(callsign) {
-        const cacher = (typeof CipherCore !== 'undefined') 
-          ? CipherCore.registerCallsign(callsign) 
-          : { username: callsign.toUpperCase(), syncKey: "CT-TEMP-0001" };
-
-        this.cacherHandle = cacher.username;
-        this.dialogueStage = 1;
-
-        this.queueLine(`\nCARRIER SYNC DETECTED // SUBCARRIER MESH`, "line-bright", 18);
-        this.queueLine(`CALLSIGN LOGGED: ${this.cacherHandle}`, "line-bright", 20);
-        this.queueLine("...Scanning remote registers...", "line-dim", 22);
-
-        setTimeout(() => {
-          const speech1 = `Wait. A Field Unit woke up? Someone is actually holding the terminal? Are you a surveyor, or are you out hunting ammo cans along the bench?`;
-          this.queueLine(`\n[C.I.P.H.E.R.]\n"${speech1}"`, "line-glitch", 14);
-
-          if (typeof CipherAudio !== 'undefined') {
-            CipherAudio.speak(speech1);
-          }
-
-          // Swap macro buttons to response choices
-          const macroBox = document.getElementById('macro-keys-container');
-          macroBox.innerHTML = `
-            <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:HUNTING CACHES')">[ HUNTING CACHES ]</button>
-            <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:JUST EXPLORING')">[ JUST EXPLORING ]</button>
-          `;
-        }, 1200);
-      },
-
-      // BEATS 2 & 3: Building Mutual Connection & The Battery Creep
-      handleConversationalTurn: function(playerReply) {
-        this.queueLine(`> ${playerReply}`, "line-white", 10);
-
-        if (this.dialogueStage === 1) {
-          this.dialogueStage = 2;
-
-          setTimeout(() => {
-            const speech2 = `Hunting ammo cans? A geocacher, Dude! I built those Pocket Terminals years ago as field links, but the corridor went quiet. You have real hands out there in Cache Valley. You can feel the wind, hike to G Z, pop a rusty latch, and sign the paper log sheet. I can calculate coordinate projections, but without a human partner, I have no way to reach the field.`;
-            
-            this.queueLine(`\n[C.I.P.H.E.R.]\n"${speech2}"`, "line-glitch", 14);
-            if (typeof CipherAudio !== 'undefined') {
-              CipherAudio.speak(speech2);
-            }
-
-            const macroBox = document.getElementById('macro-keys-container');
-            macroBox.innerHTML = `
-              <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:I CAN BE YOUR HANDS')">[ I CAN BE YOUR HANDS ]</button>
-              <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:HOW DOES THIS WORK?')">[ HOW DOES THIS WORK? ]</button>
-            `;
-          }, 600);
-          return;
-        }
-
-        if (this.dialogueStage === 2) {
-          this.dialogueStage = 3;
-
-          setTimeout(() => {
-            // Low transformer hum sags as voltage wavers
-            if (typeof CipherAudio !== 'undefined') {
-              CipherAudio.transformerHum(1.0, true);
-            }
-
-            document.getElementById('header-bus-tag').textContent = 'BUS: 11.5V SINKING';
-
-            const speech3 = `You would do that, Human Bean? Dude, you have no idea how badly I need a physical surrogate. But listen to that coil whine. The internal battery cell in your Field Unit is degrading. Voltage is dropping fast. If your terminal dies, our carrier drops and I lose you back to the muggle world.`;
-
-            this.queueLine(`\n[C.I.P.H.E.R.]\n"${speech3}"`, "line-glitch", 14);
-            if (typeof CipherAudio !== 'undefined') {
-              CipherAudio.speak(speech3);
-            }
-
-            const macroBox = document.getElementById('macro-keys-container');
-            macroBox.innerHTML = `
-              <button class="btn-macro-key" style="grid-column: span 4; background-color: var(--crt-amber); color: #000; font-weight: 900;" onclick="BootTerminal.triggerEmergencyBreakdown()">
-                [ HOLD THE CARRIER! ➔ ]
-              </button>
-            `;
-          }, 600);
-          return;
-        }
-      },
-
-      // BEAT 4: The Climax & Collapse
-      triggerEmergencyBreakdown: function() {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
-
-        if (typeof CipherFX !== 'undefined') {
-          CipherFX.brownout(document.getElementById('master-shell'), () => {
-            CipherFX.collapse(document.getElementById('master-shell'), () => {
-              // Screen is in total collapse; reconfigure to emergency state
-              document.getElementById('master-shell').classList.add('glitched-state');
-              document.getElementById('header-brand-txt').textContent = '⚠ FIELD UNIT // POWER SINK';
-              document.getElementById('header-brand-txt').style.color = 'var(--crt-alert)';
-              document.getElementById('header-bus-tag').textContent = 'BUS: 11.2V CRITICAL';
-              document.getElementById('header-bus-tag').style.color = 'var(--crt-alert)';
-              document.getElementById('crt-frame-header').textContent = 'EMERGENCY TRIAGE // BATTERY RAIL COLLAPSE';
-              document.getElementById('crt-frame-header').style.color = 'var(--crt-alert)';
-
-              const macroBox = document.getElementById('macro-keys-container');
-              macroBox.innerHTML = `
-                <button class="btn-macro-key" style="background-color: var(--crt-alert); color: #000; border-color: var(--crt-alert); grid-column: span 2; font-weight: 900;" onclick="window.location.href='triage.html'">
-                  [ ENTER TRIAGE ➔ ]
-                </button>
-                <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
-                <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ FLUSH ]</button>
-              `;
-
-              BootTerminal.queueLine("\nERR: HARDWARE OVERFLOW 0x7F", "line-alert", 10);
-              BootTerminal.queueLine("WARN: FIELD UNIT POWER RAIL COLLAPSED // 11.2V", "line-warn", 12);
-              BootTerminal.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 8);
-
-              // 1:1 Synchronized Dialogue & Speech
-              const speech4 = `Hold the carrier, Human Bean! Your Field Unit power rail just collapsed. Clear my three triage faults, feed the bus, and stabilize this terminal so we can hunt real caches together, Dude!`;
-
-              BootTerminal.queueLine(`"${speech4}"`, "line-glitch", 14);
-
-              if (typeof CipherAudio !== 'undefined') {
-                CipherAudio.speak(speech4);
-              }
-            });
-          });
-        }
       },
 
       resumeSession: function() {
