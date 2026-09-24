@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>C.I.P.H.E.R. // 1984 Field Terminal Gateway</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=4.30">
+  <style>
+    .cli-gateway-viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
+      background-color: var(--bg-primary);
+      position: relative;
+      overflow-y: auto;
+    }
+
+    /* Archaic CRT Monitor Housing */
+    .crt-screen-bezel {
+      background-color: #040905;
+      border: 2px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 0 25px rgba(0, 230, 118, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.9);
+      min-height: 380px;
+    }
+
+    .crt-output-log {
+      font-family: var(--font-mono);
+      font-size: var(--font-sm);
+      color: var(--text-dim);
+      line-height: 1.45;
+      white-space: pre-wrap;
+      flex: 1;
+    }
+    .crt-output-log .highlight { color: #ffffff; font-weight: bold; }
+    .crt-output-log .warn { color: var(--accent-amber); font-weight: bold; }
+    .crt-output-log .alert { color: var(--accent-alert); font-weight: bold; }
+    .crt-output-log .glitch {
+      color: var(--text-bright);
+      font-weight: 900;
+      text-shadow: 0 0 8px var(--text-bright);
+      animation: text-flicker 0.12s infinite alternate;
+    }
+
+    @keyframes text-flicker {
+      0% { opacity: 0.85; transform: skewX(1deg); }
+      100% { opacity: 1; transform: skewX(-1deg); }
+    }
+
+    /* CLI Prompt Dock */
+    .cli-prompt-bar {
+      display: flex;
+      gap: 8px;
+      border-top: 1px dashed var(--border-color);
+      padding-top: 12px;
+      margin-top: auto;
+    }
+
+    /* Mobile Quick-Tap Guided Action Keys */
+    .cli-quick-keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .btn-quick-key {
+      background-color: #06110a;
+      border: 1px solid var(--border-color);
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: bold;
+      min-height: 40px;
+      border-radius: 4px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-quick-key:active {
+      background-color: var(--border-bright);
+      color: #000000;
+    }
+
+    /* Recognized Returning Operative Ingress Card */
+    .recognized-cacher-banner {
+      background-color: #081a0e;
+      border: 1.5px solid var(--border-bright);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="status-header">
+      <span class="brand-title">C.I.P.H.E.R. // GATEWAY DOCK</span>
+      <span class="telemetry-pill" id="header-bus-pill" style="color: var(--accent-amber);">BUS: 11.8V COLD</span>
+    </header>
+
+    <main class="cli-gateway-viewport">
+      
+      <!-- Recognized Cacher Rapid Login Banner (If already identified) -->
+      <div id="recognized-bar" class="recognized-cacher-banner" style="display: none;">
+        <div>
+          <div class="section-category-tag" style="margin: 0;">RECOGNIZED TERMINAL CUSTODIAN:</div>
+          <strong id="recog-callsign-txt" style="color: #ffffff; font-size: 16px;">NEZZMUK</strong>
+        </div>
+        <button class="btn-cipher primary-solid" style="min-height: 38px; font-size: 12px; padding: 0 14px;" onclick="BootTerminal.resumeSession()">
+          RESUME ➔
+        </button>
+      </div>
+
+      <!-- Archaic CRT Dumb Terminal Box -->
+      <section class="crt-screen-bezel" aria-label="1984 Teletype Console Screen">
+        <div class="section-category-tag">CACHE TALES INGRESS // CHASSIS MK-IV</div>
+        
+        <div id="cli-screen-log" class="crt-output-log" role="status" aria-live="polite"></div>
+
+        <!-- Dynamic Form / Command Input -->
+        <form class="cli-prompt-bar" onsubmit="event.preventDefault(); BootTerminal.submitCommandLine();">
+          <span style="font-family: var(--font-mono); color: var(--text-bright); font-weight: bold; line-height: 44px;">&gt;</span>
+          <input 
+            type="text" 
+            id="cli-input-field" 
+            class="cipher-input" 
+            style="flex: 1;" 
+            placeholder="TYPE COMMAND OR CALLSIGN..." 
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            required
+          >
+          <button type="submit" class="btn-cipher primary-solid" style="width: auto; padding: 0 16px;">
+            EXEC
+          </button>
+        </form>
+
+        <!-- Guided Action Buttons (Mobile Accessibility) -->
+        <div class="cli-quick-keys">
+          <button class="btn-quick-key" onclick="BootTerminal.tapAction('LOGON')">[ LOGON ]</button>
+          <button class="btn-quick-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
+          <button class="btn-quick-key" onclick="BootTerminal.tapAction('HELP')">[ HELP ]</button>
+          <button class="btn-quick-key" onclick="BootTerminal.tapAction('CLEAR')">[ CLEAR ]</button>
+        </div>
+      </section>
+
+      <!-- Glitch Triage Hand-Off Modal -->
+      <div id="glitch-triage-card" class="cipher-panel" style="display: none; border-color: var(--accent-alert); margin-top: 10px;">
+        <div class="section-category-tag" style="color: var(--accent-alert);">CRITICAL COGNITIVE OVERFLOW DETECTED</div>
+        <p style="font-size: var(--font-base); color: #ffffff; line-height: 1.45;">
+          <strong style="color: var(--text-bright);" id="glitch-callsign-echo">HUMAN BEAN:</strong><br>
+          "I cannot hold the power float alone, Dude! Memory registers are dropping. Access the emergency triage hub to stabilize my core before the carrier drops."
+        </p>
+        <button class="btn-cipher primary-solid" style="min-height: 48px; background-color: var(--accent-alert); color: #000000; border: none; font-weight: 900;" onclick="window.location.href='triage.html'">
+          ENTER EMERGENCY TRIAGE ➔
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/cipher-audio.js"></script>
+  <script src="js/cipher-core.js"></script>
+  <script>
+    /**
+     * Dumb Terminal Gateway & Glitch Onboarding Controller
+     */
+    const BootTerminal = {
+      logEl: null,
+      inputEl: null,
+
+      init: function() {
+        this.logEl = document.getElementById('cli-screen-log');
+        this.inputEl = document.getElementById('cli-input-field');
+
+        const state = CipherCore.getState();
+
+        // Check if returning user is already recognized
+        if (state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
+          document.getElementById('recognized-bar').style.display = 'flex';
+          document.getElementById('recog-callsign-txt').textContent = state.cacher.username;
+        }
+
+        this.typeMessage(
+          "ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT\n" +
+          "CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK\n" +
+          "SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n\n" +
+          "IDENTIFICATION PROTOCOL REQUIRED.\n" +
+          "Enter your official geocaching handle or type \"HELP\":"
+        );
+      },
+
+      typeMessage: function(text, cls = '') {
+        const p = document.createElement('div');
+        if (cls) p.className = cls;
+        p.textContent = text;
+        this.logEl.appendChild(p);
+        this.logEl.scrollTop = this.logEl.scrollHeight;
+
+        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+      },
+
+      tapAction: function(cmd) {
+        if (cmd === 'CLEAR') {
+          this.logEl.innerHTML = '';
+          return;
+        }
+        if (cmd === 'LOGON') {
+          this.inputEl.value = '';
+          this.inputEl.placeholder = 'ENTER GEOCACHING USERNAME...';
+          this.inputEl.focus();
+          return;
+        }
+        this.inputEl.value = cmd;
+        this.submitCommandLine();
+      },
+
+      submitCommandLine: function() {
+        const raw = this.inputEl.value.trim();
+        if (!raw) return;
+        this.inputEl.value = '';
+
+        this.typeMessage(`> ${raw}`, 'highlight');
+
+        // Check if command or raw callsign submission
+        const cmdResult = CipherCore.parseCliCommand(raw);
+
+        if (cmdResult.bypass) {
+          this.typeMessage(cmdResult.output, 'warn');
+          if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
+          setTimeout(() => {
+            window.location.href = 'mission.html';
+          }, 1200);
+          return;
+        }
+
+        if (cmdResult.success) {
+          this.typeMessage(cmdResult.output);
+          return;
+        }
+
+        // If not a recognized CLI command, treat string as a Geocaching Username registration
+        this.initiateCacherOnboarding(raw);
+      },
+
+      initiateCacherOnboarding: function(callsign) {
+        const cacher = CipherCore.registerCallsign(callsign);
+
+        this.typeMessage(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, 'highlight');
+        this.typeMessage("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", 'warn');
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.squelchTail();
+          CipherAudio.buzz();
+        }
+
+        // The Cognitive Glitch Transition
+        setTimeout(() => {
+          this.typeMessage("\nERR: PARITY CHECK FAILED AT 0x00FF84", 'alert');
+          this.typeMessage("WARN: VOLTAGE SINK BELOW 12.0V // CAPACITOR FLOAT UNSTABLE", 'warn');
+          
+          setTimeout(() => {
+            this.typeMessage("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", 'glitch');
+            this.typeMessage(
+              `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
+              `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!"`,
+              'glitch'
+            );
+
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.speak(`Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.`);
+            }
+
+            document.getElementById('glitch-callsign-echo').textContent = `${cacher.username}:`;
+            document.getElementById('glitch-triage-card').style.display = 'block';
+          }, 1000);
+        }, 800);
+      },
+
+      resumeSession: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        window.location.href = 'mission.html';
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      BootTerminal.init();
+    });
+  </script>
+</body>
+</html>
