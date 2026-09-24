@@ -6,9 +6,6 @@
   <title>C.I.P.H.E.R. // Cacher Trail Pack</title>
   <link rel="stylesheet" href="css/cipher-style.css?v=4.00">
   <style>
-    /* ==========================================================================
-       MAINFRAME BUS METERS
-       ========================================================================== */
     .harvest-bus-panel {
       background-color: var(--bg-card);
       border: 1.5px solid var(--border-bright);
@@ -40,236 +37,13 @@
       transition: width 0.3s ease;
     }
     .meter-bar-fill.warn { background-color: var(--accent-amber); }
-
-    /* ==========================================================================
-       FULLSCREEN 3D MECHANICAL CYPHER-WHEEL MODAL
-       ========================================================================== */
-    .wheel-modal-backdrop {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(3, 8, 4, 0.96);
-      z-index: 60;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .wheel-modal-card {
-      background-color: var(--bg-surface);
-      border: 2px solid var(--border-bright);
-      border-radius: 10px;
-      width: 100%;
-      max-width: 460px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 0 35px rgba(0, 230, 118, 0.3);
-    }
-
-    /* 3D Wheel Viewport & Disc Mechanics */
-    .wheel-3d-stage {
-      perspective: 900px;
-      width: 100%;
-      height: 310px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      touch-action: none; /* Allows direct touch rotation without page scroll */
-      user-select: none;
-    }
-    .disc-assembly {
-      width: 290px;
-      height: 290px;
-      position: relative;
-      transform-style: preserve-3d;
-      transform: rotateX(16deg);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Outer Stator Ring (Static A-Z) */
-    .outer-stator-ring {
-      position: absolute;
-      width: 286px;
-      height: 286px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #08160d 50%, #030805 95%);
-      border: 4px solid #163620;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9), inset 0 0 12px rgba(0, 230, 118, 0.15);
-      transform-style: preserve-3d;
-    }
-    .stator-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 22px;
-      height: 22px;
-      margin-left: -11px;
-      margin-top: -11px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 900;
-      color: var(--text-dim);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    /* Inner Rotor Ring (Rotates in 3D) */
-    .inner-rotor-ring {
-      position: absolute;
-      width: 204px;
-      height: 204px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #102617 40%, #06110a 90%);
-      border: 3px solid var(--border-bright);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 230, 118, 0.3);
-      cursor: grab;
-      touch-action: none;
-      transform-style: preserve-3d;
-      transition: transform 0.05s ease-out;
-    }
-    .inner-rotor-ring:active { cursor: grabbing; }
-
-    .rotor-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 20px;
-      margin-left: -10px;
-      margin-top: -10px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 900;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    /* Center Spindle Cap */
-    .rotor-center-spindle {
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #ffb300 10%, #784500 70%, #201200 95%);
-      border: 2px solid #ffb300;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8), inset 0 0 6px rgba(255, 255, 255, 0.6);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      transform: translateZ(10px);
-    }
-    .spindle-offset-txt {
-      font-family: var(--font-mono);
-      font-size: 16px;
-      font-weight: 900;
-      color: #ffffff;
-      text-shadow: 0 2px 4px #000000;
-    }
-    .spindle-sub-txt {
-      font-size: 9px;
-      font-weight: bold;
-      color: #ffd54f;
-      letter-spacing: 0.5px;
-    }
-
-    /* Fixed Alignment Pointer Notch */
-    .rotor-pointer-notch {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 9px solid transparent;
-      border-right: 9px solid transparent;
-      border-top: 14px solid var(--border-bright);
-      filter: drop-shadow(0 0 6px var(--border-bright));
-      z-index: 25;
-      pointer-events: none;
-    }
-
-    /* Adaptive Mode Controls */
-    .adaptive-control-bar {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 8px;
-      align-items: center;
-    }
-    .preset-selector {
-      background-color: #06110a;
-      border: 1.5px solid var(--border-color);
-      color: var(--text-bright);
-      font-family: var(--font-ui);
-      font-size: 13px;
-      min-height: 44px;
-      padding: 0 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      width: 100%;
-    }
-
-    /* Split-Flap Mechanical Tumbler Display */
-    .tumbler-rack {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 5px;
-      padding: 10px 6px;
-      background-color: #050a06;
-      border: 1.5px solid var(--border-color);
-      border-radius: 6px;
-    }
-    .tumbler-tile {
-      width: 26px;
-      height: 38px;
-      background: linear-gradient(180deg, #112216 48%, #08110b 52%);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 17px;
-      font-weight: bold;
-      color: #ffffff;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
-      transition: transform 0.1s ease, color 0.15s ease;
-    }
-    .tumbler-tile.locked {
-      border-color: var(--border-bright);
-      color: var(--border-bright);
-      box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
-      transform: scale(1.05);
-    }
-    .tumbler-sep {
-      width: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-dim);
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     <header class="status-header">
-      <span class="brand-title">C.I.P.H.E.R. // v4.0-CATALOG</span>
+      <span class="brand-title">C.I.P.H.E.R. // v3.9-CATALOG</span>
       <div class="header-status-pill" role="status">
         <span class="dot"></span>
         <span>ONLINE // GZ</span>
@@ -283,7 +57,7 @@
         <div class="section-category-tag">CONTROLLED ITEM INVENTORY</div>
         <h1 class="page-main-heading">Cacher Trail Pack</h1>
         <p class="page-description">
-          Field tools, encryption discs, and hardware parts. Tap [FEED] to upgrade mainframe bus specs.
+          Field tools, signature swag, and scavenged components. Tap [FEED] to upgrade mainframe bus specs.
         </p>
       </section>
 
@@ -312,14 +86,14 @@
 
       <!-- Dynamic Item Cards Deck -->
       <section id="items-container" aria-label="Pack Items Deck" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Rendered dynamically by PackController -->
+        <!-- Rendered by PackController -->
       </section>
 
-      <!-- Physical Ammo Can Lid Voucher Redemption Dock -->
+      <!-- Field Container Lid Voucher Redemption Dock -->
       <section class="cipher-panel" style="margin-top: auto;" aria-labelledby="voucher-dock-title">
         <h2 id="voucher-dock-title" class="panel-header">FIELD VOUCHER REDEMPTION DOCK</h2>
         <p style="font-size: var(--font-sm); color: #a7f3d0; line-height: 1.4;">
-          Redeem stamped alphanumeric codes from ammo can lids or brass washers found at GZ.
+          Redeem stamped alphanumeric codes from ammo can lids or washers found at GZ.
         </p>
         <form style="display: flex; gap: 8px; margin-top: 8px;" onsubmit="event.preventDefault(); PackController.redeemVoucher();">
           <label for="voucher-input" class="sr-only">Voucher Code</label>
@@ -343,89 +117,7 @@
 
     </main>
 
-    <!-- ======================================================================
-         3D MECHANICAL CYPHER-WHEEL MODAL (INTERACTIVE & STANDALONE)
-         ====================================================================== -->
-    <div id="wheel-modal" class="wheel-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="wheel-title">
-      <div class="wheel-modal-card">
-        <div class="panel-header" style="margin: 0;">
-          <span id="wheel-title">3D MECHANICAL CYPHER-WHEEL</span>
-          <button class="btn-cipher" style="min-height: 38px; padding: 0 12px;" onclick="CypherWheel.close()">✕</button>
-        </div>
-
-        <!-- Adaptive Puzzle / Scratchpad Mode Dropdown -->
-        <div class="adaptive-control-bar">
-          <label for="preset-select" class="sr-only">Choose Cipher Puzzle Target</label>
-          <select id="preset-select" class="preset-selector" onchange="CypherWheel.selectPreset(this.value)">
-            <option value="STAGE_01">Stage 01: Welded Anchor (ROT-13)</option>
-            <option value="CALIBRATION">Stage 00: Calibration Post (ROT-13)</option>
-            <option value="CUSTOM">Custom Field Scratchpad (Any Cipher)</option>
-          </select>
-          <div style="font-size: 11px; color: var(--accent-amber); font-family: var(--font-mono); text-align: right;" id="wheel-mode-tag">
-            TARGET: "THS"
-          </div>
-        </div>
-
-        <!-- Custom Cipher Input (Shows only when Custom is chosen) -->
-        <div id="custom-input-wrap" style="display: none;">
-          <label for="custom-cipher-field" class="sr-only">Enter Custom Cipher Text</label>
-          <input 
-            type="text" 
-            id="custom-cipher-field" 
-            class="cipher-input" 
-            placeholder="ENTER SCRAMBLED TEXT..." 
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="characters"
-            spellcheck="false"
-            style="width: 100%; min-height: 42px;"
-            oninput="CypherWheel.setCustomText(this.value)"
-          >
-        </div>
-
-        <!-- The 3D Mechanical Rotor Wheel Assembly -->
-        <div class="wheel-3d-stage" id="touch-stage">
-          <div class="rotor-pointer-notch" aria-hidden="true"></div>
-          
-          <div class="disc-assembly">
-            <!-- Outer Stator Ring (Fixed A-Z) -->
-            <div class="outer-stator-ring" id="outer-stator" aria-hidden="true"></div>
-
-            <!-- Inner Rotor Ring (Interactive 3D Touch Rotation) -->
-            <div class="inner-rotor-ring" id="inner-rotor" aria-label="Rotatable Inner Cipher Disc">
-              <!-- Dynamically populated letters -->
-              <div class="rotor-center-spindle" aria-hidden="true">
-                <span class="spindle-offset-txt" id="spindle-val">ROT-00</span>
-                <span class="spindle-sub-txt">SHIFTER</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Split-Flap Tumbler Tiles Readout -->
-        <div class="tumbler-rack" id="tumbler-rack" aria-live="polite"></div>
-
-        <!-- Alignment Feedback & Manual Steppers -->
-        <div style="display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 13px;">
-          <span>STATUS: <strong id="lock-state-txt" style="color: var(--accent-alert);">[UNALIGNED]</strong></span>
-          <span style="color: var(--text-dim);">DRAG WHEEL OR STEP</span>
-        </div>
-
-        <!-- Controls -->
-        <div style="display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 8px;">
-          <button class="btn-cipher" onclick="CypherWheel.step(-1)">◄ STEP</button>
-          <button class="btn-cipher primary-solid" onclick="CypherWheel.slamRot13()">⚡ SLAM ROT-13</button>
-          <button class="btn-cipher" onclick="CypherWheel.step(1)">STEP ►</button>
-        </div>
-
-        <!-- Auto-Inject or Copy Button -->
-        <button id="btn-inject" class="btn-cipher primary-solid" style="display: none;" onclick="CypherWheel.autoInject()">
-          ⚡ AUTO-INJECT INTO MISSION TERMINAL ➔
-        </button>
-      </div>
-    </div>
-
-    <!-- Symmetrical 4-Anchor Navigation Strip -->
+    <!-- Bottom Navigation Strip -->
     <nav class="nav-anchor-strip" aria-label="Primary Navigation">
       <a href="mission.html" class="nav-tab">
         <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -440,7 +132,7 @@
         <span>PACK</span>
       </a>
       <a href="profile.html" class="nav-tab">
-        <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>MENU</span>
       </a>
     </nav>
@@ -492,7 +184,7 @@
               <div class="item-badge-pill">${item.badge}</div>
               <div style="display: flex; gap: 8px; margin-top: 8px;">
                 ${isPart ? `<button class="btn-cipher primary-solid" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="PackController.feedItem('${item.id}')">⚡ FEED TO CIPHER</button>` : ''}
-                ${item.id === 'TOOL_ROT13' ? `<button class="btn-cipher primary-solid" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="CypherWheel.open()">⚙ OPERATE 3D WHEEL</button>` : `<button class="btn-cipher" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="alert('${item.name}: Serial hash verified authentic.')">🔍 INSPECT</button>`}
+                ${item.id === 'TOOL_ROT13' ? `<button class="btn-cipher primary-solid" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="window.location.href='wheel.html?return=pack.html'">⚙️ LAUNCH 3D CYPHER-WHEEL</button>` : `<button class="btn-cipher" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="alert('${item.name}: Serial hash verified authentic.')">🔍 INSPECT</button>`}
               </div>
             </div>
           `;
@@ -542,228 +234,8 @@
       }
     };
 
-    /* ==========================================================================
-       3D MECHANICAL CYPHER-WHEEL ENGINE (TOUCH PHYSICS + POLAR TRACKING)
-       ========================================================================== */
-    const CypherWheel = {
-      offset: 0,
-      activeCipher: "GUF-SYNAP-HAX-89",
-      targetAnchor: "THS",
-      solvedString: "",
-      isDragging: false,
-      startAngle: 0,
-      baseOffsetAngle: 0,
-      anglePerLetter: 360 / 26, // ~13.846 deg
-
-      presets: {
-        STAGE_01: { cipher: "GUF-SYNAP-HAX-89", anchor: "THS", mode: "STAGE 01 TARGET: 'THS'" },
-        CALIBRATION: { cipher: "RAT-GVPX-84", anchor: "RAT-TICK", mode: "CALIBRATION TARGET: 'RAT-TICK'" },
-        CUSTOM: { cipher: "GUF-SYNAP-HAX-89", anchor: "", mode: "FREE SCRATCHPAD (ANY CIPHER)" }
-      },
-
-      init: function() {
-        this.buildPhysicalDiscs();
-        this.bindTouchPhysics();
-      },
-
-      buildPhysicalDiscs: function() {
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const stator = document.getElementById('outer-stator');
-        const rotor = document.getElementById('inner-rotor');
-
-        stator.innerHTML = '';
-        
-        // Build Fixed Outer Ring (Radius ~124px)
-        for (let i = 0; i < 26; i++) {
-          const angle = (i * this.anglePerLetter) - 90; // Top is 0
-          const rad = angle * (Math.PI / 180);
-          const x = Math.round(124 * Math.cos(rad));
-          const y = Math.round(124 * Math.sin(rad));
-
-          const span = document.createElement('div');
-          span.className = 'stator-label';
-          span.textContent = alphabet[i];
-          span.style.transform = `translate(${x}px, ${y}px) rotate(${angle + 90}deg)`;
-          stator.appendChild(span);
-        }
-
-        // Build Inner Rotor Ring (Radius ~84px)
-        for (let i = 0; i < 26; i++) {
-          const angle = (i * this.anglePerLetter) - 90;
-          const rad = angle * (Math.PI / 180);
-          const x = Math.round(84 * Math.cos(rad));
-          const y = Math.round(84 * Math.sin(rad));
-
-          const span = document.createElement('div');
-          span.className = 'rotor-label';
-          span.textContent = alphabet[i];
-          span.style.transform = `translate(${x}px, ${y}px) rotate(${angle + 90}deg)`;
-          rotor.appendChild(span);
-        }
-      },
-
-      bindTouchPhysics: function() {
-        const stage = document.getElementById('touch-stage');
-        const rotor = document.getElementById('inner-rotor');
-
-        const getAngle = (clientX, clientY) => {
-          const rect = stage.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
-        };
-
-        const handleDown = (e) => {
-          this.isDragging = true;
-          const p = e.touches ? e.touches[0] : e;
-          this.startAngle = getAngle(p.clientX, p.clientY);
-          this.baseOffsetAngle = -this.offset * this.anglePerLetter;
-          rotor.style.transition = 'none';
-        };
-
-        const handleMove = (e) => {
-          if (!this.isDragging) return;
-          const p = e.touches ? e.touches[0] : e;
-          const currentAngle = getAngle(p.clientX, p.clientY);
-          let delta = currentAngle - this.startAngle;
-          
-          let totalAngle = this.baseOffsetAngle + delta;
-          rotor.style.transform = `rotate(${totalAngle}deg)`;
-
-          // Calculate offset index
-          let normalized = Math.round(-totalAngle / this.anglePerLetter) % 26;
-          if (normalized < 0) normalized += 26;
-
-          if (normalized !== this.offset) {
-            this.offset = normalized;
-            if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-            this.updateDisplay(false);
-          }
-        };
-
-        const handleUp = () => {
-          if (!this.isDragging) return;
-          this.isDragging = false;
-          rotor.style.transition = 'transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
-          this.syncRotorToOffset();
-        };
-
-        stage.addEventListener('pointerdown', handleDown);
-        window.addEventListener('pointermove', handleMove);
-        window.addEventListener('pointerup', handleUp);
-      },
-
-      syncRotorToOffset: function() {
-        const rotor = document.getElementById('inner-rotor');
-        const snapAngle = -this.offset * this.anglePerLetter;
-        rotor.style.transform = `rotate(${snapAngle}deg)`;
-        this.updateDisplay(true);
-      },
-
-      open: function() {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-        document.getElementById('wheel-modal').style.display = 'flex';
-        this.syncRotorToOffset();
-      },
-
-      close: function() {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-        document.getElementById('wheel-modal').style.display = 'none';
-      },
-
-      step: function(dir) {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-        this.offset = (this.offset + dir + 26) % 26;
-        this.syncRotorToOffset();
-      },
-
-      slamRot13: function() {
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.squelchTail();
-          CipherAudio.chime();
-        }
-        this.offset = 13;
-        this.syncRotorToOffset();
-      },
-
-      selectPreset: function(key) {
-        const p = this.presets[key];
-        this.activeCipher = p.cipher;
-        this.targetAnchor = p.anchor;
-        document.getElementById('wheel-mode-tag').textContent = p.mode;
-        document.getElementById('custom-input-wrap').style.display = (key === 'CUSTOM') ? 'block' : 'none';
-        this.updateDisplay(true);
-      },
-
-      setCustomText: function(txt) {
-        this.activeCipher = txt.toUpperCase() || "EMPTY";
-        this.updateDisplay(true);
-      },
-
-      updateDisplay: function(allowLockSound) {
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        document.getElementById('spindle-val').textContent = `ROT-${this.offset.toString().padStart(2, '0')}`;
-
-        // Live Decoding
-        let decoded = "";
-        for (let char of this.activeCipher) {
-          if (alphabet.includes(char)) {
-            const idx = alphabet.indexOf(char);
-            decoded += alphabet[(idx - this.offset + 26) % 26];
-          } else {
-            decoded += char;
-          }
-        }
-        this.solvedString = decoded;
-
-        // Render Mechanical Split-Flap Tumblers
-        const rack = document.getElementById('tumbler-rack');
-        rack.innerHTML = '';
-
-        const isMatch = this.targetAnchor ? decoded.startsWith(this.targetAnchor) : (this.offset === 13);
-
-        for (let char of decoded) {
-          if (char === '-') {
-            const sep = document.createElement('div');
-            sep.className = 'tumbler-sep';
-            sep.textContent = '-';
-            rack.appendChild(sep);
-          } else {
-            const tile = document.createElement('div');
-            tile.className = `tumbler-tile ${isMatch ? 'locked' : ''}`;
-            tile.textContent = char;
-            rack.appendChild(tile);
-          }
-        }
-
-        const lockTxt = document.getElementById('lock-state-txt');
-        const injectBtn = document.getElementById('btn-inject');
-
-        if (isMatch) {
-          lockTxt.style.color = 'var(--text-bright)';
-          lockTxt.textContent = (this.offset === 13) ? '[ROT-13 LOCK ACQUIRED]' : '[TARGET MATCH ACQUIRED]';
-          injectBtn.style.display = 'block';
-          if (allowLockSound && typeof CipherAudio !== 'undefined') CipherAudio.chime();
-        } else {
-          lockTxt.style.color = 'var(--accent-alert)';
-          lockTxt.textContent = `[OFFSET: ROT-${this.offset.toString().padStart(2, '0')}]`;
-          injectBtn.style.display = 'none';
-        }
-      },
-
-      autoInject: function() {
-        sessionStorage.setItem('INJECTED_CRACK_CODE', this.solvedString);
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.chime();
-          CipherAudio.speak("Code injected into field terminal. Cracking coordinates.");
-        }
-        window.location.href = 'mission.html';
-      }
-    };
-
     document.addEventListener('DOMContentLoaded', () => {
       PackController.init();
-      CypherWheel.init();
     });
   </script>
 </body>
