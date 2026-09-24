@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C.I.P.H.E.R. // Mission Terminal</title>
-  <link rel="stylesheet" href="css/cipher-style.css?v=3.70">
+  <link rel="stylesheet" href="css/cipher-style.css?v=4.00">
   <style>
     .puzzle-card {
       background-color: var(--bg-card);
@@ -47,17 +47,17 @@
 
   <div class="app-container">
     <header class="status-header">
-      <span class="brand-title">C.I.P.H.E.R. // v3.7-MISSION</span>
+      <span class="brand-title">C.I.P.H.E.R. // v3.9-MISSION</span>
       <div class="header-status-pill" role="status" aria-label="Device Status">
         <span class="dot"></span>
         <span>ONLINE // GZ</span>
       </div>
-      <span class="header-user-tag">NEZZMUK 👤</span>
+      <span class="header-user-tag" id="mission-user-tag">NEZZMUK 👤</span>
     </header>
 
     <main class="viewport-stage">
       
-      <!-- Top Title Banner Matching Pack & Trail -->
+      <!-- Top Title Banner -->
       <section class="page-title-banner" aria-label="Mission Header">
         <div class="section-category-tag">STAGE 01 // CORRIDOR BENCH</div>
         <h1 class="page-main-heading">The Welded Anchor</h1>
@@ -76,7 +76,7 @@
         </div>
       </section>
 
-      <!-- The Active Puzzle Card -->
+      <!-- Active Puzzle Card -->
       <section id="puzzle-box" class="puzzle-card" aria-label="Active Subroutine">
         <div class="section-category-tag">CIPHER SUBROUTINE // ROT-13 OFFSET:</div>
         <div class="cipher-text-display" id="cipher-display">GUF-SYNAP-HAX-89</div>
@@ -101,16 +101,25 @@
           </button>
         </form>
 
+        <!-- Direct Launcher into the 3D Cypher-Wheel with Target Payload -->
+        <button 
+          class="btn-cipher primary-solid" 
+          style="min-height: 48px;" 
+          onclick="MissionController.launchWheel()"
+        >
+          ⚙️ OPEN 3D CYPHER-WHEEL FOR THIS STAGE
+        </button>
+
         <button class="btn-cipher" onclick="MissionController.toggleHint()">
           <span>💡 SHOW HINT</span>
         </button>
 
         <div id="hint-text" style="display: none; background-color: #06110a; border: 1px dashed var(--border-color); padding: 10px; border-radius: 4px; font-size: var(--font-sm); color: var(--text-dim);" role="region">
-          HINT: Standard letter shift 13 places forward. Check the ROT-13 card in your PACK.
+          HINT: Anchor plate log notes first 3 letters translate to "THS". Launch the Cypher-Wheel to mechanically solve it.
         </div>
       </section>
 
-      <!-- Unlocked GZ Coordinates -->
+      <!-- Unlocked Coordinates -->
       <section id="solution-card" class="puzzle-card" style="display: none;" aria-label="GZ Coordinates">
         <div class="section-category-tag" style="color: var(--text-bright);">✔ GZ COORDINATES UNLOCKED</div>
         <div style="font-size: var(--font-xl); color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono);">
@@ -140,7 +149,7 @@
 
     </main>
 
-    <!-- Solid Green Pill Navigation -->
+    <!-- Bottom Navigation Strip -->
     <nav class="nav-anchor-strip" aria-label="Primary Navigation">
       <a href="mission.html" class="nav-tab active" aria-current="page">
         <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -155,7 +164,7 @@
         <span>PACK</span>
       </a>
       <a href="profile.html" class="nav-tab">
-        <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>MENU</span>
       </a>
     </nav>
@@ -165,32 +174,82 @@
   <script src="js/cipher-core.js"></script>
   <script>
     const MissionController = {
-      activeSolution: "THS-FLANC-UNK-89",
-      submitCrack: function() {
-        const val = document.getElementById('solution-input').value.trim().toUpperCase();
-        if (!val) return;
-        if (val === this.activeSolution) {
-          if (typeof CipherAudio !== 'undefined') {
-            CipherAudio.chime();
-            CipherAudio.speak("Verification successful. Real world coordinates decrypted.");
-          }
-          if (typeof CipherCore !== 'undefined') CipherCore.resetFailureCounter();
-          document.getElementById('puzzle-box').style.display = 'none';
-          document.getElementById('solution-card').style.display = 'flex';
-          document.getElementById('dialogue-line').textContent = '> "Stage complete. Real-world coordinates logged below."';
-        } else {
-          if (typeof CipherCore !== 'undefined') {
-            const fail = CipherCore.registerInputFailure();
-            document.getElementById('dialogue-line').textContent = fail.message;
-          }
+      activeStage: {
+        solution: "THS-FLANC-UNK-89",
+        coords: "N 41° 39.120 W 111° 55.450",
+        gcCode: "GC10001",
+        cipherText: "GUF-SYNAP-HAX-89",
+        targetAnchor: "THS"
+      },
+
+      init: function() {
+        const state = CipherCore.getState();
+        document.getElementById('mission-user-tag').textContent = `${state.cacher.username} 👤`;
+
+        if (state.campaign.completedCaches && state.campaign.completedCaches.includes(this.activeStage.gcCode)) {
+          this.showSolvedState();
+          return;
+        }
+
+        // Automatic reception of Auto-Inject payload from wheel.html
+        const injected = sessionStorage.getItem('INJECTED_CRACK_CODE');
+        if (injected) {
+          sessionStorage.removeItem('INJECTED_CRACK_CODE');
+          const input = document.getElementById('solution-input');
+          input.value = injected;
+          setTimeout(() => {
+            this.submitCrack();
+          }, 350);
         }
       },
+
+      launchWheel: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        const url = `wheel.html?cipher=${encodeURIComponent(this.activeStage.cipherText)}&target=${encodeURIComponent(this.activeStage.targetAnchor)}&return=mission.html`;
+        window.location.href = url;
+      },
+
+      submitCrack: function() {
+        const input = document.getElementById('solution-input');
+        const val = input.value.trim().toUpperCase();
+        if (!val) return;
+
+        if (val === this.activeStage.solution) {
+          if (typeof CipherAudio !== 'undefined') {
+            CipherAudio.chime();
+            CipherAudio.speak("Verification successful. Real-world coordinates decrypted.");
+          }
+          CipherCore.resetFailureCounter();
+
+          const state = CipherCore.getState();
+          if (!state.campaign.completedCaches.includes(this.activeStage.gcCode)) {
+            state.campaign.completedCaches.push(this.activeStage.gcCode);
+          }
+          CipherCore.commitMilestone('STAGE_CRACKED', { gcCode: this.activeStage.gcCode });
+          this.showSolvedState();
+        } else {
+          const failure = CipherCore.registerInputFailure();
+          document.getElementById('dialogue-line').textContent = failure.message;
+          input.value = '';
+        }
+      },
+
       toggleHint: function() {
         if (typeof CipherAudio !== 'undefined') CipherAudio.click();
         const hint = document.getElementById('hint-text');
         hint.style.display = hint.style.display === 'block' ? 'none' : 'block';
+      },
+
+      showSolvedState: function() {
+        document.getElementById('puzzle-box').style.display = 'none';
+        document.getElementById('solution-card').style.display = 'flex';
+        document.getElementById('dialogue-line').textContent = '> "Stage complete. Real-world coordinates logged below."';
       }
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      MissionController.init();
+    });
   </script>
 </body>
 </html>
