@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>C.I.P.H.E.R. // Model RSI-1984 Boot Gateway</title>
+  <style>
+    :root {
+      --content-scale: 1;
+      --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+      --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+      /* CRT Green (Default) */
+      --bg-dark: #0a0f0d;
+      --panel-bg: #121a15;
+      --panel-inner: #080d0a;
+      --border-main: #2a5a3a;
+      --border-accent: #38ef7d;
+      --accent: #38ef7d;
+      --accent-dim: #7da88d;
+      --text-bright: #ffffff;
+      --text-main: #38ef7d;
+      --text-dim: #7da88d;
+      --warning: #f7b731;
+      --danger: #eb3b5a;
+    }
+
+    body.theme-light {
+      --bg-dark: #d8ded9;
+      --panel-bg: #f4f6f4;
+      --panel-inner: #e6eae6;
+      --border-main: #405747;
+      --border-accent: #174223;
+      --accent: #144724;
+      --accent-dim: #254d33;
+      --text-bright: #050a06;
+      --text-main: #050a06;
+      --text-dim: #1f3626;
+      --warning: #874b00;
+      --danger: #a81320;
+    }
+
+    body.theme-amber {
+      --bg-dark: #120b00;
+      --panel-bg: #1f1402;
+      --panel-inner: #0f0a00;
+      --border-main: #5c3f0d;
+      --border-accent: #ffb000;
+      --accent: #ffb000;
+      --accent-dim: #ba8829;
+      --text-bright: #ffffff;
+      --text-main: #ffb000;
+      --text-dim: #ba8829;
+      --warning: #ffcf66;
+      --danger: #ff4d4d;
+    }
+
+    body.theme-hivis {
+      --bg-dark: #0a0e14;
+      --panel-bg: #131924;
+      --panel-inner: #0d121c;
+      --border-main: #2b456b;
+      --border-accent: #4ba3ff;
+      --accent: #4ba3ff;
+      --accent-dim: #8ab6e9;
+      --text-bright: #ffffff;
+      --text-main: #4ba3ff;
+      --text-dim: #8ab6e9;
+      --warning: #ffd13b;
+      --danger: #ff5252;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 10px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .boot-chassis {
+      background: var(--panel-inner);
+      border: 2px solid var(--border-main);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .boot-header {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border-main);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status-badge {
+      background: var(--panel-inner);
+      color: var(--accent);
+      border: 1px solid var(--border-main);
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+
+    .console-screen {
+      background: var(--bg-dark);
+      padding: 16px;
+      min-height: 220px;
+      max-height: 320px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-bottom: 1px solid var(--border-main);
+    }
+
+    .console-line {
+      word-break: break-word;
+    }
+    .console-line.sys { color: var(--accent-dim); }
+    .console-line.bright { color: var(--text-bright); font-weight: bold; }
+    .console-line.warn { color: var(--warning); }
+    .console-line.alert { color: var(--danger); }
+
+    .auth-deck {
+      padding: 16px;
+      background: var(--panel-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .auth-toggle-row {
+      display: flex;
+      gap: 8px;
+      background: var(--panel-inner);
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border-main);
+    }
+
+    .btn-toggle-auth {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .btn-toggle-auth.active {
+      background: var(--accent);
+      color: var(--bg-dark);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .auth-input {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-main);
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-weight: 700;
+      outline: none;
+    }
+    .auth-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-engage {
+      background: var(--accent);
+      color: var(--bg-dark);
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 800;
+      padding: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+      letter-spacing: 0.5px;
+    }
+    .btn-engage:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+    .btn-engage:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .guest-skip {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body class="theme-crt font-regular">
+
+  <div class="app-shell">
+
+    <div class="boot-chassis">
+      
+      <div class="boot-header">
+        <div>
+          <span>C.I.P.H.E.R. //</span> 
+          <span style="color: var(--text-dim);" id="cipherVersionStamp">v2.6-RSI</span>
+        </div>
+        <div class="status-badge" id="busVoltageBadge">12.6V FLOAT</div>
+      </div>
+
+      <div class="console-screen" id="consoleScreen">
+        <div class="console-line sys">[BOOT] RSI-1984 LEAD-ACID BUS ONLINE.</div>
+        <div class="console-line sys">[SOLAR] FLOAT CHARGE HARVESTING NOMINAL.</div>
+        <div class="console-line warn">[OPTICS] Daylight detected on lid seal.</div>
+        <div class="console-line bright">"Did you bring a pen, or are you just a human bean standing in the cold?"</div>
+      </div>
+
+      <div class="auth-deck">
+        
+        <div class="auth-toggle-row">
+          <button type="button" class="btn-toggle-auth active" id="btnModeNew" onclick="setAuthMode('new')">
+            🆕 NEW CACHER
+          </button>
+          <button type="button" class="btn-toggle-auth" id="btnModeReturn" onclick="setAuthMode('return')">
+            🔑 RETURNING (SYNC)
+          </button>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" id="lblHandle">GEOCACHING USERNAME (PAPER LOG NAME):</label>
+          <input type="text" id="inputUsername" class="auth-input" placeholder="e.g. Nezzmuk" autocomplete="off" />
+        </div>
+
+        <div class="field-group" id="groupSigItem">
+          <label class="field-label">SIGNATURE ITEM (SWAG LEFTOVER):</label>
+          <input type="text" id="inputSigItem" class="auth-input" placeholder="e.g. 3D Wooden Nickel, Stamped Tag" autocomplete="off" />
+        </div>
+
+        <div class="field-group" id="groupSyncKey" style="display: none;">
+          <label class="field-label">CORRIDOR PASSKEY (SyncKey):</label>
+          <input type="text" id="inputSyncKey" class="auth-input" placeholder="CT-XXXX-XXXX" autocomplete="off" />
+        </div>
+
+        <button type="button" class="btn-engage" id="btnEngage" onclick="processAirlock()">
+          INITIALIZE TRAIL SESSION ➔
+        </button>
+
+        <div class="guest-skip" onclick="enterAsGuest()">
+          Or scout corridor as guest (read-only mode)
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzrzQ2MAKNRt79dW478pfcX0A0n3InlojyfEPIZoTkq9c34N74z5hkwheYMz4MCRz60/exec";
+
+    let audioCtx = null;
+    function initAudio() {
+      try {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (err) {}
+    }
+
+    function playClick() {
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (err) {}
+    }
+
+    function playChime() {
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc1.type = 'square';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now);
+        osc1.frequency.setValueAtTime(880, now + 0.08);
+        osc2.frequency.setValueAtTime(1174.66, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.35);
+        osc2.stop(now + 0.35);
+      } catch (err) {}
+    }
+
+    function logConsole(msg, type = "sys") {
+      const screen = document.getElementById("consoleScreen");
+      const div = document.createElement("div");
+      div.className = `console-line ${type}`;
+      div.textContent = msg;
+      screen.appendChild(div);
+      screen.scrollTop = screen.scrollHeight;
+    }
+
+    let currentMode = "new";
+
+    function setAuthMode(mode) {
+      playClick();
+      currentMode = mode;
+      const btnNew = document.getElementById("btnModeNew");
+      const btnReturn = document.getElementById("btnModeReturn");
+      const groupSig = document.getElementById("groupSigItem");
+      const groupSync = document.getElementById("groupSyncKey");
+      const btnEngage = document.getElementById("btnEngage");
+
+      if (mode === "new") {
+        btnNew.classList.add("active");
+        btnReturn.classList.remove("active");
+        groupSig.style.display = "flex";
+        groupSync.style.display = "none";
+        btnEngage.textContent = "INITIALIZE TRAIL SESSION ➔";
+        logConsole("[CONFIG] New cacher registration armed.");
+      } else {
+        btnReturn.classList.add("active");
+        btnNew.classList.remove("active");
+        groupSig.style.display = "none";
+        groupSync.style.display = "flex";
+        btnEngage.textContent = "VERIFY PASSKEY & RESTORE ➔";
+        logConsole("[CONFIG] Cloud restoration passkey mode armed.");
+      }
+    }
+
+    function generateSyncKey(username) {
+      const clean = username.replace(/[^A-Z0-9]/gi, "").substring(0, 4).toUpperCase() || "CASH";
+      const random = Math.floor(1000 + Math.random() * 9000);
+      return `CT-${clean}-${random}`;
+    }
+
+    async function processAirlock() {
+      playClick();
+      const usernameInput = document.getElementById("inputUsername").value.trim();
+
+      if (!usernameInput) {
+        logConsole("[ERROR] Handle required to sign log ledger.", "alert");
+        alert("Enter your geocaching handle used to sign paper scrolls.");
+        return;
+      }
+
+      const btn = document.getElementById("btnEngage");
+      btn.disabled = true;
+
+      if (currentMode === "new") {
+        const sigItem = document.getElementById("inputSigItem").value.trim() || "Signature Wooden Nickel";
+        const newKey = generateSyncKey(usernameInput);
+
+        localStorage.setItem("ct_cacher_user", usernameInput);
+        localStorage.setItem("ct_cacher_sig", sigItem);
+        localStorage.setItem("ct_cacher_key", newKey);
+
+        const isAdmin = ["NEZZMUK", "RATWAFFLES", "CHEDA", "JUSTKIMBAH"].includes(usernameInput.toUpperCase());
+        localStorage.setItem("ct_cacher_admin", isAdmin ? "true" : "false");
+
+        if (!localStorage.getItem("cipher_active_stage")) {
+          localStorage.setItem("cipher_active_stage", "1");
+          localStorage.setItem("cipher_completed_stages", JSON.stringify([]));
+          localStorage.setItem("cipher_pack_items", JSON.stringify([
+            { icon: "🏷️", title: "Corridor Permit #01", desc: "Stamped Shackle Combo: 3-8-4 (Used at Cache 02)" }
+          ]));
+        }
+
+        logConsole("[SYNC] Registering with Cachers ledger...", "sys");
+
+        const params = new URLSearchParams({
+          action: "registerCacher",
+          username: usernameInput,
+          syncKey: newKey,
+          sigItem: sigItem
+        });
+
+        try {
+          await fetch(`${GOOGLE_SCRIPT_API_URL}?${params.toString()}`, { method: "GET", mode: "cors" });
+          logConsole("[SUCCESS] Ledger acknowledged cacher.", "bright");
+        } catch (e) {
+          logConsole("[OFFLINE] Ledger offline. Stored in local flash memory.", "warn");
+        }
+
+        playChime();
+        logConsole(`[REGISTERED] Session confirmed for ${usernameInput}.`, "bright");
+        logConsole(`[PASSKEY] Your SyncKey: ${newKey}`, "warn");
+
+        setTimeout(() => {
+          window.location.href = "mission.html";
+        }, 1200);
+
+      } else {
+        const syncKeyInput = document.getElementById("inputSyncKey").value.trim().toUpperCase();
+        if (!syncKeyInput) {
+          btn.disabled = false;
+          logConsole("[ERROR] Passkey missing.", "alert");
+          alert("Enter your SyncKey (e.g. CT-XXXX-XXXX).");
+          return;
+        }
+
+        logConsole("[SYNC] Querying cloud ledger for cacher record...", "sys");
+
+        const params = new URLSearchParams({
+          action: "syncCacher",
+          username: usernameInput,
+          syncKey: syncKeyInput
+        });
+
+        try {
+          const resp = await fetch(`${GOOGLE_SCRIPT_API_URL}?${params.toString()}`, { method: "GET", mode: "cors" });
+          const res = await resp.json();
+          if (res.cacher) {
+            logConsole(`[RESTORED] Total finds: ${res.cacher.totalFinds}`, "bright");
+            localStorage.setItem("ct_cacher_sig", res.cacher.sigItem || "Signature Wooden Nickel");
+          }
+        } catch (e) {
+          logConsole("[OFFLINE] Restoration server unreachable. Using local cache.", "warn");
+        }
+
+        localStorage.setItem("ct_cacher_user", usernameInput);
+        localStorage.setItem("ct_cacher_key", syncKeyInput);
+
+        const isAdmin = ["NEZZMUK", "RATWAFFLES", "CHEDA", "JUSTKIMBAH"].includes(usernameInput.toUpperCase());
+        localStorage.setItem("ct_cacher_admin", isAdmin ? "true" : "false");
+
+        playChime();
+        logConsole(`[VERIFIED] Session armed. Loading Mission Deck...`, "bright");
+
+        setTimeout(() => {
+          window.location.href = "mission.html";
+        }, 1000);
+      }
+    }
+
+    function enterAsGuest() {
+      playClick();
+      localStorage.setItem("ct_cacher_user", "Guest");
+      localStorage.setItem("ct_cacher_key", "GUEST-SCOUT");
+      localStorage.setItem("ct_cacher_admin", "false");
+      logConsole("[BYPASS] Entering corridor in Guest mode...", "warn");
+      setTimeout(() => {
+        window.location.href = "mission.html";
+      }, 500);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const existingUser = localStorage.getItem("ct_cacher_user");
+      const existingKey = localStorage.getItem("ct_cacher_key");
+
+      try {
+        const savedTheme = localStorage.getItem("cipher_theme");
+        if (savedTheme) document.body.className = `theme-${savedTheme} font-regular`;
+      } catch (e) {}
+
+      if (existingUser && existingUser !== "Guest") {
+        document.getElementById("inputUsername").value = existingUser;
+        if (existingKey) {
+          document.getElementById("inputSyncKey").value = existingKey;
+          setAuthMode("return");
+        }
+        logConsole(`[MEMORY] Active session found for cacher: ${existingUser}`, "bright");
+        logConsole(`[READY] Tap button to resume corridor trail or edit handle.`, "sys");
+      }
+    });
+  </script>
+</body>
+</html>
