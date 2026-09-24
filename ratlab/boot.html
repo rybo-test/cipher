@@ -42,7 +42,7 @@
       position: relative;
     }
 
-    /* Top Status Header with Sound Toggle */
+    /* Top Status Header */
     .terminal-top-header {
       display: flex;
       justify-content: space-between;
@@ -82,7 +82,7 @@
       flex-shrink: 0;
     }
 
-    /* CRT Frame */
+    /* CRT Monitor Enclosure */
     .crt-monitor-frame {
       flex: 1;
       margin: 8px 10px;
@@ -94,6 +94,18 @@
       flex-direction: column;
       box-shadow: inset 0 0 15px rgba(0, 230, 118, 0.15), 0 0 15px rgba(0, 0, 0, 0.8);
       overflow: hidden;
+      position: relative;
+    }
+
+    /* Scanlines Overlay */
+    .crt-monitor-frame::after {
+      content: " ";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 5;
     }
 
     .crt-screen-scroll {
@@ -104,6 +116,8 @@
       white-space: pre-wrap;
       word-break: break-word;
       padding-right: 4px;
+      position: relative;
+      z-index: 2;
     }
 
     /* Typography */
@@ -116,12 +130,12 @@
       color: #00ff66;
       font-weight: 900;
       text-shadow: 0 0 8px #00ff66;
-      animation: crt-flicker 0.15s infinite alternate;
+      animation: crt-flicker 0.12s infinite alternate;
     }
 
     @keyframes crt-flicker {
-      0% { opacity: 0.88; }
-      100% { opacity: 1; text-shadow: 0 0 12px #00ff66; }
+      0% { opacity: 0.85; transform: skewX(0.5deg); }
+      100% { opacity: 1; text-shadow: 0 0 12px #00ff66; transform: skewX(-0.5deg); }
     }
 
     /* CLI Prompt Dock */
@@ -133,6 +147,8 @@
       padding-top: 8px;
       margin-top: 6px;
       flex-shrink: 0;
+      position: relative;
+      z-index: 10;
     }
 
     .cli-input-line {
@@ -202,7 +218,7 @@
       color: #000000;
     }
 
-    /* Emergency Glitch Modal */
+    /* Emergency Glitch Hand-Off Modal */
     .emergency-triage-modal {
       background-color: #1a0808;
       border: 2px solid var(--crt-alert);
@@ -214,6 +230,8 @@
       gap: 8px;
       flex-shrink: 0;
       box-shadow: 0 0 20px rgba(255, 82, 82, 0.35);
+      position: relative;
+      z-index: 20;
     }
   </style>
 </head>
@@ -237,7 +255,8 @@
       </button>
     </div>
 
-    <main class="crt-monitor-frame">
+    <!-- Tapping CRT flushes queue immediately -->
+    <main class="crt-monitor-frame" onclick="BootTerminal.flushActiveTypewriter()">
       <div style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
         CACHE TALES INGRESS // CHASSIS MK-IV [300 BAUD]
       </div>
@@ -290,16 +309,23 @@
   <script src="js/cipher-audio.js"></script>
   <script src="js/cipher-core.js"></script>
   <script>
+    /**
+     * 300-Baud Teletype Stream Engine (CT-102 Audited)
+     */
     const BootTerminal = {
       logEl: null,
       inputEl: null,
       audioUnlocked: false,
 
+      // Async Printing Queue State
+      printQueue: [],
+      isPrinting: false,
+      skipActiveLine: false,
+
       init: function() {
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
 
-        // Global One-Tap Audio Unlock for Mobile Browsers
         const unlockAudio = () => {
           if (!this.audioUnlocked && typeof CipherAudio !== 'undefined') {
             CipherAudio.click();
@@ -318,11 +344,12 @@
           document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        this.appendLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright");
-        this.appendLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim");
-        this.appendLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn");
-        this.appendLine("OPERATOR REGISTRATION REQUIRED.", "line-white");
-        this.appendLine("Type \"LOGON <CALLSIGN>\" or tap [ LOGON ] below:", "line-dim");
+        // Paced 300-Baud Initialization
+        this.queueLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright", 25);
+        this.queueLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim", 28);
+        this.queueLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn", 30);
+        this.queueLine("OPERATOR REGISTRATION REQUIRED.", "line-white", 32);
+        this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 25);
       },
 
       testOrToggleAudio: function() {
@@ -333,22 +360,55 @@
         }
       },
 
-      appendLine: function(text, cls = "line-dim") {
-        const p = document.createElement('div');
-        p.className = cls;
-        p.textContent = text;
-        this.logEl.appendChild(p);
-        this.logEl.scrollTop = this.logEl.scrollHeight;
+      flushActiveTypewriter: function() {
+        this.skipActiveLine = true;
+      },
 
-        if (this.audioUnlocked && typeof CipherAudio !== 'undefined') {
-          CipherAudio.click();
+      queueLine: function(text, cls = "line-dim", charSpeedMs = 28) {
+        this.printQueue.push({ text, cls, charSpeedMs });
+        if (!this.isPrinting) {
+          this.processQueue();
         }
+      },
+
+      processQueue: async function() {
+        if (this.printQueue.length === 0) {
+          this.isPrinting = false;
+          return;
+        }
+
+        this.isPrinting = true;
+        const current = this.printQueue.shift();
+        const p = document.createElement('div');
+        p.className = current.cls;
+        this.logEl.appendChild(p);
+
+        this.skipActiveLine = false;
+
+        for (let i = 0; i < current.text.length; i++) {
+          p.textContent += current.text[i];
+          this.logEl.scrollTop = this.logEl.scrollHeight;
+
+          // Sound click with each character rendered
+          if (this.audioUnlocked && typeof CipherAudio !== 'undefined' && current.text[i] !== ' ') {
+            CipherAudio.click();
+          }
+
+          if (!this.skipActiveLine) {
+            await new Promise(r => setTimeout(r, current.charSpeedMs));
+          }
+        }
+
+        // Short carriage return delay before next line
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 30 : 160));
+        this.processQueue();
       },
 
       tapAction: function(cmd) {
         if (typeof CipherAudio !== 'undefined') CipherAudio.click();
 
         if (cmd === 'CLEAR') {
+          this.printQueue = [];
           this.logEl.innerHTML = '';
           return;
         }
@@ -366,7 +426,7 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        this.appendLine(`> ${raw}`, "line-white");
+        this.queueLine(`> ${raw}`, "line-white", 15);
 
         const tokens = raw.toUpperCase().split(/\s+/);
         const commandVerb = tokens[0];
@@ -374,29 +434,29 @@
 
         // 1. HELP
         if (commandVerb === 'HELP') {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-          this.appendLine(
+          this.queueLine(
             "COMMAND SYNTAX GUIDE:\n" +
             "  LOGON <CALLSIGN> : Register your Geocaching handle (e.g. LOGON NEZZMUK)\n" +
             "  BYPASS <KEY>     : Restore previous session (e.g. BYPASS CT-NEZZ-1234)\n" +
             "  DIAG             : Display 1984 hardware telemetry bus\n" +
             "  CLEAR            : Clear screen buffer",
-            "line-dim"
+            "line-dim",
+            20
           );
           return;
         }
 
         // 2. DIAG
         if (commandVerb === 'DIAG') {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
           const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.8, floatStatus: 'BROWNOUT' }, pack: { items: [], maxSlots: 3 } };
-          this.appendLine(
+          this.queueLine(
             `CHASSIS: RSI MK-IV SURPLUS [1984]\n` +
             `CPU BUS: ${state.hardware.cpuMHz.toFixed(2)} MHz\n` +
             `RAM MEM: ${state.hardware.ramKB} KB\n` +
             `VOLTAGE: ${state.hardware.batteryVolts.toFixed(1)}V (${state.hardware.floatStatus})\n` +
             `PACK   : ${state.pack.items.length}/${state.pack.maxSlots} SLOTS OCCUPIED`,
-            "line-dim"
+            "line-dim",
+            20
           );
           return;
         }
@@ -404,15 +464,15 @@
         // 3. BYPASS / RESTORE
         if (commandVerb === 'BYPASS' || commandVerb === 'RESTORE') {
           if (!commandParam) {
-            this.appendLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert");
+            this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 20);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
           if (typeof CipherCore !== 'undefined') {
             const res = CipherCore.parseCliCommand(`BYPASS ${commandParam}`);
-            this.appendLine(res.output, "line-warn");
+            this.queueLine(res.output, "line-warn", 25);
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
-            setTimeout(() => { window.location.href = 'mission.html'; }, 1200);
+            setTimeout(() => { window.location.href = 'mission.html'; }, 1600);
             return;
           }
         }
@@ -420,7 +480,7 @@
         // 4. LOGON
         if (commandVerb === 'LOGON') {
           if (!commandParam) {
-            this.appendLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert");
+            this.queueLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 20);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
@@ -428,9 +488,9 @@
           return;
         }
 
-        // 5. UNKNOWN COMMAND / ARBITRARY TEXT
-        this.appendLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert");
-        this.appendLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim");
+        // 5. UNKNOWN COMMAND SYNTAX ERROR
+        this.queueLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert", 18);
+        this.queueLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim", 20);
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
       },
 
@@ -439,33 +499,35 @@
           ? CipherCore.registerCallsign(callsign) 
           : { username: callsign.toUpperCase(), syncKey: "CT-TEMP-0001" };
 
-        this.appendLine(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, "line-bright");
-        this.appendLine("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", "line-warn");
-
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.squelchTail();
-          CipherAudio.buzz();
-        }
+        this.queueLine(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, "line-bright", 25);
+        this.queueLine("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", "line-warn", 30);
 
         setTimeout(() => {
-          this.appendLine("\nERR: PARITY CHECK FAILED AT 0x00FF84", "line-alert");
-          this.appendLine("WARN: VOLTAGE SINK BELOW 12.0V // CAPACITOR FLOAT UNSTABLE", "line-warn");
+          if (typeof CipherAudio !== 'undefined') {
+            CipherAudio.squelchTail();
+            CipherAudio.buzz();
+          }
+
+          // CT-102 Exact Parity Code: 0x7F
+          this.queueLine("\nERR: COGNITIVE OVERFLOW 0x7F", "line-alert", 15);
+          this.queueLine("WARN: VOLTAGE SINK BELOW 12.0V // CAPACITOR FLOAT UNSTABLE", "line-warn", 18);
+
+          // Fast Erratic Glitch Stream
+          this.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 10);
+          this.queueLine(
+            `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
+            `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!"`,
+            "line-glitch",
+            12
+          );
 
           setTimeout(() => {
-            this.appendLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch");
-            this.appendLine(
-              `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
-              `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!"`,
-              "line-glitch"
-            );
-
             if (typeof CipherAudio !== 'undefined') {
               CipherAudio.speak("Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.");
             }
-
             document.getElementById('glitch-username-echo').textContent = `${cacher.username}:`;
             document.getElementById('glitch-triage-box').style.display = 'flex';
-          }, 900);
+          }, 1400);
         }, 800);
       },
 
