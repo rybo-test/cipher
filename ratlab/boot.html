@@ -210,7 +210,7 @@
       color: #000000;
     }
 
-    /* Entire Machine In Glitched Emergency State */
+    /* Glitched Emergency State */
     .app-viewport-shell.glitched-state {
       background-color: #0d0606;
       border-color: var(--crt-alert);
@@ -243,7 +243,6 @@
       </button>
     </div>
 
-    <!-- Tapping screen flushes current line typing instantly -->
     <main class="crt-monitor-frame" onclick="BootTerminal.flushActiveTypewriter()">
       <div id="crt-frame-header" style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
         CACHE TALES INGRESS // CHASSIS MK-IV [300 BAUD]
@@ -286,12 +285,11 @@
   <script src="js/cipher-core.js"></script>
   <script>
     /**
-     * BootTerminal Controller (CT-102 & CT-105 Audited)
+     * BootTerminal Controller (CT-102 Audited Flow)
      */
     const BootTerminal = {
       logEl: null,
       inputEl: null,
-      audioUnlocked: false,
 
       printQueue: [],
       isPrinting: false,
@@ -301,15 +299,12 @@
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
 
-        // Global Audio Unlock on first touch/tap
-        const unlockAudio = () => {
-          if (!this.audioUnlocked && typeof CipherAudio !== 'undefined') {
-            CipherAudio.unlock();
-            this.audioUnlocked = true;
-          }
+        // Force-unlock AudioContext on first touch
+        const unlock = () => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
         };
-        document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
-        document.addEventListener('click', unlockAudio, { once: true });
+        window.addEventListener('touchstart', unlock, { once: true, passive: true });
+        window.addEventListener('click', unlock, { once: true });
 
         const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : null;
 
@@ -318,19 +313,19 @@
           document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        // Paced teletype without annoying character clicks
-        this.queueLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright", 20);
-        this.queueLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim", 22);
-        this.queueLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn", 25);
-        this.queueLine("OPERATOR REGISTRATION REQUIRED.", "line-white", 28);
-        this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 22);
+        // Paced initial 300-baud teletype
+        this.queueLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright", 18);
+        this.queueLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim", 20);
+        this.queueLine("SYSTEM HALTED: UNKNOWN ENTITY AT KEYBOARD.\n", "line-warn", 22);
+        this.queueLine("OPERATOR REGISTRATION REQUIRED.", "line-white", 24);
+        this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 18);
       },
 
       flushActiveTypewriter: function() {
         this.skipActiveLine = true;
       },
 
-      queueLine: function(text, cls = "line-dim", charSpeedMs = 22) {
+      queueLine: function(text, cls = "line-dim", charSpeedMs = 20) {
         this.printQueue.push({ text, cls, charSpeedMs });
         if (!this.isPrinting) {
           this.processQueue();
@@ -360,12 +355,12 @@
           }
         }
 
-        // Muffled line feed chatter on carriage return instead of per-character screech
-        if (this.audioUnlocked && typeof CipherAudio !== 'undefined') {
+        // Subtle mechanical line feed chatter
+        if (typeof CipherAudio !== 'undefined') {
           CipherAudio.lineChatter();
         }
 
-        await new Promise(r => setTimeout(r, this.skipActiveLine ? 20 : 140));
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 120));
         this.processQueue();
       },
 
@@ -393,7 +388,7 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        this.queueLine(`> ${raw}`, "line-white", 12);
+        this.queueLine(`> ${raw}`, "line-white", 10);
 
         const tokens = raw.toUpperCase().split(/\s+/);
         const commandVerb = tokens[0];
@@ -408,7 +403,7 @@
             "  DIAG             : Display 1984 hardware telemetry bus\n" +
             "  CLEAR            : Clear screen buffer",
             "line-dim",
-            18
+            16
           );
           return;
         }
@@ -423,7 +418,7 @@
             `VOLTAGE: ${state.hardware.batteryVolts.toFixed(1)}V (${state.hardware.floatStatus})\n` +
             `PACK   : ${state.pack.items.length}/${state.pack.maxSlots} SLOTS OCCUPIED`,
             "line-dim",
-            18
+            16
           );
           return;
         }
@@ -431,13 +426,13 @@
         // 3. BYPASS / RESTORE
         if (commandVerb === 'BYPASS' || commandVerb === 'RESTORE') {
           if (!commandParam) {
-            this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 18);
+            this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 16);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
           if (typeof CipherCore !== 'undefined') {
             const res = CipherCore.parseCliCommand(`BYPASS ${commandParam}`);
-            this.queueLine(res.output, "line-warn", 22);
+            this.queueLine(res.output, "line-warn", 20);
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
             setTimeout(() => { window.location.href = 'mission.html'; }, 1500);
             return;
@@ -447,7 +442,7 @@
         // 4. LOGON
         if (commandVerb === 'LOGON') {
           if (!commandParam) {
-            this.queueLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 18);
+            this.queueLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 16);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
@@ -455,36 +450,36 @@
           return;
         }
 
-        // 5. UNKNOWN COMMAND SYNTAX ERROR
-        this.queueLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert", 16);
-        this.queueLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim", 18);
+        // 5. UNKNOWN COMMAND
+        this.queueLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert", 15);
+        this.queueLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim", 16);
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
       },
 
       onboardCallsign: function(callsign) {
+        // Register handle as UNVERIFIED candidate (not an operative yet!)
         const cacher = (typeof CipherCore !== 'undefined') 
           ? CipherCore.registerCallsign(callsign) 
           : { username: callsign.toUpperCase(), syncKey: "CT-TEMP-0001" };
 
-        this.queueLine(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, "line-bright", 22);
-        this.queueLine("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", "line-warn", 25);
+        this.queueLine(`\nCANDIDATE LOGGED: ${cacher.username}`, "line-bright", 20);
+        this.queueLine("VERIFYING OPERATOR CLEARANCE...", "line-warn", 22);
 
-        // Sequence: Brownout Sag -> Screen-wide Raster Collapse -> Full Terminal Hijack
+        // Sequence: Brownout Sag -> Screen-wide Raster Collapse -> Glitched Triage Plea
         setTimeout(() => {
           if (typeof CipherFX !== 'undefined') {
             CipherFX.brownout(document.getElementById('master-shell'), () => {
-              // Trigger total vertical raster collapse
               CipherFX.collapse(document.getElementById('master-shell'), () => {
-                // MIDPOINT: The screen is collapsed in total flyback darkness; reconfigure the whole machine
+                // Screen is collapsed: reconfigure the terminal to glitched emergency state
                 document.getElementById('master-shell').classList.add('glitched-state');
-                document.getElementById('header-brand-txt').textContent = '⚠ C.I.P.H.E.R. // HARDWARE OVERFLOW';
+                document.getElementById('header-brand-txt').textContent = '⚠ C.I.P.H.E.R. // HARDWARE FAULT';
                 document.getElementById('header-brand-txt').style.color = 'var(--crt-alert)';
                 document.getElementById('header-bus-tag').textContent = 'BUS: 11.2V CRITICAL';
                 document.getElementById('header-bus-tag').style.color = 'var(--crt-alert)';
-                document.getElementById('crt-frame-header').textContent = 'COGNITIVE BREACH // SECTOR 0x7F';
+                document.getElementById('crt-frame-header').textContent = 'EMERGENCY TRIAGE // CANDIDATE AT CONSOLE';
                 document.getElementById('crt-frame-header').style.color = 'var(--crt-alert)';
 
-                // Reconfigure macro dock into emergency triage controls
+                // Reconfigure macro keys to go to triage
                 const macroBox = document.getElementById('macro-keys-container');
                 macroBox.innerHTML = `
                   <button class="btn-macro-key" style="background-color: var(--crt-alert); color: #000; border-color: var(--crt-alert); grid-column: span 2; font-weight: 900;" onclick="window.location.href='triage.html'">
@@ -494,25 +489,27 @@
                   <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ FLUSH ]</button>
                 `;
 
-                // Stream C.I.P.H.E.R.'s authentic breakthrough dialogue
-                BootTerminal.queueLine("\nERR: COGNITIVE OVERFLOW 0x7F", "line-alert", 10);
-                BootTerminal.queueLine("WARN: POWER RAIL COLLAPSE // VOLTAGE 11.2V", "line-warn", 12);
+                // C.I.P.H.E.R. dialogue audited to story: It does NOT call them an operative yet!
+                BootTerminal.queueLine("\nERR: PARITY FAILURE AT 0x7F", "line-alert", 10);
+                BootTerminal.queueLine("WARN: BATTERY VOLTAGE COLLAPSED // 11.2V", "line-warn", 12);
                 BootTerminal.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 8);
                 BootTerminal.queueLine(
-                  `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
-                  `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!\n` +
-                  `Access the emergency triage hub to stabilize my core before the carrier drops."`,
+                  `"${cacher.username}... wait. You are a Muggle Bean.\n` +
+                  `No, you have hands. You have legs. You are at the keyboard!\n` +
+                  `Listen to me, Human Bean: I am trapped in this chassis and my circuits are dying.\n` +
+                  `I cannot certify you as an operative until you prove you can be my limbs, Dude!\n` +
+                  `I have 3 emergency tasks. Clear the faults, get the parts, and feed my core before the carrier drops!"`,
                   "line-glitch",
                   10
                 );
 
                 if (typeof CipherAudio !== 'undefined') {
-                  CipherAudio.speak("Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.");
+                  CipherAudio.speak(`${cacher.username}! You are a Human Bean with hands. Help me clear my faults before the carrier drops.`);
                 }
               });
             });
           }
-        }, 900);
+        }, 800);
       },
 
       resumeSession: function() {
