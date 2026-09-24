@@ -2,163 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>C.I.P.H.E.R. // 3D Mechanical Cypher-Wheel</title>
-  <link rel="stylesheet" href="css/cipher-style.css?v=4.00">
+  <link rel="stylesheet" href="css/cipher-style.css?v=4.10">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
-    .wheel-stage {
+    .wheel-container-stage {
       flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px;
-      overflow-y: auto;
-      background: radial-gradient(circle at center, #0a170e 0%, #050a06 100%);
-      touch-action: manipulation;
-    }
-
-    /* 3D Wheel Viewport & Housing */
-    .wheel-viewport {
       position: relative;
-      width: 320px;
-      height: 320px;
-      perspective: 1000px;
-      margin: 6px auto;
-      user-select: none;
-    }
-
-    .wheel-chassis {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle, #0e1e12 60%, #06110a 98%, var(--border-bright) 100%);
-      border: 3px solid var(--border-bright);
-      box-shadow: 0 0 25px rgba(0, 230, 118, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.9);
-      transform-style: preserve-3d;
-      transform: rotateX(15deg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Outer Ring (Static Brass/Steel A-Z) */
-    .outer-ring {
-      position: absolute;
-      width: 290px;
-      height: 290px;
-      border-radius: 50%;
-      border: 1.5px dashed var(--border-color);
-      pointer-events: none;
-    }
-
-    .outer-ring .dial-glyph {
-      position: absolute;
-      top: 6px;
-      left: 137px;
-      width: 16px;
-      height: 140px;
-      transform-origin: bottom center;
-      text-align: center;
-      font-family: var(--font-mono);
-      font-weight: 800;
-      font-size: 13px;
-      color: #ffffff;
-      text-shadow: 0 0 4px #000000;
-    }
-
-    /* Inner Ring (Rotatable Mechanical Tumbler Disk) */
-    .inner-rotor {
-      position: absolute;
-      width: 210px;
-      height: 210px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #08160c 40%, #112817 95%, var(--border-bright) 100%);
-      border: 2px solid var(--border-bright);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 230, 118, 0.3);
-      cursor: grab;
+      background: radial-gradient(circle at center, #0e1e12 0%, #050a06 100%);
+      overflow: hidden;
       touch-action: none;
-      transition: transform 0.08s ease-out;
-    }
-    .inner-rotor:active { cursor: grabbing; }
-
-    .inner-rotor .rotor-glyph {
-      position: absolute;
-      top: 6px;
-      left: 97px;
-      width: 16px;
-      height: 100px;
-      transform-origin: bottom center;
-      text-align: center;
-      font-family: var(--font-mono);
-      font-weight: 900;
-      font-size: 13px;
-      color: var(--text-bright);
-      text-shadow: 0 0 5px var(--text-bright);
     }
 
-    /* Center Bearing Hub */
-    .center-hub {
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #1a3320 0%, #06110a 100%);
-      border: 2px solid var(--accent-amber);
+    #webgl-canvas-box {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #webgl-canvas-box:active { cursor: grabbing; }
+
+    /* Control HUD Bar */
+    .hud-controls-panel {
+      background-color: var(--bg-surface);
+      border-top: 2px solid var(--border-bright);
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
+      gap: 10px;
+      z-index: 20;
+      flex-shrink: 0;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.9);
+    }
+
+    /* Clue Banner */
+    .clue-banner-hud {
+      background-color: #06110a;
+      border: 1px dashed var(--accent-amber);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: var(--font-sm);
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
-      pointer-events: none;
-    }
-    .center-hub .offset-title {
-      font-size: 9px;
-      color: var(--accent-amber);
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-    .center-hub .offset-val {
-      font-family: var(--font-mono);
-      font-size: 18px;
-      font-weight: 900;
-      color: #ffffff;
     }
 
-    /* Top Optical Focal Alignment Hairline */
-    .focal-sight {
-      position: absolute;
-      top: 4px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 32px;
-      height: 55px;
-      border: 2px solid var(--accent-amber);
-      border-radius: 4px;
-      box-shadow: 0 0 10px var(--accent-amber);
-      pointer-events: none;
-      z-index: 10;
-      background: rgba(255, 179, 0, 0.08);
-    }
-
-    /* Tumbler Character Output Rack */
-    .tumbler-rack {
+    /* Split-Flap Tumbler Display */
+    .tumbler-strip {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 4px;
-      padding: 8px 6px;
-      background-color: #06110a;
+      background-color: #040905;
       border: 1.5px solid var(--border-color);
       border-radius: 6px;
-      width: 100%;
-      max-width: 440px;
-      margin: 6px 0;
+      padding: 8px 6px;
     }
-    .tumbler-card {
+    .tumbler-char {
       width: 24px;
       height: 36px;
-      background: linear-gradient(180deg, #102115 48%, #08110b 52%);
+      background: linear-gradient(180deg, #14281a 48%, #08130b 52%);
       border: 1px solid var(--border-color);
       border-radius: 4px;
       display: flex;
@@ -168,12 +74,12 @@
       font-size: 16px;
       font-weight: bold;
       color: #ffffff;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
-    .tumbler-card.matched {
+    .tumbler-char.locked {
       border-color: var(--border-bright);
       color: var(--border-bright);
-      box-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
     }
     .tumbler-sep {
       width: 10px;
@@ -184,16 +90,7 @@
       font-weight: bold;
     }
 
-    /* Alignment Lock Meter */
     .alignment-bar-wrap {
-      width: 100%;
-      max-width: 440px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .alignment-bar-track {
-      width: 100%;
       height: 8px;
       background-color: #06110a;
       border: 1px solid var(--border-color);
@@ -211,117 +108,89 @@
       box-shadow: 0 0 8px var(--border-bright);
     }
 
-    /* Controls Grid */
-    .wheel-controls {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr 1fr;
-      gap: 8px;
-      width: 100%;
-      max-width: 440px;
-      margin-top: 4px;
+    .interactive-legend {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
 
   <div class="app-container">
+    <!-- Header with Explicit Return Links -->
     <header class="status-header">
-      <span class="brand-title">C.I.P.H.E.R. // 3D ROTOR DECODER</span>
-      <div class="header-status-pill" role="status">
-        <span class="dot"></span>
-        <span id="rotor-status-tag">STANDALONE MODE</span>
+      <span class="brand-title">C.I.P.H.E.R. // 3D DISK</span>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-cipher" style="min-height: 36px; padding: 0 12px; font-size: 12px;" onclick="WheelMaster.returnToCaller('mission.html')">
+          [ 🔓 MISSION ]
+        </button>
+        <button class="btn-cipher" style="min-height: 36px; padding: 0 12px; font-size: 12px;" onclick="WheelMaster.returnToCaller('pack.html')">
+          [ 🎒 PACK ]
+        </button>
       </div>
-      <a href="pack.html" class="header-user-tag" style="text-decoration: none; color: var(--text-dim);">✕ CLOSE</a>
     </header>
 
-    <main class="wheel-stage">
+    <main class="wheel-container-stage">
       
-      <!-- Target Objective / Clue Banner -->
-      <section id="objective-banner" class="cipher-panel" style="width: 100%; max-width: 440px; padding: 10px 12px;">
-        <div class="section-category-tag" id="banner-cat">CALIBRATION DECRYPTION PROTOCOL</div>
-        <div id="banner-instruction" style="font-size: var(--font-sm); color: #ffffff; line-height: 1.35;">
-          Log hint states: First 3 letters decode to <strong style="color: var(--text-bright);">"THS"</strong>. Rotate disk to line up the focal aperture.
-        </div>
-      </section>
+      <!-- Interactive Touch Hints -->
+      <div class="interactive-legend">
+        <span style="color: var(--accent-amber);">◄ DRAG OUTER BRASS RING</span>
+        <span style="color: var(--text-bright);">DRAG INNER ROTOR ►</span>
+      </div>
 
-      <!-- 3D Mechanical Rotor Viewport -->
-      <section class="wheel-viewport" aria-label="Interactive 3D Mechanical Cipher Disk">
-        <div class="focal-sight" aria-hidden="true"></div>
-        <div class="wheel-chassis">
-          
-          <!-- Outer Static Ring (A-Z) -->
-          <div class="outer-ring" id="outer-dial-ring" aria-hidden="true"></div>
+      <!-- WebGL 3D Canvas Viewport -->
+      <div id="webgl-canvas-box" aria-label="3D Rotatable Mechanical Cipher Disks"></div>
 
-          <!-- Inner Rotatable Rotor -->
-          <div 
-            class="inner-rotor" 
-            id="inner-dial-rotor" 
-            role="slider"
-            aria-label="Inner Cipher Rotor Disk"
-            aria-valuemin="0"
-            aria-valuemax="25"
-            aria-valuenow="0"
-            tabindex="0"
-          ></div>
-
-          <!-- Center Bearing -->
-          <div class="center-hub" aria-hidden="true">
-            <span class="offset-title">OFFSET</span>
-            <span class="offset-val" id="hub-offset-val">0</span>
+      <!-- Bottom HUD & Decryption Controls -->
+      <section class="hud-controls-panel">
+        
+        <!-- Target Deduction Clue -->
+        <div class="clue-banner-hud">
+          <div>
+            <div class="section-category-tag" style="margin: 0;">LOG HINT DECRYPTION TARGET:</div>
+            <div style="color: #ffffff;">Target anchor prefix: <strong style="color: var(--text-bright);">"THS"</strong></div>
           </div>
-
+          <div style="text-align: right; font-family: var(--font-mono);">
+            <div style="font-size: 11px; color: var(--text-dim);">NET SHIFT:</div>
+            <strong id="hud-offset-txt" style="color: var(--accent-amber); font-size: 16px;">ROT-00</strong>
+          </div>
         </div>
-      </section>
 
-      <!-- Tumbler Letter Rack -->
-      <section class="tumbler-rack" id="tumbler-rack" aria-live="polite" aria-label="Decoded Output Stream"></section>
+        <!-- Mechanical Tumbler Character Stream -->
+        <div class="tumbler-strip" id="tumbler-display-strip" aria-live="polite"></div>
 
-      <!-- Alignment Feedback Gauge -->
-      <section class="alignment-bar-wrap">
-        <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px;">
-          <span>ALIGNMENT STATUS: <strong id="align-status-txt" style="color: var(--accent-alert);">UNLOCKED</strong></span>
-          <span id="align-pct-txt" style="color: var(--text-dim);">0%</span>
+        <!-- Alignment Lock Gauge -->
+        <div class="alignment-bar-wrap">
+          <div id="hud-align-fill" class="alignment-bar-fill"></div>
         </div>
-        <div class="alignment-bar-track">
-          <div id="alignment-fill" class="alignment-bar-fill"></div>
+
+        <!-- Mechanical Stepping & Quick Slam Levers -->
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px;">
+          <button class="btn-cipher" onclick="WheelMaster.stepRotor(-1)">◄ STEP</button>
+          <button class="btn-cipher primary-solid" onclick="WheelMaster.slamOffset(13)">⚡ SLAM ROT-13</button>
+          <button class="btn-cipher" onclick="WheelMaster.stepRotor(1)">STEP ►</button>
         </div>
+
+        <!-- Inject / Transfer Output Button -->
+        <button 
+          id="btn-auto-inject" 
+          class="btn-cipher primary-solid" 
+          style="min-height: 48px;" 
+          onclick="WheelMaster.injectCodeword()"
+        >
+          ⚡ AUTO-INJECT INTO MISSION TERMINAL ➔
+        </button>
+
       </section>
-
-      <!-- Mechanical Stepping Controls -->
-      <section class="wheel-controls">
-        <button class="btn-cipher" onclick="WheelApp.step(-1)">◄ STEP</button>
-        <button class="btn-cipher primary-solid" onclick="WheelApp.slamSolve()">⚡ SLAM 13</button>
-        <button class="btn-cipher" onclick="WheelApp.step(1)">STEP ►</button>
-      </section>
-
-      <!-- Auto-Inject or Output Action Button -->
-      <button 
-        id="btn-wheel-action" 
-        class="btn-cipher primary-solid" 
-        style="width: 100%; max-width: 440px; margin-top: 6px; min-height: 48px;" 
-        onclick="WheelApp.dispatchSolution()"
-      >
-        ⚡ AUTO-INJECT INTO MISSION TERMINAL ➔
-      </button>
-
-      <!-- Independent Free-Play Scratchpad (Used when no stage is preloaded) -->
-      <section id="scratchpad-drawer" class="cipher-panel" style="width: 100%; max-width: 440px; padding: 10px 12px; margin-top: 6px;">
-        <div class="section-category-tag">CUSTOM FIELD SCRATCHPAD</div>
-        <div style="display: flex; gap: 8px;">
-          <input 
-            type="text" 
-            id="custom-cipher-input" 
-            class="cipher-input" 
-            style="flex: 1;" 
-            placeholder="CUSTOM CIPHER TEXT..." 
-            autocomplete="off"
-            spellcheck="false"
-            oninput="WheelApp.setCustomString(this.value)"
-          >
-          <button class="btn-cipher" style="min-height: 44px; padding: 0 12px;" onclick="WheelApp.copyDecoded()">📋</button>
-        </div>
-      </section>
-
     </main>
   </div>
 
@@ -329,171 +198,306 @@
   <script src="js/cipher-core.js"></script>
   <script>
     /**
-     * Standalone Mechanical Cypher-Wheel Controller
-     * Adaptive engine reading query parameters (e.g., ?cipher=XYZ&target=ABC&return=mission.html)
+     * C.I.P.H.E.R. Three.js Mechanical 3D Engine
+     * Generates real 3D geometry cylinders with dynamic lighting, specular reflection,
+     * independent touch raycasting, momentum physics, and detent audio.
      */
-    const WheelApp = {
-      offset: 0,
-      alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      cipherText: "GUF-SYNAP-HAX-89",
-      targetAnchor: "THS",
-      returnUrl: "mission.html",
-      solvedString: "",
+    const WheelMaster = (function () {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let scene, camera, renderer;
+      let outerMesh, innerMesh, hubMesh;
+      let raycaster, mouse;
 
-      // Touch & Pointer Drag Tracking State
-      isDragging: false,
-      startAngle: 0,
-      currentAngle: 0,
+      // Rotational State (in radians)
+      let outerAngle = 0;
+      let innerAngle = 0;
+      let outerOffset = 0;
+      let innerOffset = 0;
+      let netShift = 0;
 
-      init: function() {
-        this.parseQueryParameters();
-        this.buildRings();
-        this.bindTouchControls();
-        this.updateWheel(0);
-      },
+      // Interaction Physics
+      let activeDisk = null; // 'outer' | 'inner'
+      let isDragging = false;
+      let previousAngle = 0;
+      let angularVelocity = 0;
 
-      parseQueryParameters: function() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('cipher')) {
-          this.cipherText = decodeURIComponent(params.get('cipher')).toUpperCase();
-          document.getElementById('custom-cipher-input').value = this.cipherText;
-        }
-        if (params.has('target')) {
-          this.targetAnchor = decodeURIComponent(params.get('target')).toUpperCase();
-          document.getElementById('banner-instruction').innerHTML = 
-            `Target Match: First ${this.targetAnchor.length} letters must resolve to <strong style="color:var(--text-bright);">"${this.targetAnchor}"</strong>.`;
-        }
-        if (params.has('return')) {
-          this.returnUrl = params.get('return');
-        } else {
-          // If launched independently without a parent quest
-          document.getElementById('rotor-status-tag').textContent = 'FREEPLAY SCRATCHPAD';
-          document.getElementById('btn-wheel-action').textContent = '📋 COPY CRACKED STRING TO CLIPBOARD';
-        }
-      },
+      // Cipher Payload
+      let cipherText = "GUF-SYNAP-HAX-89";
+      let targetPrefix = "THS";
+      let solvedString = "";
+      let returnUrl = "mission.html";
 
-      buildRings: function() {
-        const outer = document.getElementById('outer-dial-ring');
-        const inner = document.getElementById('inner-dial-rotor');
-        outer.innerHTML = '';
-        inner.innerHTML = '';
+      function init() {
+        parseParameters();
+        setupThree();
+        createWheelGeometry();
+        setupEvents();
+        animate();
+        updateDecoder();
+      }
+
+      function parseParameters() {
+        const p = new URLSearchParams(window.location.search);
+        if (p.has('cipher')) cipherText = decodeURIComponent(p.get('cipher')).toUpperCase();
+        if (p.has('target')) targetPrefix = decodeURIComponent(p.get('target')).toUpperCase();
+        if (p.has('return')) returnUrl = p.get('return');
+      }
+
+      function setupThree() {
+        const container = document.getElementById('webgl-canvas-box');
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 1000);
+        camera.position.set(0, -6.5, 9.5);
+        camera.lookAt(0, -0.4, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(w, h);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        // 3D Lighting (Industrial Cold War Lamp Rig)
+        const ambient = new THREE.AmbientLight(0xd4edd9, 0.65);
+        scene.add(ambient);
+
+        const keyLight = new THREE.DirectionalLight(0xfff1cc, 1.2);
+        keyLight.position.set(5, -4, 10);
+        keyLight.castShadow = true;
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x00e676, 0.4);
+        fillLight.position.set(-6, 6, 4);
+        scene.add(fillLight);
+      }
+
+      function makeRingCanvas(isOuter) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, 1024, 1024);
+
+        const cx = 512;
+        const cy = 512;
+        const radius = isOuter ? 430 : 280;
+
+        ctx.font = 'bold 44px "Courier New", Courier, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
         for (let i = 0; i < 26; i++) {
-          const char = this.alphabet[i];
-          const deg = (360 / 26) * i;
+          const char = alphabet[i];
+          const angle = (i * (360 / 26)) * (Math.PI / 180) - Math.PI / 2;
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
 
-          // Outer Dial Glyph (Fixed Standard A-Z)
-          const oEl = document.createElement('div');
-          oEl.className = 'dial-glyph';
-          oEl.style.transform = `rotate(${deg}deg)`;
-          oEl.textContent = char;
-          outer.appendChild(oEl);
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(angle + Math.PI / 2);
 
-          // Inner Rotor Glyph (Movable A-Z)
-          const iEl = document.createElement('div');
-          iEl.className = 'rotor-glyph';
-          iEl.style.transform = `rotate(${deg}deg)`;
-          iEl.textContent = char;
-          inner.appendChild(iEl);
+          // Shadow
+          ctx.fillStyle = '#000000';
+          ctx.fillText(char, 2, 2);
+
+          // Letter Fill
+          ctx.fillStyle = isOuter ? '#ffda73' : '#00e676';
+          ctx.fillText(char, 0, 0);
+
+          // Detent tick mark
+          ctx.fillStyle = isOuter ? '#ffb300' : '#1b5e20';
+          ctx.fillRect(-2, isOuter ? 32 : 24, 4, 14);
+
+          ctx.restore();
         }
-      },
 
-      bindTouchControls: function() {
-        const rotor = document.getElementById('inner-dial-rotor');
-        const getAngle = (e, rect) => {
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-          return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
-        };
+        return canvas;
+      }
+
+      function createWheelGeometry() {
+        const rootWheelGroup = new THREE.Group();
+
+        // 1. Outer Brass Disk
+        const outerGeo = new THREE.CylinderGeometry(4.2, 4.2, 0.42, 64);
+        const outerTex = new THREE.CanvasTexture(makeRingCanvas(true));
+        outerTex.anisotropy = 8;
+
+        const outerMat = [
+          new THREE.MeshStandardMaterial({ color: 0x3d3215, roughness: 0.4, metalness: 0.85 }), // rim
+          new THREE.MeshStandardMaterial({ map: outerTex, roughness: 0.35, metalness: 0.8 }),   // top face
+          new THREE.MeshStandardMaterial({ color: 0x1a1508, roughness: 0.8, metalness: 0.9 })    // bottom
+        ];
+        outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        outerMesh.rotation.x = Math.PI / 2;
+        outerMesh.receiveShadow = true;
+        outerMesh.castShadow = true;
+        outerMesh.name = "OUTER_DISK";
+        rootWheelGroup.add(outerMesh);
+
+        // 2. Inner Steel/Phosphor Disk
+        const innerGeo = new THREE.CylinderGeometry(2.7, 2.7, 0.65, 64);
+        const innerTex = new THREE.CanvasTexture(makeRingCanvas(false));
+        innerTex.anisotropy = 8;
+
+        const innerMat = [
+          new THREE.MeshStandardMaterial({ color: 0x173822, roughness: 0.3, metalness: 0.75 }),
+          new THREE.MeshStandardMaterial({ map: innerTex, roughness: 0.25, metalness: 0.7 }),
+          new THREE.MeshStandardMaterial({ color: 0x050a06, roughness: 0.9, metalness: 0.9 })
+        ];
+        innerMesh = new THREE.Mesh(innerGeo, innerMat);
+        innerMesh.rotation.x = Math.PI / 2;
+        innerMesh.position.z = 0.12;
+        innerMesh.receiveShadow = true;
+        innerMesh.castShadow = true;
+        innerMesh.name = "INNER_DISK";
+        rootWheelGroup.add(innerMesh);
+
+        // 3. Center Stainless Steel Hub
+        const hubGeo = new THREE.CylinderGeometry(1.0, 1.1, 0.85, 32);
+        const hubMat = new THREE.MeshStandardMaterial({ color: 0x242424, roughness: 0.2, metalness: 0.9 });
+        hubMesh = new THREE.Mesh(hubGeo, hubMat);
+        hubMesh.rotation.x = Math.PI / 2;
+        hubMesh.position.z = 0.22;
+        hubMesh.castShadow = true;
+        rootWheelGroup.add(hubMesh);
+
+        // 4. Optical Hairline Sight (Top Calibration Index)
+        const sightGeo = new THREE.BoxGeometry(0.35, 1.2, 0.08);
+        const sightMat = new THREE.MeshBasicMaterial({ color: 0xffb300, transparent: true, opacity: 0.9 });
+        const sightMesh = new THREE.Mesh(sightGeo, sightMat);
+        sightMesh.position.set(0, 3.6, 0.55);
+        rootWheelGroup.add(sightMesh);
+
+        scene.add(rootWheelGroup);
+      }
+
+      function getPointerAngle(e) {
+        const container = document.getElementById('webgl-canvas-box');
+        const rect = container.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        return Math.atan2(clientY - cy, clientX - cx);
+      }
+
+      function setupEvents() {
+        const container = document.getElementById('webgl-canvas-box');
 
         const onStart = (e) => {
-          this.isDragging = true;
-          const rect = rotor.getBoundingClientRect();
-          this.startAngle = getAngle(e, rect) - this.currentAngle;
-        };
+          e.preventDefault();
+          const rect = container.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-        const onMove = (e) => {
-          if (!this.isDragging) return;
-          const rect = rotor.getBoundingClientRect();
-          const angle = getAngle(e, rect);
-          this.currentAngle = angle - this.startAngle;
-          rotor.style.transform = `rotate(${this.currentAngle}deg)`;
+          mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+          mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
-          // Detent Calculation (26 slots = 13.846 deg per slot)
-          const degPerSlot = 360 / 26;
-          const calculatedOffset = Math.round((-this.currentAngle / degPerSlot) % 26 + 26) % 26;
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects([innerMesh, outerMesh]);
 
-          if (calculatedOffset !== this.offset) {
-            this.offset = calculatedOffset;
-            if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-            this.updateWheel(this.offset, false);
+          if (intersects.length > 0) {
+            isDragging = true;
+            activeDisk = (intersects[0].object.name === "INNER_DISK") ? 'inner' : 'outer';
+            previousAngle = getPointerAngle(e);
+            angularVelocity = 0;
           }
         };
 
-        const onEnd = () => {
-          if (!this.isDragging) return;
-          this.isDragging = false;
-          // Snap to exact discrete detent degree
-          const degPerSlot = 360 / 26;
-          this.currentAngle = -(this.offset * degPerSlot);
-          rotor.style.transform = `rotate(${this.currentAngle}deg)`;
+        const onMove = (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          const current = getPointerAngle(e);
+          const delta = current - previousAngle;
+          previousAngle = current;
+          angularVelocity = delta;
+
+          if (activeDisk === 'inner') {
+            innerAngle -= delta;
+            innerMesh.rotation.y = innerAngle;
+          } else {
+            outerAngle -= delta;
+            outerMesh.rotation.y = outerAngle;
+          }
+
+          calculateDetents();
         };
 
-        rotor.addEventListener('mousedown', onStart);
+        const onEnd = () => {
+          if (!isDragging) return;
+          isDragging = false;
+        };
+
+        container.addEventListener('mousedown', onStart);
         window.addEventListener('mousemove', onMove);
         window.addEventListener('mouseup', onEnd);
 
-        rotor.addEventListener('touchstart', onStart, { passive: false });
+        container.addEventListener('touchstart', onStart, { passive: false });
         window.addEventListener('touchmove', onMove, { passive: false });
         window.addEventListener('touchend', onEnd);
-      },
 
-      step: function(dir) {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-        this.offset = (this.offset + dir + 26) % 26;
-        this.snapToOffset();
-      },
+        window.addEventListener('resize', () => {
+          const w = container.clientWidth;
+          const h = container.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+      }
 
-      slamSolve: function() {
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.squelchTail();
-          CipherAudio.chime();
+      function calculateDetents() {
+        const radPerSlot = (Math.PI * 2) / 26;
+
+        const newOuterOffset = Math.round((outerAngle / radPerSlot) % 26 + 26) % 26;
+        const newInnerOffset = Math.round((innerAngle / radPerSlot) % 26 + 26) % 26;
+
+        let changed = false;
+
+        if (newOuterOffset !== outerOffset) {
+          outerOffset = newOuterOffset;
+          CipherAudio.wheelTick(true);
+          changed = true;
         }
-        this.offset = 13;
-        this.snapToOffset();
-      },
 
-      snapToOffset: function() {
-        const degPerSlot = 360 / 26;
-        this.currentAngle = -(this.offset * degPerSlot);
-        const rotor = document.getElementById('inner-dial-rotor');
-        rotor.style.transform = `rotate(${this.currentAngle}deg)`;
-        this.updateWheel(this.offset, true);
-      },
+        if (newInnerOffset !== innerOffset) {
+          innerOffset = newInnerOffset;
+          CipherAudio.wheelTick(false);
+          changed = true;
+        }
 
-      updateWheel: function(offset, playAudio = false) {
-        document.getElementById('hub-offset-val').textContent = offset;
-        document.getElementById('inner-dial-rotor').setAttribute('aria-valuenow', offset);
+        if (changed) {
+          updateDecoder();
+        }
+      }
 
-        // Decode active ciphertext
+      function updateDecoder() {
+        netShift = (innerOffset - outerOffset + 26) % 26;
+        document.getElementById('hud-offset-txt').textContent = `ROT-${netShift.toString().padStart(2, '0')}`;
+
+        // Real-time decryption
         let decoded = "";
-        for (let char of this.cipherText) {
-          if (this.alphabet.includes(char)) {
-            const idx = this.alphabet.indexOf(char);
-            decoded += this.alphabet[(idx - offset + 26) % 26];
+        for (let char of cipherText) {
+          if (alphabet.includes(char)) {
+            const idx = alphabet.indexOf(char);
+            decoded += alphabet[(idx - netShift + 26) % 26];
           } else {
             decoded += char;
           }
         }
-        this.solvedString = decoded;
+        solvedString = decoded;
 
-        // Render Mechanical Tumbler Cards
-        const rack = document.getElementById('tumbler-rack');
+        // Render Tumbler Rack
+        const rack = document.getElementById('tumbler-display-strip');
         rack.innerHTML = '';
 
-        const isAnchorMatched = this.targetAnchor && decoded.startsWith(this.targetAnchor);
+        const isMatched = targetPrefix && decoded.startsWith(targetPrefix);
 
         for (let char of decoded) {
           if (char === '-') {
@@ -502,71 +506,88 @@
             sep.textContent = '-';
             rack.appendChild(sep);
           } else {
-            const card = document.createElement('div');
-            card.className = `tumbler-card ${isAnchorMatched ? 'matched' : ''}`;
-            card.textContent = char;
-            rack.appendChild(card);
+            const tile = document.createElement('div');
+            tile.className = `tumbler-char ${isMatched ? 'locked' : ''}`;
+            tile.textContent = char;
+            rack.appendChild(tile);
           }
         }
 
-        // Calculate alignment gauge
-        const gauge = document.getElementById('alignment-fill');
-        const statusTxt = document.getElementById('align-status-txt');
-        const pctTxt = document.getElementById('align-pct-txt');
+        const gauge = document.getElementById('hud-align-fill');
+        const injectBtn = document.getElementById('btn-auto-inject');
 
-        let pct = 0;
-        if (isAnchorMatched) {
-          pct = 100;
-        } else {
-          // Proximity to ROT-13
-          pct = Math.round((1 - Math.abs(13 - offset) / 13) * 100);
-        }
-
-        gauge.style.width = `${Math.max(5, pct)}%`;
-        pctTxt.textContent = `${pct}%`;
-
-        if (isAnchorMatched || offset === 13) {
+        if (isMatched || netShift === 13) {
           gauge.classList.add('locked');
-          statusTxt.style.color = 'var(--text-bright)';
-          statusTxt.textContent = 'DETENT LOCKED (ROT-13)';
-          document.getElementById('hub-offset-val').style.color = 'var(--text-bright)';
+          gauge.style.width = '100%';
+          injectBtn.style.display = 'block';
         } else {
           gauge.classList.remove('locked');
-          statusTxt.style.color = 'var(--accent-alert)';
-          statusTxt.textContent = 'UNALIGNED';
-          document.getElementById('hub-offset-val').style.color = '#ffffff';
-        }
-      },
-
-      setCustomString: function(val) {
-        this.cipherText = val.trim().toUpperCase() || "SAMPLE";
-        this.updateWheel(this.offset);
-      },
-
-      copyDecoded: function() {
-        navigator.clipboard.writeText(this.solvedString).then(() => {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
-          alert(`DECODED STRING COPIED:\n${this.solvedString}`);
-        });
-      },
-
-      dispatchSolution: function() {
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.chime();
-          CipherAudio.speak("Bypass offset verified. Injecting codeword into field terminal.");
-        }
-
-        if (this.returnUrl && this.returnUrl.includes('mission.html')) {
-          sessionStorage.setItem('INJECTED_CRACK_CODE', this.solvedString);
-          window.location.href = this.returnUrl;
-        } else {
-          this.copyDecoded();
+          const pct = Math.max(10, Math.round((1 - Math.abs(13 - netShift) / 13) * 100));
+          gauge.style.width = `${pct}%`;
+          injectBtn.style.display = 'none';
         }
       }
-    };
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Momentum damping when finger releases
+        if (!isDragging && Math.abs(angularVelocity) > 0.001) {
+          angularVelocity *= 0.92;
+          if (activeDisk === 'inner') {
+            innerAngle -= angularVelocity;
+            innerMesh.rotation.y = innerAngle;
+          } else if (activeDisk === 'outer') {
+            outerAngle -= angularVelocity;
+            outerMesh.rotation.y = outerAngle;
+          }
+          calculateDetents();
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      return {
+        init: init,
+
+        stepRotor: function (dir) {
+          innerOffset = (innerOffset + dir + 26) % 26;
+          const radPerSlot = (Math.PI * 2) / 26;
+          innerAngle = innerOffset * radPerSlot;
+          innerMesh.rotation.y = innerAngle;
+          CipherAudio.wheelTick(false);
+          updateDecoder();
+        },
+
+        slamOffset: function (targetVal) {
+          CipherAudio.wheelSlam();
+          outerOffset = 0;
+          outerAngle = 0;
+          outerMesh.rotation.y = 0;
+
+          innerOffset = targetVal;
+          const radPerSlot = (Math.PI * 2) / 26;
+          innerAngle = innerOffset * radPerSlot;
+          innerMesh.rotation.y = innerAngle;
+          updateDecoder();
+        },
+
+        injectCodeword: function () {
+          CipherAudio.chime();
+          CipherAudio.speak("Detent verified. Transferring bypass code to mission.");
+          sessionStorage.setItem('INJECTED_CRACK_CODE', solvedString);
+          window.location.href = returnUrl;
+        },
+
+        returnToCaller: function (dest) {
+          CipherAudio.click();
+          window.location.href = dest;
+        }
+      };
+    })();
 
     document.addEventListener('DOMContentLoaded', () => {
-      WheelApp.init();
+      WheelMaster.init();
     });
   </script>
 </body>
