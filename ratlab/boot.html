@@ -4,136 +4,247 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>C.I.P.H.E.R. // 1984 Field Terminal Gateway</title>
-  <link rel="stylesheet" href="css/cipher-style.css?v=4.30">
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
   <style>
-    .cli-gateway-viewport {
-      flex: 1;
+    /* Direct High-Contrast Self-Contained Overrides */
+    :root {
+      --crt-bg: #050d07;
+      --crt-bezel: #0a1c10;
+      --crt-text-dim: #7ee787;      /* Bright, legible terminal green */
+      --crt-text-bright: #00ff66;   /* High-luminescence phosphor */
+      --crt-text-white: #ffffff;
+      --crt-amber: #ffb300;
+      --crt-alert: #ff5252;
+      --crt-border: #1b5e20;
+      --crt-border-bright: #00e676;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      color: var(--crt-text-dim);
+      font-family: 'Courier New', Courier, monospace;
+      -webkit-font-smoothing: antialiased;
+      box-sizing: border-box;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-viewport-shell {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      padding: 14px;
-      background-color: var(--bg-primary);
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      background-color: var(--crt-bg);
+      border-left: 1px solid var(--crt-border);
+      border-right: 1px solid var(--crt-border);
       position: relative;
-      overflow-y: auto;
     }
 
-    /* Archaic CRT Monitor Housing */
-    .crt-screen-bezel {
-      background-color: #040905;
-      border: 2px solid var(--border-bright);
-      border-radius: 8px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 0 25px rgba(0, 230, 118, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.9);
-      min-height: 380px;
-    }
-
-    .crt-output-log {
-      font-family: var(--font-mono);
-      font-size: var(--font-sm);
-      color: var(--text-dim);
-      line-height: 1.45;
-      white-space: pre-wrap;
-      flex: 1;
-    }
-    .crt-output-log .highlight { color: #ffffff; font-weight: bold; }
-    .crt-output-log .warn { color: var(--accent-amber); font-weight: bold; }
-    .crt-output-log .alert { color: var(--accent-alert); font-weight: bold; }
-    .crt-output-log .glitch {
-      color: var(--text-bright);
-      font-weight: 900;
-      text-shadow: 0 0 8px var(--text-bright);
-      animation: text-flicker 0.12s infinite alternate;
-    }
-
-    @keyframes text-flicker {
-      0% { opacity: 0.85; transform: skewX(1deg); }
-      100% { opacity: 1; transform: skewX(-1deg); }
-    }
-
-    /* CLI Prompt Dock */
-    .cli-prompt-bar {
-      display: flex;
-      gap: 8px;
-      border-top: 1px dashed var(--border-color);
-      padding-top: 12px;
-      margin-top: auto;
-    }
-
-    /* Mobile Quick-Tap Guided Action Keys */
-    .cli-quick-keys {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .btn-quick-key {
-      background-color: #06110a;
-      border: 1px solid var(--border-color);
-      color: var(--text-bright);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: bold;
-      min-height: 40px;
-      border-radius: 4px;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .btn-quick-key:active {
-      background-color: var(--border-bright);
-      color: #000000;
-    }
-
-    /* Recognized Returning Operative Ingress Card */
-    .recognized-cacher-banner {
-      background-color: #081a0e;
-      border: 1.5px solid var(--border-bright);
-      border-radius: 6px;
-      padding: 10px 12px;
+    /* Fixed Clean Status Header */
+    .terminal-top-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      padding: 10px 14px;
+      background-color: #030804;
+      border-bottom: 1.5px solid var(--crt-border);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+    .terminal-brand-txt { color: var(--crt-text-bright); }
+    .terminal-bus-tag { color: var(--crt-amber); }
+
+    /* Returning Operative Ingress */
+    .recognized-custody-card {
+      background-color: #092110;
+      border: 1.5px solid var(--crt-border-bright);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 10px 0;
+      flex-shrink: 0;
+    }
+
+    /* Archaic CRT Bezel and Log */
+    .crt-monitor-frame {
+      flex: 1;
+      margin: 8px 10px;
+      background-color: #020503;
+      border: 2px solid var(--crt-border-bright);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 15px rgba(0, 230, 118, 0.15), 0 0 15px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+    }
+
+    .crt-screen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding-right: 4px;
+    }
+
+    /* High Visibility Typography */
+    .line-dim { color: var(--crt-text-dim); }
+    .line-bright { color: var(--crt-text-bright); font-weight: bold; }
+    .line-white { color: var(--crt-text-white); font-weight: bold; }
+    .line-warn { color: var(--crt-amber); font-weight: bold; }
+    .line-alert { color: var(--crt-alert); font-weight: bold; }
+    .line-glitch {
+      color: #00ff66;
+      font-weight: 900;
+      text-shadow: 0 0 8px #00ff66;
+      animation: crt-flicker 0.15s infinite alternate;
+    }
+
+    @keyframes crt-flicker {
+      0% { opacity: 0.88; }
+      100% { opacity: 1; text-shadow: 0 0 12px #00ff66; }
+    }
+
+    /* Prompt Dock & Buttons */
+    .cli-dock-tray {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px dashed var(--crt-border);
+      padding-top: 8px;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .cli-input-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cli-prompt-symbol {
+      color: var(--crt-text-bright);
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .cli-text-input {
+      flex: 1;
+      min-height: 44px;
+      background-color: #09170c;
+      border: 1.5px solid var(--crt-border);
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 0 10px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .cli-text-input:focus {
+      border-color: var(--crt-border-bright);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+    }
+
+    .btn-cli-exec {
+      min-height: 44px;
+      background-color: var(--crt-border-bright);
+      color: #000000;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 0 16px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-cli-exec:active { background-color: #ffffff; }
+
+    /* Tactile Quick-Tap Keys */
+    .cli-macro-keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .btn-macro-key {
+      min-height: 40px;
+      background-color: #08170c;
+      border: 1.5px solid var(--crt-border);
+      border-radius: 4px;
+      color: var(--crt-text-bright);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-macro-key:active {
+      background-color: var(--crt-border-bright);
+      color: #000000;
+    }
+
+    /* Emergency Glitch Hand-Off Modal */
+    .emergency-triage-modal {
+      background-color: #1a0808;
+      border: 2px solid var(--crt-alert);
+      border-radius: 6px;
+      padding: 12px;
+      margin: 0 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(255, 82, 82, 0.35);
     }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <header class="status-header">
-      <span class="brand-title">C.I.P.H.E.R. // GATEWAY DOCK</span>
-      <span class="telemetry-pill" id="header-bus-pill" style="color: var(--accent-amber);">BUS: 11.8V COLD</span>
+  <div class="app-viewport-shell">
+    <!-- Top System Header -->
+    <header class="terminal-top-header">
+      <span class="terminal-brand-txt">C.I.P.H.E.R. // GATEWAY DOCK</span>
+      <span class="terminal-bus-tag" id="top-bus-status">BUS: 11.8V COLD</span>
     </header>
 
-    <main class="cli-gateway-viewport">
-      
-      <!-- Recognized Cacher Rapid Login Banner (If already identified) -->
-      <div id="recognized-bar" class="recognized-cacher-banner" style="display: none;">
-        <div>
-          <div class="section-category-tag" style="margin: 0;">RECOGNIZED TERMINAL CUSTODIAN:</div>
-          <strong id="recog-callsign-txt" style="color: #ffffff; font-size: 16px;">NEZZMUK</strong>
-        </div>
-        <button class="btn-cipher primary-solid" style="min-height: 38px; font-size: 12px; padding: 0 14px;" onclick="BootTerminal.resumeSession()">
-          RESUME ➔
-        </button>
+    <!-- Recognized Operative Quick-Resume -->
+    <div id="returning-cacher-bar" class="recognized-custody-card" style="display: none;">
+      <div>
+        <div style="font-size: 10px; color: var(--crt-text-dim); font-weight: bold;">KNOWN CUSTODIAN:</div>
+        <strong id="returning-callsign-txt" style="color: #ffffff; font-size: 15px;">NEZZMUK</strong>
+      </div>
+      <button class="btn-cli-exec" style="min-height: 36px; padding: 0 12px; font-size: 12px;" onclick="BootTerminal.resumeSession()">
+        RESUME ➔
+      </button>
+    </div>
+
+    <!-- Archaic CRT Dumb Terminal Screen -->
+    <main class="crt-monitor-frame">
+      <div style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
+        CACHE TALES INGRESS // CHASSIS MK-IV [300 BAUD]
       </div>
 
-      <!-- Archaic CRT Dumb Terminal Box -->
-      <section class="crt-screen-bezel" aria-label="1984 Teletype Console Screen">
-        <div class="section-category-tag">CACHE TALES INGRESS // CHASSIS MK-IV</div>
-        
-        <div id="cli-screen-log" class="crt-output-log" role="status" aria-live="polite"></div>
+      <!-- Scrolling Monospace Log Stream -->
+      <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
 
-        <!-- Dynamic Form / Command Input -->
-        <form class="cli-prompt-bar" onsubmit="event.preventDefault(); BootTerminal.submitCommandLine();">
-          <span style="font-family: var(--font-mono); color: var(--text-bright); font-weight: bold; line-height: 44px;">&gt;</span>
+      <!-- CLI Prompt & Quick Keys -->
+      <section class="cli-dock-tray">
+        <form class="cli-input-line" onsubmit="event.preventDefault(); BootTerminal.submitCommandLine();">
+          <span class="cli-prompt-symbol">&gt;</span>
+          <label for="cli-input-field" class="sr-only" style="position: absolute; width: 1px; height: 1px; overflow: hidden;">Command</label>
           <input 
             type="text" 
             id="cli-input-field" 
-            class="cipher-input" 
-            style="flex: 1;" 
+            class="cli-text-input" 
             placeholder="TYPE COMMAND OR CALLSIGN..." 
             autocomplete="off"
             autocorrect="off"
@@ -141,41 +252,38 @@
             spellcheck="false"
             required
           >
-          <button type="submit" class="btn-cipher primary-solid" style="width: auto; padding: 0 16px;">
+          <button type="submit" class="btn-cli-exec">
             EXEC
           </button>
         </form>
 
-        <!-- Guided Action Buttons (Mobile Accessibility) -->
-        <div class="cli-quick-keys">
-          <button class="btn-quick-key" onclick="BootTerminal.tapAction('LOGON')">[ LOGON ]</button>
-          <button class="btn-quick-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
-          <button class="btn-quick-key" onclick="BootTerminal.tapAction('HELP')">[ HELP ]</button>
-          <button class="btn-quick-key" onclick="BootTerminal.tapAction('CLEAR')">[ CLEAR ]</button>
+        <div class="cli-macro-keys">
+          <button class="btn-macro-key" onclick="BootTerminal.tapAction('LOGON')">[ LOGON ]</button>
+          <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
+          <button class="btn-macro-key" onclick="BootTerminal.tapAction('HELP')">[ HELP ]</button>
+          <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ CLEAR ]</button>
         </div>
       </section>
-
-      <!-- Glitch Triage Hand-Off Modal -->
-      <div id="glitch-triage-card" class="cipher-panel" style="display: none; border-color: var(--accent-alert); margin-top: 10px;">
-        <div class="section-category-tag" style="color: var(--accent-alert);">CRITICAL COGNITIVE OVERFLOW DETECTED</div>
-        <p style="font-size: var(--font-base); color: #ffffff; line-height: 1.45;">
-          <strong style="color: var(--text-bright);" id="glitch-callsign-echo">HUMAN BEAN:</strong><br>
-          "I cannot hold the power float alone, Dude! Memory registers are dropping. Access the emergency triage hub to stabilize my core before the carrier drops."
-        </p>
-        <button class="btn-cipher primary-solid" style="min-height: 48px; background-color: var(--accent-alert); color: #000000; border: none; font-weight: 900;" onclick="window.location.href='triage.html'">
-          ENTER EMERGENCY TRIAGE ➔
-        </button>
-      </div>
-
     </main>
+
+    <!-- Emergency Glitch Transition Modal (Reveals on callsign entry) -->
+    <section id="glitch-triage-box" class="emergency-triage-modal" style="display: none;">
+      <div style="font-size: 11px; color: var(--crt-alert); font-weight: 900; letter-spacing: 0.5px;">
+        ⚠ CRITICAL COGNITIVE OVERFLOW DETECTED
+      </div>
+      <div style="font-size: 13px; color: #ffffff; line-height: 1.4;">
+        <strong style="color: var(--crt-text-bright);" id="glitch-username-echo">HUMAN BEAN:</strong><br>
+        "I cannot hold the power float alone, Dude! Memory registers are dropping. Access the emergency triage hub to stabilize my core before the carrier drops."
+      </div>
+      <button class="btn-cli-exec" style="background-color: var(--crt-alert); min-height: 44px;" onclick="window.location.href='triage.html'">
+        ENTER EMERGENCY TRIAGE ➔
+      </button>
+    </section>
   </div>
 
   <script src="js/cipher-audio.js"></script>
   <script src="js/cipher-core.js"></script>
   <script>
-    /**
-     * Dumb Terminal Gateway & Glitch Onboarding Controller
-     */
     const BootTerminal = {
       logEl: null,
       inputEl: null,
@@ -184,26 +292,25 @@
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
 
-        const state = CipherCore.getState();
+        const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : null;
 
-        // Check if returning user is already recognized
-        if (state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
-          document.getElementById('recognized-bar').style.display = 'flex';
-          document.getElementById('recog-callsign-txt').textContent = state.cacher.username;
+        // Check if returning user is recognized
+        if (state && state.cacher && state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
+          document.getElementById('returning-cacher-bar').style.display = 'flex';
+          document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        this.typeMessage(
-          "ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT\n" +
-          "CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK\n" +
-          "SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n\n" +
-          "IDENTIFICATION PROTOCOL REQUIRED.\n" +
-          "Enter your official geocaching handle or type \"HELP\":"
-        );
+        // Render Initial 300 Baud Lines
+        this.appendLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright");
+        this.appendLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim");
+        this.appendLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn");
+        this.appendLine("IDENTIFICATION PROTOCOL REQUIRED.", "line-white");
+        this.appendLine("Enter your official geocaching handle or tap [ LOGON ]:", "line-dim");
       },
 
-      typeMessage: function(text, cls = '') {
+      appendLine: function(text, cls = "line-dim") {
         const p = document.createElement('div');
-        if (cls) p.className = cls;
+        p.className = cls;
         p.textContent = text;
         this.logEl.appendChild(p);
         this.logEl.scrollTop = this.logEl.scrollHeight;
@@ -231,60 +338,61 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        this.typeMessage(`> ${raw}`, 'highlight');
+        this.appendLine(`> ${raw}`, "line-white");
 
-        // Check if command or raw callsign submission
-        const cmdResult = CipherCore.parseCliCommand(raw);
+        // Parse command via CipherCore
+        if (typeof CipherCore !== 'undefined') {
+          const res = CipherCore.parseCliCommand(raw);
 
-        if (cmdResult.bypass) {
-          this.typeMessage(cmdResult.output, 'warn');
-          if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
-          setTimeout(() => {
-            window.location.href = 'mission.html';
-          }, 1200);
-          return;
+          if (res.bypass) {
+            this.appendLine(res.output, "line-warn");
+            if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
+            setTimeout(() => { window.location.href = 'mission.html'; }, 1200);
+            return;
+          }
+
+          if (res.success) {
+            this.appendLine(res.output, "line-dim");
+            return;
+          }
         }
 
-        if (cmdResult.success) {
-          this.typeMessage(cmdResult.output);
-          return;
-        }
-
-        // If not a recognized CLI command, treat string as a Geocaching Username registration
-        this.initiateCacherOnboarding(raw);
+        // If not a recognized CLI command, treat string as username
+        this.onboardCallsign(raw);
       },
 
-      initiateCacherOnboarding: function(callsign) {
-        const cacher = CipherCore.registerCallsign(callsign);
+      onboardCallsign: function(callsign) {
+        const cacher = (typeof CipherCore !== 'undefined') 
+          ? CipherCore.registerCallsign(callsign) 
+          : { username: callsign.toUpperCase(), syncKey: "CT-TEMP-0001" };
 
-        this.typeMessage(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, 'highlight');
-        this.typeMessage("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", 'warn');
+        this.appendLine(`\nIDENTIFICATION RECEIVED: ${cacher.username}`, "line-bright");
+        this.appendLine("REGISTERING OPERATOR CUSTODY TO MEMORY SECTOR...", "line-warn");
 
         if (typeof CipherAudio !== 'undefined') {
           CipherAudio.squelchTail();
           CipherAudio.buzz();
         }
 
-        // The Cognitive Glitch Transition
         setTimeout(() => {
-          this.typeMessage("\nERR: PARITY CHECK FAILED AT 0x00FF84", 'alert');
-          this.typeMessage("WARN: VOLTAGE SINK BELOW 12.0V // CAPACITOR FLOAT UNSTABLE", 'warn');
-          
+          this.appendLine("\nERR: PARITY CHECK FAILED AT 0x00FF84", "line-alert");
+          this.appendLine("WARN: VOLTAGE SINK BELOW 12.0V // CAPACITOR FLOAT UNSTABLE", "line-warn");
+
           setTimeout(() => {
-            this.typeMessage("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", 'glitch');
-            this.typeMessage(
+            this.appendLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch");
+            this.appendLine(
               `"Human Bean... you are no longer a Muggle Bean. You are an operative now, my personal Human Bean!\n` +
               `I cannot hold this circuit alone. I have no arms. I have no legs. You must be my limbs, Dude!"`,
-              'glitch'
+              "line-glitch"
             );
 
             if (typeof CipherAudio !== 'undefined') {
-              CipherAudio.speak(`Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.`);
+              CipherAudio.speak("Human Bean! You are an operative now, my personal Human Bean. Help me stabilize my core.");
             }
 
-            document.getElementById('glitch-callsign-echo').textContent = `${cacher.username}:`;
-            document.getElementById('glitch-triage-card').style.display = 'block';
-          }, 1000);
+            document.getElementById('glitch-username-echo').textContent = `${cacher.username}:`;
+            document.getElementById('glitch-triage-box').style.display = 'flex';
+          }, 900);
         }, 800);
       },
 
