@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C.I.P.H.E.R. // Cacher Trail Pack</title>
-  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.90">
   <style>
-    /* 3-Pillar Hardware Progress Meters */
+    /* Live Mainframe Bus Meters */
     .harvest-bus-panel {
       background-color: var(--bg-card);
       border: 1.5px solid var(--border-bright);
@@ -30,7 +30,6 @@
       border-radius: 4px;
       margin: 0 10px;
       overflow: hidden;
-      position: relative;
     }
     .meter-bar-fill {
       height: 100%;
@@ -44,7 +43,7 @@
     .wheel-modal-backdrop {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(5, 10, 6, 0.92);
+      background: rgba(5, 10, 6, 0.94);
       z-index: 50;
       display: none;
       align-items: center;
@@ -61,71 +60,56 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      box-shadow: 0 0 25px rgba(0, 230, 118, 0.25);
+      box-shadow: 0 0 30px rgba(0, 230, 118, 0.3);
     }
-    .rotor-display-stage {
+    .clue-callout-card {
+      background-color: #06110a;
+      border: 1px dashed var(--accent-amber);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: var(--font-sm);
+      color: #ffffff;
+      line-height: 1.4;
+    }
+
+    /* Split-Flap Mechanical Tumbler Display */
+    .tumbler-rack {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      padding: 10px 4px;
       background-color: #050a06;
       border: 1.5px solid var(--border-color);
       border-radius: 6px;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
     }
-    .rotor-strip {
-      display: flex;
-      gap: 6px;
-      overflow: hidden;
-      font-family: var(--font-mono);
-      font-weight: bold;
-      user-select: none;
-    }
-    .rotor-cell {
-      width: 32px;
-      height: 38px;
-      background-color: var(--bg-surface-raised);
+    .tumbler-tile {
+      width: 24px;
+      height: 36px;
+      background: linear-gradient(180deg, #112216 48%, #08110b 52%);
       border: 1px solid var(--border-color);
       border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      color: #ffffff;
-    }
-    .rotor-cell.target {
-      border-color: var(--border-bright);
-      color: var(--text-bright);
-      box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
-    }
-    .alignment-gauge {
-      width: 100%;
-      height: 10px;
-      background-color: #06110a;
-      border: 1px solid var(--border-color);
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-    .alignment-gauge-fill {
-      height: 100%;
-      width: 0%;
-      background-color: var(--accent-amber);
-      transition: width 0.15s ease, background-color 0.15s ease;
-    }
-    .alignment-gauge-fill.locked {
-      background-color: var(--border-bright);
-      box-shadow: 0 0 10px var(--border-bright);
-    }
-    .decryption-scratchpad {
-      background-color: #06110a;
-      border: 1px dashed var(--border-color);
-      border-radius: 6px;
-      padding: 10px;
       font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .tumbler-tile.locked {
+      border-color: var(--border-bright);
+      color: var(--border-bright);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
+    }
+    .tumbler-sep {
+      width: 12px;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-weight: bold;
     }
   </style>
 </head>
@@ -133,7 +117,7 @@
 
   <div class="app-container">
     <header class="status-header">
-      <span class="brand-title">C.I.P.H.E.R. // v3.8-CATALOG</span>
+      <span class="brand-title">C.I.P.H.E.R. // v3.9-CATALOG</span>
       <div class="header-status-pill" role="status">
         <span class="dot"></span>
         <span>ONLINE // GZ</span>
@@ -143,34 +127,30 @@
 
     <main class="viewport-stage">
       
-      <!-- Top Title Banner -->
       <section class="page-title-banner" aria-label="Inventory Header">
         <div class="section-category-tag">CONTROLLED ITEM INVENTORY</div>
         <h1 class="page-main-heading">Cacher Trail Pack</h1>
         <p class="page-description">
-          Scavenged parts, corridor permits, and crypto tools. Tap [FEED] to upgrade mainframe specs[cite: 8].
+          Field tools and scavenged components. Tap [FEED] to upgrade mainframe bus specs.
         </p>
       </section>
 
-      <!-- 3-Pillar Hardware Harvest Status Bus -->
+      <!-- 3-Pillar Hardware Bus Progress Meters -->
       <section class="harvest-bus-panel" aria-label="Hardware Architecture Bus">
-        <div class="section-category-tag" style="margin: 0;">C.I.P.H.E.R. MAINFRAME BUS METERS</div>
+        <div class="section-category-tag" style="margin: 0;">C.I.P.H.E.R. MAINFRAME HARVEST BUS</div>
         
-        <!-- CPU Meter -->
         <div class="meter-row">
           <span style="font-family: var(--font-mono); width: 65px;">CPU:</span>
           <div class="meter-bar-track"><div id="meter-cpu" class="meter-bar-fill" style="width: 25%;"></div></div>
           <strong id="val-cpu" style="font-family: var(--font-mono); width: 75px; text-align: right;">1.77 MHz</strong>
         </div>
 
-        <!-- RAM Meter -->
         <div class="meter-row">
           <span style="font-family: var(--font-mono); width: 65px;">RAM:</span>
           <div class="meter-bar-track"><div id="meter-ram" class="meter-bar-fill" style="width: 25%;"></div></div>
           <strong id="val-ram" style="font-family: var(--font-mono); width: 75px; text-align: right;">64 KB</strong>
         </div>
 
-        <!-- Battery Float Meter -->
         <div class="meter-row">
           <span style="font-family: var(--font-mono); width: 65px;">FLOAT:</span>
           <div class="meter-bar-track"><div id="meter-float" class="meter-bar-fill warn" style="width: 30%;"></div></div>
@@ -180,14 +160,14 @@
 
       <!-- Dynamic Item Cards Deck -->
       <section id="items-container" aria-label="Pack Items Deck" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Dynamically rendered by PackController -->
+        <!-- Rendered by PackController -->
       </section>
 
-      <!-- Physical Ammo Can Lid Voucher Redemption Dock -->
+      <!-- Field Container Lid Voucher Redemption Dock -->
       <section class="cipher-panel" style="margin-top: auto;" aria-labelledby="voucher-dock-title">
         <h2 id="voucher-dock-title" class="panel-header">FIELD VOUCHER REDEMPTION DOCK</h2>
         <p style="font-size: var(--font-sm); color: #a7f3d0; line-height: 1.4;">
-          Redeem stamped alphanumeric codes from ammo can lids or brass washers found in the field.
+          Redeem stamped alphanumeric codes from ammo can lids or washers found at GZ.
         </p>
         <form style="display: flex; gap: 8px; margin-top: 8px;" onsubmit="event.preventDefault(); PackController.redeemVoucher();">
           <label for="voucher-input" class="sr-only">Voucher Code</label>
@@ -211,57 +191,43 @@
 
     </main>
 
-    <!-- Interactive Mechanical ROT13 "Cypher-Wheel" Modal -->
+    <!-- Gamified Mechanical Cypher-Wheel Modal -->
     <div id="wheel-modal" class="wheel-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="wheel-title">
       <div class="wheel-modal-card">
         <div class="panel-header">
-          <span id="wheel-title">ROT-13 FIELD DECODER WHEEL</span>
+          <span id="wheel-title">MECHANICAL CYPHER-WHEEL</span>
           <button class="btn-cipher" style="min-height: 36px; padding: 0 10px;" onclick="CypherWheel.close()">✕</button>
         </div>
 
-        <div class="rotor-display-stage">
-          <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">
-            OUTER RING: STATIC [A-Z] // INNER RING: ROTATING [A-Z]
-          </div>
-
-          <!-- The Mechanical Letter Tumbler Visual -->
-          <div class="rotor-strip" id="rotor-outer-strip"></div>
-          <div style="color: var(--border-bright); font-size: 14px;">▼ ▼ ▼ [ ACTIVE ALIGNMENT ] ▼ ▼ ▼</div>
-          <div class="rotor-strip" id="rotor-inner-strip"></div>
-
-          <!-- Current Alignment & Lock Status -->
-          <div style="display: flex; justify-content: space-between; width: 100%; font-family: var(--font-mono); font-size: 13px; margin-top: 4px;">
-            <span>SHIFT OFFSET: <strong id="wheel-shift-val" style="color: var(--accent-amber);">ROT-00</strong></span>
-            <span id="wheel-lock-label" style="color: var(--text-dim);">ALIGNMENT: 0%</span>
-          </div>
-          <div class="alignment-gauge">
-            <div id="wheel-gauge-fill" class="alignment-gauge-fill"></div>
-          </div>
+        <!-- Physical Deduction Clue Box -->
+        <div class="clue-callout-card">
+          <strong style="color: var(--accent-amber);">TARGET ANCHOR CLUE:</strong><br>
+          Cache log sheet notes the first three letters unscramble to: <strong style="color: var(--text-bright);">"THS"</strong>. Align rotor until match is acquired.
         </div>
 
-        <!-- Rotor Stepping Lever Controls -->
+        <!-- Split-Flap Tumbler Display -->
+        <div class="tumbler-rack" id="tumbler-rack" aria-live="polite"></div>
+
+        <!-- Rotor Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 13px;">
+          <span>ROTOR OFFSET: <strong id="rotor-offset-txt" style="color: var(--accent-amber);">+00</strong></span>
+          <span id="lock-state-txt" style="color: var(--accent-alert);">[UNALIGNED]</span>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px;">
           <button class="btn-cipher" onclick="CypherWheel.step(-1)">◄ STEP</button>
-          <button class="btn-cipher primary-solid" onclick="CypherWheel.slamRot13()">⚡ SLAM ROT-13</button>
+          <button class="btn-cipher primary-solid" onclick="CypherWheel.slamSolve()">⚡ SLAM ROT-13</button>
           <button class="btn-cipher" onclick="CypherWheel.step(1)">STEP ►</button>
         </div>
 
-        <!-- Decryption Scratchpad Translation Bay -->
-        <div class="decryption-scratchpad">
-          <div style="font-size: 11px; color: var(--text-dim);">ACTIVE FIELD TEST STRING:</div>
-          <div id="scratch-cipher-text" style="color: var(--accent-amber); font-weight: bold; letter-spacing: 1px;">GUF-SYNAP-HAX-89</div>
-          <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">DECODED OUTPUT:</div>
-          <div id="scratch-decoded-text" style="color: #ffffff; font-size: 16px; font-weight: bold; letter-spacing: 1px;">GUF-SYNAP-HAX-89</div>
-        </div>
-
-        <!-- Stamp & Copy to Mission Action -->
-        <button id="btn-stamp-transfer" class="btn-cipher" style="border-color: var(--accent-amber); color: var(--accent-amber);" onclick="CypherWheel.stampAndTransfer()">
-          📋 STAMP & COPY TO MISSION
+        <!-- Auto-Inject Button (Directly cracks Mission) -->
+        <button id="btn-inject" class="btn-cipher primary-solid" style="display: none;" onclick="CypherWheel.autoInject()">
+          ⚡ AUTO-INJECT INTO MISSION TERMINAL ➔
         </button>
       </div>
     </div>
 
-    <!-- Solid Green Pill Navigation -->
+    <!-- Navigation Strip -->
     <nav class="nav-anchor-strip" aria-label="Primary Navigation">
       <a href="mission.html" class="nav-tab">
         <svg class="ui-icon-nav" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -295,20 +261,16 @@
 
       renderHardwareMeters: function() {
         const h = CipherCore.getState().hardware;
-        
-        // Update Readouts
         document.getElementById('val-cpu').textContent = `${h.cpuMHz.toFixed(2)} MHz`;
         document.getElementById('val-ram').textContent = `${h.ramKB} KB`;
         document.getElementById('val-float').textContent = `${h.batteryVolts.toFixed(1)} V`;
 
-        // Percentage Bar Fills
         const cpuPct = Math.min(100, (h.cpuMHz / 14.32) * 100);
         const ramPct = Math.min(100, (h.ramKB / 512) * 100);
         const floatPct = Math.min(100, ((h.batteryVolts - 11.0) / 3.4) * 100);
 
         document.getElementById('meter-cpu').style.width = `${cpuPct}%`;
         document.getElementById('meter-ram').style.width = `${ramPct}%`;
-        
         const floatBar = document.getElementById('meter-float');
         floatBar.style.width = `${floatPct}%`;
         floatBar.className = `meter-bar-fill ${h.batteryVolts < 12.2 ? 'warn' : ''}`;
@@ -332,7 +294,7 @@
               <div class="item-badge-pill">${item.badge}</div>
               <div style="display: flex; gap: 8px; margin-top: 8px;">
                 ${isPart ? `<button class="btn-cipher primary-solid" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="PackController.feedItem('${item.id}')">⚡ FEED TO CIPHER</button>` : ''}
-                ${item.id === 'TOOL_ROT13' ? `<button class="btn-cipher" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="CypherWheel.open()">🔍 OPERATE ROTOR</button>` : `<button class="btn-cipher" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="alert('${item.name}: Serial hash verified authentic.')">🔍 INSPECT</button>`}
+                ${item.id === 'TOOL_ROT13' ? `<button class="btn-cipher" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="CypherWheel.open()">🔍 OPERATE CYPHER-WHEEL</button>` : `<button class="btn-cipher" style="min-height: 40px; font-size: 13px; padding: 0 14px;" onclick="alert('${item.name}: Serial hash verified authentic.')">🔍 INSPECT</button>`}
               </div>
             </div>
           `;
@@ -357,8 +319,6 @@
         if (!code) return;
 
         const state = CipherCore.getState();
-
-        // Stamped Ammo Can Lid Vouchers
         if (code === "GC1-LID-ANCHOR" || code === "ANCHOR-RAM-16") {
           if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
           state.inventory.push({
@@ -378,7 +338,7 @@
           this.renderItems();
         } else {
           if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
-          alert("INVALID VOUCHER CODE. Check the physical container stamp.");
+          alert("INVALID VOUCHER CODE. Check the physical ammo can lid stamp.");
           input.value = '';
         }
       }
@@ -387,13 +347,14 @@
     // The Mechanical Gamified Cypher-Wheel Engine
     const CypherWheel = {
       offset: 0,
-      activeCipher: "GUF-SYNAP-HAX-89",
-      targetSolution: "THS-FLANC-UNK-89",
+      scrambledString: "GUF-SYNAP-HAX-89",
+      targetAnchor: "THS",
+      solvedString: "",
 
       open: function() {
         if (typeof CipherAudio !== 'undefined') CipherAudio.click();
         document.getElementById('wheel-modal').style.display = 'flex';
-        this.renderRotor();
+        this.renderRack();
       },
 
       close: function() {
@@ -404,83 +365,73 @@
       step: function(dir) {
         if (typeof CipherAudio !== 'undefined') CipherAudio.click();
         this.offset = (this.offset + dir + 26) % 26;
-        this.renderRotor();
+        this.renderRack();
       },
 
-      slamRot13: function() {
+      slamSolve: function() {
         if (typeof CipherAudio !== 'undefined') {
           CipherAudio.squelchTail();
           CipherAudio.chime();
         }
         this.offset = 13;
-        this.renderRotor();
+        this.renderRack();
       },
 
-      renderRotor: function() {
+      renderRack: function() {
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const outerStrip = document.getElementById('rotor-outer-strip');
-        const innerStrip = document.getElementById('rotor-inner-strip');
+        const rack = document.getElementById('tumbler-rack');
+        rack.innerHTML = '';
 
-        outerStrip.innerHTML = '';
-        innerStrip.innerHTML = '';
+        document.getElementById('rotor-offset-txt').textContent = `+${this.offset.toString().padStart(2, '0')}`;
 
-        // Display visible 7-letter focal aperture centered on index 0
-        for (let i = -3; i <= 3; i++) {
-          const outerChar = alphabet[(i + 26) % 26];
-          const innerChar = alphabet[(i + this.offset + 26) % 26];
+        let currentDecoded = "";
+        for (let char of this.scrambledString) {
+          if (alphabet.includes(char)) {
+            const idx = alphabet.indexOf(char);
+            currentDecoded += alphabet[(idx - this.offset + 26) % 26];
+          } else {
+            currentDecoded += char;
+          }
+        }
+        this.solvedString = currentDecoded;
 
-          const oCell = document.createElement('div');
-          oCell.className = `rotor-cell ${i === 0 ? 'target' : ''}`;
-          oCell.textContent = outerChar;
-          outerStrip.appendChild(oCell);
+        const isAnchorMatched = currentDecoded.startsWith(this.targetAnchor);
 
-          const iCell = document.createElement('div');
-          iCell.className = `rotor-cell ${i === 0 ? 'target' : ''}`;
-          iCell.textContent = innerChar;
-          innerStrip.appendChild(iCell);
+        for (let char of currentDecoded) {
+          if (char === '-') {
+            const sep = document.createElement('div');
+            sep.className = 'tumbler-sep';
+            sep.textContent = '-';
+            rack.appendChild(sep);
+          } else {
+            const tile = document.createElement('div');
+            tile.className = `tumbler-tile ${isAnchorMatched ? 'locked' : ''}`;
+            tile.textContent = char;
+            rack.appendChild(tile);
+          }
         }
 
-        document.getElementById('wheel-shift-val').textContent = `ROT-${this.offset.toString().padStart(2, '0')}`;
+        const lockTxt = document.getElementById('lock-state-txt');
+        const injectBtn = document.getElementById('btn-inject');
 
-        // Live Translation of Scratchpad
-        const decoded = this.activeCipher.split('').map(c => {
-          if (!alphabet.includes(c)) return c;
-          const idx = alphabet.indexOf(c);
-          return alphabet[(idx - this.offset + 26) % 26];
-        }).join('');
-
-        document.getElementById('scratch-decoded-text').textContent = decoded;
-
-        // Alignment Gauge
-        const gauge = document.getElementById('wheel-gauge-fill');
-        const label = document.getElementById('wheel-lock-label');
-        const pct = Math.round((1 - Math.abs(13 - this.offset) / 13) * 100);
-
-        gauge.style.width = `${Math.max(10, pct)}%`;
-
-        if (this.offset === 13) {
-          gauge.classList.add('locked');
-          label.style.color = 'var(--text-bright)';
-          label.textContent = "ALIGNMENT: 100% (ROT-13 MATCH)";
-          document.getElementById('scratch-decoded-text').style.color = 'var(--text-bright)';
+        if (isAnchorMatched) {
+          lockTxt.style.color = 'var(--text-bright)';
+          lockTxt.textContent = '[TUMBLER LOCK ENGAGED]';
+          injectBtn.style.display = 'block';
         } else {
-          gauge.classList.remove('locked');
-          label.style.color = 'var(--text-dim)';
-          label.textContent = `ALIGNMENT: ${pct}%`;
-          document.getElementById('scratch-decoded-text').style.color = '#ffffff';
+          lockTxt.style.color = 'var(--accent-alert)';
+          lockTxt.textContent = '[UNALIGNED]';
+          injectBtn.style.display = 'none';
         }
       },
 
-      stampAndTransfer: function() {
-        const decoded = document.getElementById('scratch-decoded-text').textContent;
-        navigator.clipboard.writeText(decoded).then(() => {
-          if (typeof CipherAudio !== 'undefined') {
-            CipherAudio.chime();
-            CipherAudio.speak("Codeword stamped to clipboard. Transfer to mission terminal.");
-          }
-          alert(`STAMPED & COPIED TO CLIPBOARD:\n${decoded}\n\nSwitching to Mission terminal.`);
-          window.location.href = 'mission.html';
-        });
+      autoInject: function() {
+        sessionStorage.setItem('INJECTED_CRACK_CODE', this.solvedString);
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.chime();
+          CipherAudio.speak("Bypass code injected into terminal. Engaging coordinates.");
+        }
+        window.location.href = 'mission.html';
       }
     };
 
