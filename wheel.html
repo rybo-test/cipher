@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C.I.P.H.E.R. // 3D Mechanical Cypher-Wheel</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=4.00">
+  <style>
+    .wheel-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      overflow-y: auto;
+      background: radial-gradient(circle at center, #0a170e 0%, #050a06 100%);
+      touch-action: manipulation;
+    }
+
+    /* 3D Wheel Viewport & Housing */
+    .wheel-viewport {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      perspective: 1000px;
+      margin: 6px auto;
+      user-select: none;
+    }
+
+    .wheel-chassis {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0e1e12 60%, #06110a 98%, var(--border-bright) 100%);
+      border: 3px solid var(--border-bright);
+      box-shadow: 0 0 25px rgba(0, 230, 118, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.9);
+      transform-style: preserve-3d;
+      transform: rotateX(15deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Outer Ring (Static Brass/Steel A-Z) */
+    .outer-ring {
+      position: absolute;
+      width: 290px;
+      height: 290px;
+      border-radius: 50%;
+      border: 1.5px dashed var(--border-color);
+      pointer-events: none;
+    }
+
+    .outer-ring .dial-glyph {
+      position: absolute;
+      top: 6px;
+      left: 137px;
+      width: 16px;
+      height: 140px;
+      transform-origin: bottom center;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 13px;
+      color: #ffffff;
+      text-shadow: 0 0 4px #000000;
+    }
+
+    /* Inner Ring (Rotatable Mechanical Tumbler Disk) */
+    .inner-rotor {
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #08160c 40%, #112817 95%, var(--border-bright) 100%);
+      border: 2px solid var(--border-bright);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 230, 118, 0.3);
+      cursor: grab;
+      touch-action: none;
+      transition: transform 0.08s ease-out;
+    }
+    .inner-rotor:active { cursor: grabbing; }
+
+    .inner-rotor .rotor-glyph {
+      position: absolute;
+      top: 6px;
+      left: 97px;
+      width: 16px;
+      height: 100px;
+      transform-origin: bottom center;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--text-bright);
+      text-shadow: 0 0 5px var(--text-bright);
+    }
+
+    /* Center Bearing Hub */
+    .center-hub {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #1a3320 0%, #06110a 100%);
+      border: 2px solid var(--accent-amber);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+    }
+    .center-hub .offset-title {
+      font-size: 9px;
+      color: var(--accent-amber);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .center-hub .offset-val {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffffff;
+    }
+
+    /* Top Optical Focal Alignment Hairline */
+    .focal-sight {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 55px;
+      border: 2px solid var(--accent-amber);
+      border-radius: 4px;
+      box-shadow: 0 0 10px var(--accent-amber);
+      pointer-events: none;
+      z-index: 10;
+      background: rgba(255, 179, 0, 0.08);
+    }
+
+    /* Tumbler Character Output Rack */
+    .tumbler-rack {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 6px;
+      background-color: #06110a;
+      border: 1.5px solid var(--border-color);
+      border-radius: 6px;
+      width: 100%;
+      max-width: 440px;
+      margin: 6px 0;
+    }
+    .tumbler-card {
+      width: 24px;
+      height: 36px;
+      background: linear-gradient(180deg, #102115 48%, #08110b 52%);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .tumbler-card.matched {
+      border-color: var(--border-bright);
+      color: var(--border-bright);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
+    }
+    .tumbler-sep {
+      width: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-weight: bold;
+    }
+
+    /* Alignment Lock Meter */
+    .alignment-bar-wrap {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .alignment-bar-track {
+      width: 100%;
+      height: 8px;
+      background-color: #06110a;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .alignment-bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--accent-amber);
+      transition: width 0.15s ease, background-color 0.15s ease;
+    }
+    .alignment-bar-fill.locked {
+      background-color: var(--border-bright);
+      box-shadow: 0 0 8px var(--border-bright);
+    }
+
+    /* Controls Grid */
+    .wheel-controls {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 8px;
+      width: 100%;
+      max-width: 440px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="status-header">
+      <span class="brand-title">C.I.P.H.E.R. // 3D ROTOR DECODER</span>
+      <div class="header-status-pill" role="status">
+        <span class="dot"></span>
+        <span id="rotor-status-tag">STANDALONE MODE</span>
+      </div>
+      <a href="pack.html" class="header-user-tag" style="text-decoration: none; color: var(--text-dim);">✕ CLOSE</a>
+    </header>
+
+    <main class="wheel-stage">
+      
+      <!-- Target Objective / Clue Banner -->
+      <section id="objective-banner" class="cipher-panel" style="width: 100%; max-width: 440px; padding: 10px 12px;">
+        <div class="section-category-tag" id="banner-cat">CALIBRATION DECRYPTION PROTOCOL</div>
+        <div id="banner-instruction" style="font-size: var(--font-sm); color: #ffffff; line-height: 1.35;">
+          Log hint states: First 3 letters decode to <strong style="color: var(--text-bright);">"THS"</strong>. Rotate disk to line up the focal aperture.
+        </div>
+      </section>
+
+      <!-- 3D Mechanical Rotor Viewport -->
+      <section class="wheel-viewport" aria-label="Interactive 3D Mechanical Cipher Disk">
+        <div class="focal-sight" aria-hidden="true"></div>
+        <div class="wheel-chassis">
+          
+          <!-- Outer Static Ring (A-Z) -->
+          <div class="outer-ring" id="outer-dial-ring" aria-hidden="true"></div>
+
+          <!-- Inner Rotatable Rotor -->
+          <div 
+            class="inner-rotor" 
+            id="inner-dial-rotor" 
+            role="slider"
+            aria-label="Inner Cipher Rotor Disk"
+            aria-valuemin="0"
+            aria-valuemax="25"
+            aria-valuenow="0"
+            tabindex="0"
+          ></div>
+
+          <!-- Center Bearing -->
+          <div class="center-hub" aria-hidden="true">
+            <span class="offset-title">OFFSET</span>
+            <span class="offset-val" id="hub-offset-val">0</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Tumbler Letter Rack -->
+      <section class="tumbler-rack" id="tumbler-rack" aria-live="polite" aria-label="Decoded Output Stream"></section>
+
+      <!-- Alignment Feedback Gauge -->
+      <section class="alignment-bar-wrap">
+        <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px;">
+          <span>ALIGNMENT STATUS: <strong id="align-status-txt" style="color: var(--accent-alert);">UNLOCKED</strong></span>
+          <span id="align-pct-txt" style="color: var(--text-dim);">0%</span>
+        </div>
+        <div class="alignment-bar-track">
+          <div id="alignment-fill" class="alignment-bar-fill"></div>
+        </div>
+      </section>
+
+      <!-- Mechanical Stepping Controls -->
+      <section class="wheel-controls">
+        <button class="btn-cipher" onclick="WheelApp.step(-1)">◄ STEP</button>
+        <button class="btn-cipher primary-solid" onclick="WheelApp.slamSolve()">⚡ SLAM 13</button>
+        <button class="btn-cipher" onclick="WheelApp.step(1)">STEP ►</button>
+      </section>
+
+      <!-- Auto-Inject or Output Action Button -->
+      <button 
+        id="btn-wheel-action" 
+        class="btn-cipher primary-solid" 
+        style="width: 100%; max-width: 440px; margin-top: 6px; min-height: 48px;" 
+        onclick="WheelApp.dispatchSolution()"
+      >
+        ⚡ AUTO-INJECT INTO MISSION TERMINAL ➔
+      </button>
+
+      <!-- Independent Free-Play Scratchpad (Used when no stage is preloaded) -->
+      <section id="scratchpad-drawer" class="cipher-panel" style="width: 100%; max-width: 440px; padding: 10px 12px; margin-top: 6px;">
+        <div class="section-category-tag">CUSTOM FIELD SCRATCHPAD</div>
+        <div style="display: flex; gap: 8px;">
+          <input 
+            type="text" 
+            id="custom-cipher-input" 
+            class="cipher-input" 
+            style="flex: 1;" 
+            placeholder="CUSTOM CIPHER TEXT..." 
+            autocomplete="off"
+            spellcheck="false"
+            oninput="WheelApp.setCustomString(this.value)"
+          >
+          <button class="btn-cipher" style="min-height: 44px; padding: 0 12px;" onclick="WheelApp.copyDecoded()">📋</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/cipher-audio.js"></script>
+  <script src="js/cipher-core.js"></script>
+  <script>
+    /**
+     * Standalone Mechanical Cypher-Wheel Controller
+     * Adaptive engine reading query parameters (e.g., ?cipher=XYZ&target=ABC&return=mission.html)
+     */
+    const WheelApp = {
+      offset: 0,
+      alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      cipherText: "GUF-SYNAP-HAX-89",
+      targetAnchor: "THS",
+      returnUrl: "mission.html",
+      solvedString: "",
+
+      // Touch & Pointer Drag Tracking State
+      isDragging: false,
+      startAngle: 0,
+      currentAngle: 0,
+
+      init: function() {
+        this.parseQueryParameters();
+        this.buildRings();
+        this.bindTouchControls();
+        this.updateWheel(0);
+      },
+
+      parseQueryParameters: function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('cipher')) {
+          this.cipherText = decodeURIComponent(params.get('cipher')).toUpperCase();
+          document.getElementById('custom-cipher-input').value = this.cipherText;
+        }
+        if (params.has('target')) {
+          this.targetAnchor = decodeURIComponent(params.get('target')).toUpperCase();
+          document.getElementById('banner-instruction').innerHTML = 
+            `Target Match: First ${this.targetAnchor.length} letters must resolve to <strong style="color:var(--text-bright);">"${this.targetAnchor}"</strong>.`;
+        }
+        if (params.has('return')) {
+          this.returnUrl = params.get('return');
+        } else {
+          // If launched independently without a parent quest
+          document.getElementById('rotor-status-tag').textContent = 'FREEPLAY SCRATCHPAD';
+          document.getElementById('btn-wheel-action').textContent = '📋 COPY CRACKED STRING TO CLIPBOARD';
+        }
+      },
+
+      buildRings: function() {
+        const outer = document.getElementById('outer-dial-ring');
+        const inner = document.getElementById('inner-dial-rotor');
+        outer.innerHTML = '';
+        inner.innerHTML = '';
+
+        for (let i = 0; i < 26; i++) {
+          const char = this.alphabet[i];
+          const deg = (360 / 26) * i;
+
+          // Outer Dial Glyph (Fixed Standard A-Z)
+          const oEl = document.createElement('div');
+          oEl.className = 'dial-glyph';
+          oEl.style.transform = `rotate(${deg}deg)`;
+          oEl.textContent = char;
+          outer.appendChild(oEl);
+
+          // Inner Rotor Glyph (Movable A-Z)
+          const iEl = document.createElement('div');
+          iEl.className = 'rotor-glyph';
+          iEl.style.transform = `rotate(${deg}deg)`;
+          iEl.textContent = char;
+          inner.appendChild(iEl);
+        }
+      },
+
+      bindTouchControls: function() {
+        const rotor = document.getElementById('inner-dial-rotor');
+        const getAngle = (e, rect) => {
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+        };
+
+        const onStart = (e) => {
+          this.isDragging = true;
+          const rect = rotor.getBoundingClientRect();
+          this.startAngle = getAngle(e, rect) - this.currentAngle;
+        };
+
+        const onMove = (e) => {
+          if (!this.isDragging) return;
+          const rect = rotor.getBoundingClientRect();
+          const angle = getAngle(e, rect);
+          this.currentAngle = angle - this.startAngle;
+          rotor.style.transform = `rotate(${this.currentAngle}deg)`;
+
+          // Detent Calculation (26 slots = 13.846 deg per slot)
+          const degPerSlot = 360 / 26;
+          const calculatedOffset = Math.round((-this.currentAngle / degPerSlot) % 26 + 26) % 26;
+
+          if (calculatedOffset !== this.offset) {
+            this.offset = calculatedOffset;
+            if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+            this.updateWheel(this.offset, false);
+          }
+        };
+
+        const onEnd = () => {
+          if (!this.isDragging) return;
+          this.isDragging = false;
+          // Snap to exact discrete detent degree
+          const degPerSlot = 360 / 26;
+          this.currentAngle = -(this.offset * degPerSlot);
+          rotor.style.transform = `rotate(${this.currentAngle}deg)`;
+        };
+
+        rotor.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        rotor.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+      },
+
+      step: function(dir) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        this.offset = (this.offset + dir + 26) % 26;
+        this.snapToOffset();
+      },
+
+      slamSolve: function() {
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.squelchTail();
+          CipherAudio.chime();
+        }
+        this.offset = 13;
+        this.snapToOffset();
+      },
+
+      snapToOffset: function() {
+        const degPerSlot = 360 / 26;
+        this.currentAngle = -(this.offset * degPerSlot);
+        const rotor = document.getElementById('inner-dial-rotor');
+        rotor.style.transform = `rotate(${this.currentAngle}deg)`;
+        this.updateWheel(this.offset, true);
+      },
+
+      updateWheel: function(offset, playAudio = false) {
+        document.getElementById('hub-offset-val').textContent = offset;
+        document.getElementById('inner-dial-rotor').setAttribute('aria-valuenow', offset);
+
+        // Decode active ciphertext
+        let decoded = "";
+        for (let char of this.cipherText) {
+          if (this.alphabet.includes(char)) {
+            const idx = this.alphabet.indexOf(char);
+            decoded += this.alphabet[(idx - offset + 26) % 26];
+          } else {
+            decoded += char;
+          }
+        }
+        this.solvedString = decoded;
+
+        // Render Mechanical Tumbler Cards
+        const rack = document.getElementById('tumbler-rack');
+        rack.innerHTML = '';
+
+        const isAnchorMatched = this.targetAnchor && decoded.startsWith(this.targetAnchor);
+
+        for (let char of decoded) {
+          if (char === '-') {
+            const sep = document.createElement('div');
+            sep.className = 'tumbler-sep';
+            sep.textContent = '-';
+            rack.appendChild(sep);
+          } else {
+            const card = document.createElement('div');
+            card.className = `tumbler-card ${isAnchorMatched ? 'matched' : ''}`;
+            card.textContent = char;
+            rack.appendChild(card);
+          }
+        }
+
+        // Calculate alignment gauge
+        const gauge = document.getElementById('alignment-fill');
+        const statusTxt = document.getElementById('align-status-txt');
+        const pctTxt = document.getElementById('align-pct-txt');
+
+        let pct = 0;
+        if (isAnchorMatched) {
+          pct = 100;
+        } else {
+          // Proximity to ROT-13
+          pct = Math.round((1 - Math.abs(13 - offset) / 13) * 100);
+        }
+
+        gauge.style.width = `${Math.max(5, pct)}%`;
+        pctTxt.textContent = `${pct}%`;
+
+        if (isAnchorMatched || offset === 13) {
+          gauge.classList.add('locked');
+          statusTxt.style.color = 'var(--text-bright)';
+          statusTxt.textContent = 'DETENT LOCKED (ROT-13)';
+          document.getElementById('hub-offset-val').style.color = 'var(--text-bright)';
+        } else {
+          gauge.classList.remove('locked');
+          statusTxt.style.color = 'var(--accent-alert)';
+          statusTxt.textContent = 'UNALIGNED';
+          document.getElementById('hub-offset-val').style.color = '#ffffff';
+        }
+      },
+
+      setCustomString: function(val) {
+        this.cipherText = val.trim().toUpperCase() || "SAMPLE";
+        this.updateWheel(this.offset);
+      },
+
+      copyDecoded: function() {
+        navigator.clipboard.writeText(this.solvedString).then(() => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+          alert(`DECODED STRING COPIED:\n${this.solvedString}`);
+        });
+      },
+
+      dispatchSolution: function() {
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.chime();
+          CipherAudio.speak("Bypass offset verified. Injecting codeword into field terminal.");
+        }
+
+        if (this.returnUrl && this.returnUrl.includes('mission.html')) {
+          sessionStorage.setItem('INJECTED_CRACK_CODE', this.solvedString);
+          window.location.href = this.returnUrl;
+        } else {
+          this.copyDecoded();
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      WheelApp.init();
+    });
+  </script>
+</body>
+</html>
