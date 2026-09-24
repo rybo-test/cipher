@@ -1,27 +1,27 @@
 /**
- * C.I.P.H.E.R. Acoustic Core & Chassis Sound Synthesizer (v4.4 - CT-105 Audited)
- * Web Audio API engine providing low-pass filtered, low-volume mechanical chassis
- * acoustics, 60Hz transformer power hums, and CRT flyback discharge snaps.
+ * C.I.P.H.E.R. Acoustic Core & Chassis Sound Synthesizer (v4.5 - Speech Fix)
  */
-
 const CipherAudio = (function () {
   let audioCtx = null;
   let masterFilter = null;
   let masterGain = null;
   let voiceEnabled = true;
 
+  // Prevent Mobile Chrome GC bug by holding reference globally
+  window.__cipher_active_utterance = null;
+  let speechQueue = [];
+  let isSpeaking = false;
+
   function initAudioGraph() {
     if (!audioCtx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
 
-      // Master Biquad Low-Pass Filter: Cuts off harsh frequencies above 750Hz
       masterFilter = audioCtx.createBiquadFilter();
       masterFilter.type = 'lowpass';
       masterFilter.frequency.setValueAtTime(750, audioCtx.currentTime);
       masterFilter.Q.setValueAtTime(1.2, audioCtx.currentTime);
 
-      // Master Gain: Caps peak volume to a comfortable 22%
       masterGain = audioCtx.createGain();
       masterGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
 
@@ -35,6 +35,37 @@ const CipherAudio = (function () {
     return audioCtx;
   }
 
+  function processSpeechQueue() {
+    if (speechQueue.length === 0 || !voiceEnabled || !window.speechSynthesis) {
+      isSpeaking = false;
+      window.__cipher_active_utterance = null;
+      return;
+    }
+
+    isSpeaking = true;
+    const textChunk = speechQueue.shift();
+    const utterance = new SpeechSynthesisUtterance(textChunk);
+    
+    // Hold reference on window to block garbage collection
+    window.__cipher_active_utterance = utterance;
+
+    utterance.pitch = 0.68;
+    utterance.rate = 1.0;
+    utterance.volume = 0.9;
+
+    utterance.onend = () => {
+      // Process next sentence chunk
+      processSpeechQueue();
+    };
+
+    utterance.onerror = (e) => {
+      console.warn('CipherAudio: Speech chunk error', e);
+      processSpeechQueue();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
   return {
     isVoiceEnabled: function () {
       return voiceEnabled;
@@ -42,18 +73,17 @@ const CipherAudio = (function () {
 
     toggleVoice: function () {
       voiceEnabled = !voiceEnabled;
+      if (!voiceEnabled && window.speechSynthesis) {
+        speechQueue = [];
+        window.speechSynthesis.cancel();
+      }
       return voiceEnabled;
     },
 
-    // Unlock helper for first mobile interaction
     unlock: function () {
       initAudioGraph();
     },
 
-    /**
-     * Tactile Mechanical Key Thud
-     * Muffled chassis key-depression sound for button taps and CLI EXEC.
-     */
     keyThud: function () {
       try {
         const ctx = initAudioGraph();
@@ -75,10 +105,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * Mechanical Line Feed Chatter
-     * Soft, muffled solenoid rattle on line completion (replaces per-character clicks).
-     */
     lineChatter: function () {
       try {
         const ctx = initAudioGraph();
@@ -100,12 +126,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * 60Hz Transformer Mains Hum (Brownout Simulation)
-     * Simulates the low electrical hum of an overloaded power transformer.
-     * @param {number} duration Duration in seconds
-     * @param {boolean} sag If true, pitches down to simulate voltage drop
-     */
     transformerHum: function (duration = 0.6, sag = false) {
       try {
         const ctx = initAudioGraph();
@@ -116,12 +136,11 @@ const CipherAudio = (function () {
         osc1.type = 'sawtooth';
         osc2.type = 'sine';
 
-        const baseFreq = 60; // 60Hz AC mains hum
+        const baseFreq = 60;
         osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime);
-        osc2.frequency.setValueAtTime(baseFreq * 2, ctx.currentTime); // 120Hz harmonic
+        osc2.frequency.setValueAtTime(baseFreq * 2, ctx.currentTime);
 
         if (sag) {
-          // Pitch sags as voltage rail drops
           osc1.frequency.exponentialRampToValueAtTime(42, ctx.currentTime + duration);
           osc2.frequency.exponentialRampToValueAtTime(84, ctx.currentTime + duration);
         }
@@ -140,10 +159,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * Flyback Deflection Pop
-     * High-voltage arc snap when the CRT vertical deflection collapses.
-     */
     flybackPop: function () {
       try {
         const ctx = initAudioGraph();
@@ -168,9 +183,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * Muffled Mechanical Detent Tick (For Cypher-Wheel)
-     */
     wheelTick: function (isOuter = false) {
       try {
         const ctx = initAudioGraph();
@@ -193,9 +205,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * Heavy Detent Solenoid Slam (For Cypher-Wheel Lock)
-     */
     wheelSlam: function () {
       try {
         const ctx = initAudioGraph();
@@ -217,9 +226,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * Relay Squelch Burst (For Radio & Cognitive Transition)
-     */
     squelchTail: function () {
       try {
         const ctx = initAudioGraph();
@@ -244,9 +250,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * Terminal Error Buzz (Low 110Hz square wave)
-     */
     buzz: function () {
       try {
         const ctx = initAudioGraph();
@@ -267,9 +270,6 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    /**
-     * System Chime / Milestone Unlocked
-     */
     chime: function () {
       try {
         const ctx = initAudioGraph();
@@ -292,19 +292,29 @@ const CipherAudio = (function () {
       } catch (e) {}
     },
 
-    // Legacy backwards-compatibility alias for key thuds
     click: function () {
       this.keyThud();
     },
 
-    speak: function (text) {
+    /**
+     * Chunked, GC-Safe Speech Synthesizer
+     * Breaks text into sentences and queues them cleanly so mobile browsers won't cut off.
+     */
+    speak: function (fullText) {
       if (!voiceEnabled || !window.speechSynthesis) return;
+
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.pitch = 0.65;
-      utterance.rate = 1.0;
-      utterance.volume = 0.85;
-      window.speechSynthesis.speak(utterance);
+      speechQueue = [];
+
+      // Split into clean sentence-level chunks
+      const sentences = fullText
+        .replace(/([.?!])\s*(?=[A-Z0-9])/g, "$1|")
+        .split("|")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      speechQueue = sentences;
+      processSpeechQueue();
     }
   };
 })();
