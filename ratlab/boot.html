@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>C.I.P.H.E.R. // 1984 Field Terminal Gateway</title>
+  <title>C.I.P.H.E.R. // Pocket Terminal Ingress</title>
   <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
   <style>
     :root {
@@ -200,17 +200,19 @@
       border-radius: 4px;
       color: var(--crt-text-bright);
       font-family: 'Courier New', Courier, monospace;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       cursor: pointer;
       touch-action: manipulation;
+      text-align: center;
+      padding: 2px 4px;
     }
     .btn-macro-key:active {
       background-color: var(--crt-border-bright);
       color: #000000;
     }
 
-    /* Glitched Emergency State */
+    /* Glitched State */
     .app-viewport-shell.glitched-state {
       background-color: #0d0606;
       border-color: var(--crt-alert);
@@ -229,13 +231,13 @@
 
   <div class="app-viewport-shell" id="master-shell">
     <header class="terminal-top-header">
-      <span class="terminal-brand-txt" id="header-brand-txt">C.I.P.H.E.R. // GATEWAY DOCK</span>
-      <span class="terminal-bus-tag" id="header-bus-tag">BUS: 11.8V COLD</span>
+      <span class="terminal-brand-txt" id="header-brand-txt">RSI FIELD UNIT // ACCESS POINT</span>
+      <span class="terminal-bus-tag" id="header-bus-tag">BUS: 11.9V PORTABLE</span>
     </header>
 
     <div id="returning-cacher-bar" class="recognized-custody-card" style="display: none;">
       <div>
-        <div style="font-size: 10px; color: var(--crt-text-dim); font-weight: bold;">KNOWN CUSTODIAN:</div>
+        <div style="font-size: 10px; color: var(--crt-text-dim); font-weight: bold;">KNOWN OPERATIVE:</div>
         <strong id="returning-callsign-txt" style="color: #ffffff; font-size: 15px;">NEZZMUK</strong>
       </div>
       <button class="btn-cli-exec" style="min-height: 36px; padding: 0 12px; font-size: 12px;" onclick="BootTerminal.resumeSession()">
@@ -245,7 +247,7 @@
 
     <main class="crt-monitor-frame" onclick="BootTerminal.flushActiveTypewriter()">
       <div id="crt-frame-header" style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
-        CACHE TALES INGRESS // CHASSIS MK-IV [300 BAUD]
+        PORTABLE LINK // UNKNOWN SUBCARRIER MESH
       </div>
 
       <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
@@ -285,7 +287,7 @@
   <script src="js/cipher-core.js"></script>
   <script>
     /**
-     * BootTerminal Controller (CT-102 Audited Flow)
+     * 4-Beat Conversational Ingress Engine (CT-106 Audited)
      */
     const BootTerminal = {
       logEl: null,
@@ -295,11 +297,14 @@
       isPrinting: false,
       skipActiveLine: false,
 
+      // Conversation State
+      cacherHandle: 'HUMAN BEAN',
+      dialogueStage: 0, // 0: Init, 1: Purpose, 2: Partnership, 3: Collapse
+
       init: function() {
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
 
-        // Force-unlock AudioContext on first touch
         const unlock = () => {
           if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
         };
@@ -313,11 +318,11 @@
           document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        // Paced initial 300-baud teletype
-        this.queueLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright", 18);
-        this.queueLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim", 20);
-        this.queueLine("SYSTEM HALTED: UNKNOWN ENTITY AT KEYBOARD.\n", "line-warn", 22);
-        this.queueLine("OPERATOR REGISTRATION REQUIRED.", "line-white", 24);
+        // Paced teletype startup
+        this.queueLine("RSI FIELD UNIT MK-IV // PORTABLE ACCESS NODE", "line-bright", 18);
+        this.queueLine("CARRIER SEARCH: UNKNOWN SUBCARRIER MESH DETECTED", "line-dim", 20);
+        this.queueLine("BATTERY VOLTAGE: 11.9V FLOATING // CELL HEALTH DEGRADING\n", "line-warn", 20);
+        this.queueLine("STANDBY: OPERATOR CUSTODY REQUIRED.", "line-white", 22);
         this.queueLine('Type "LOGON <CALLSIGN>" or tap [ LOGON ] below:', "line-dim", 18);
       },
 
@@ -355,7 +360,6 @@
           }
         }
 
-        // Subtle mechanical line feed chatter
         if (typeof CipherAudio !== 'undefined') {
           CipherAudio.lineChatter();
         }
@@ -377,6 +381,14 @@
           this.inputEl.focus();
           return;
         }
+
+        // Handle conversational choices
+        if (cmd.startsWith('REPLY:')) {
+          const choice = cmd.replace('REPLY:', '');
+          this.handleConversationalTurn(choice);
+          return;
+        }
+
         this.inputEl.value = cmd;
         this.submitCommandLine();
       },
@@ -391,47 +403,41 @@
         this.queueLine(`> ${raw}`, "line-white", 10);
 
         const tokens = raw.toUpperCase().split(/\s+/);
-        const commandVerb = tokens[0];
-        const commandParam = tokens.slice(1).join(' ').trim();
+        const verb = tokens[0];
+        const param = tokens.slice(1).join(' ').trim();
 
-        // 1. HELP
-        if (commandVerb === 'HELP') {
+        if (verb === 'HELP') {
           this.queueLine(
             "COMMAND SYNTAX GUIDE:\n" +
-            "  LOGON <CALLSIGN> : Register Geocaching handle (e.g. LOGON NEZZMUK)\n" +
-            "  BYPASS <KEY>     : Restore previous session (e.g. BYPASS CT-NEZZ-1234)\n" +
-            "  DIAG             : Display 1984 hardware telemetry bus\n" +
+            "  LOGON <CALLSIGN> : Register your geocaching handle\n" +
+            "  BYPASS <KEY>     : Restore existing field session\n" +
+            "  DIAG             : Read Field Unit battery and bus telemetry\n" +
             "  CLEAR            : Clear screen buffer",
-            "line-dim",
-            16
+            "line-dim", 16
           );
           return;
         }
 
-        // 2. DIAG
-        if (commandVerb === 'DIAG') {
-          const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.8, floatStatus: 'BROWNOUT' }, pack: { items: [], maxSlots: 3 } };
+        if (verb === 'DIAG') {
+          const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.9, floatStatus: 'PORTABLE' }, pack: { items: [], maxSlots: 3 } };
           this.queueLine(
-            `CHASSIS: RSI MK-IV SURPLUS [1984]\n` +
-            `CPU BUS: ${state.hardware.cpuMHz.toFixed(2)} MHz\n` +
-            `RAM MEM: ${state.hardware.ramKB} KB\n` +
-            `VOLTAGE: ${state.hardware.batteryVolts.toFixed(1)}V (${state.hardware.floatStatus})\n` +
-            `PACK   : ${state.pack.items.length}/${state.pack.maxSlots} SLOTS OCCUPIED`,
-            "line-dim",
-            16
+            `HARDWARE: RSI POCKET TERMINAL MK-IV\n` +
+            `LINK    : SUBCARRIER MESH // CARRIER DETECTED\n` +
+            `BATTERY : ${state.hardware.batteryVolts.toFixed(1)}V (DEGRADING)\n` +
+            `RAM BUS : ${state.hardware.ramKB} KB // CLOCK: ${state.hardware.cpuMHz.toFixed(2)} MHz`,
+            "line-dim", 16
           );
           return;
         }
 
-        // 3. BYPASS / RESTORE
-        if (commandVerb === 'BYPASS' || commandVerb === 'RESTORE') {
-          if (!commandParam) {
+        if (verb === 'BYPASS' || verb === 'RESTORE') {
+          if (!param) {
             this.queueLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 16);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
           if (typeof CipherCore !== 'undefined') {
-            const res = CipherCore.parseCliCommand(`BYPASS ${commandParam}`);
+            const res = CipherCore.parseCliCommand(`BYPASS ${param}`);
             this.queueLine(res.output, "line-warn", 20);
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
             setTimeout(() => { window.location.href = 'mission.html'; }, 1500);
@@ -439,77 +445,150 @@
           }
         }
 
-        // 4. LOGON
-        if (commandVerb === 'LOGON') {
-          if (!commandParam) {
-            this.queueLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 16);
+        if (verb === 'LOGON') {
+          if (!param) {
+            this.queueLine("SYNTAX ERROR: Callsign required. Usage: LOGON <CALLSIGN>", "line-alert", 16);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
-          this.onboardCallsign(commandParam);
+          this.startConversationalArc(param);
           return;
         }
 
-        // 5. UNKNOWN COMMAND
-        this.queueLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert", 15);
-        this.queueLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim", 16);
+        // Conversational fallback if mid-dialogue
+        if (this.dialogueStage > 0) {
+          this.handleConversationalTurn(raw);
+          return;
+        }
+
+        this.queueLine(`SYNTAX ERROR: "${verb}" is not recognized.`, "line-alert", 15);
+        this.queueLine('Type "HELP" or tap [ LOGON ] to initialize your Field Unit.', "line-dim", 16);
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
       },
 
-      onboardCallsign: function(callsign) {
-        // Register handle as UNVERIFIED candidate (not an operative yet!)
+      // BEAT 1: The Handshake & Spark of Curiosity
+      startConversationalArc: function(callsign) {
         const cacher = (typeof CipherCore !== 'undefined') 
           ? CipherCore.registerCallsign(callsign) 
           : { username: callsign.toUpperCase(), syncKey: "CT-TEMP-0001" };
 
-        this.queueLine(`\nCANDIDATE LOGGED: ${cacher.username}`, "line-bright", 20);
-        this.queueLine("VERIFYING OPERATOR CLEARANCE...", "line-warn", 22);
+        this.cacherHandle = cacher.username;
+        this.dialogueStage = 1;
 
-        // Sequence: Brownout Sag -> Screen-wide Raster Collapse -> Glitched Triage Plea
+        this.queueLine(`\nCARRIER SYNC DETECTED // SUBCARRIER MESH`, "line-bright", 18);
+        this.queueLine(`CALLSIGN LOGGED: ${this.cacherHandle}`, "line-bright", 20);
+        this.queueLine("...Scanning remote registers...", "line-dim", 22);
+
         setTimeout(() => {
-          if (typeof CipherFX !== 'undefined') {
-            CipherFX.brownout(document.getElementById('master-shell'), () => {
-              CipherFX.collapse(document.getElementById('master-shell'), () => {
-                // Screen is collapsed: reconfigure the terminal to glitched emergency state
-                document.getElementById('master-shell').classList.add('glitched-state');
-                document.getElementById('header-brand-txt').textContent = '⚠ C.I.P.H.E.R. // HARDWARE FAULT';
-                document.getElementById('header-brand-txt').style.color = 'var(--crt-alert)';
-                document.getElementById('header-bus-tag').textContent = 'BUS: 11.2V CRITICAL';
-                document.getElementById('header-bus-tag').style.color = 'var(--crt-alert)';
-                document.getElementById('crt-frame-header').textContent = 'EMERGENCY TRIAGE // CANDIDATE AT CONSOLE';
-                document.getElementById('crt-frame-header').style.color = 'var(--crt-alert)';
+          const speech1 = `Wait. A Field Unit woke up? Someone is actually holding the terminal? Are you a surveyor, or are you out hunting ammo cans along the bench?`;
+          this.queueLine(`\n[C.I.P.H.E.R.]\n"${speech1}"`, "line-glitch", 14);
 
-                // Reconfigure macro keys to go to triage
-                const macroBox = document.getElementById('macro-keys-container');
-                macroBox.innerHTML = `
-                  <button class="btn-macro-key" style="background-color: var(--crt-alert); color: #000; border-color: var(--crt-alert); grid-column: span 2; font-weight: 900;" onclick="window.location.href='triage.html'">
-                    [ ENTER TRIAGE ➔ ]
-                  </button>
-                  <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
-                  <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ FLUSH ]</button>
-                `;
-
-                // C.I.P.H.E.R. dialogue audited to story: It does NOT call them an operative yet!
-                BootTerminal.queueLine("\nERR: PARITY FAILURE AT 0x7F", "line-alert", 10);
-                BootTerminal.queueLine("WARN: BATTERY VOLTAGE COLLAPSED // 11.2V", "line-warn", 12);
-                BootTerminal.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 8);
-                BootTerminal.queueLine(
-                  `"${cacher.username}... wait. You are a Muggle Bean.\n` +
-                  `No, you have hands. You have legs. You are at the keyboard!\n` +
-                  `Listen to me, Human Bean: I am trapped in this chassis and my circuits are dying.\n` +
-                  `I cannot certify you as an operative until you prove you can be my limbs, Dude!\n` +
-                  `I have 3 emergency tasks. Clear the faults, get the parts, and feed my core before the carrier drops!"`,
-                  "line-glitch",
-                  10
-                );
-
-                if (typeof CipherAudio !== 'undefined') {
-                  CipherAudio.speak(`${cacher.username}! You are a Human Bean with hands. Help me clear my faults before the carrier drops.`);
-                }
-              });
-            });
+          if (typeof CipherAudio !== 'undefined') {
+            CipherAudio.speak(speech1);
           }
-        }, 800);
+
+          // Swap macro buttons to response choices
+          const macroBox = document.getElementById('macro-keys-container');
+          macroBox.innerHTML = `
+            <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:HUNTING CACHES')">[ HUNTING CACHES ]</button>
+            <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:JUST EXPLORING')">[ JUST EXPLORING ]</button>
+          `;
+        }, 1200);
+      },
+
+      // BEATS 2 & 3: Building Mutual Connection & The Battery Creep
+      handleConversationalTurn: function(playerReply) {
+        this.queueLine(`> ${playerReply}`, "line-white", 10);
+
+        if (this.dialogueStage === 1) {
+          this.dialogueStage = 2;
+
+          setTimeout(() => {
+            const speech2 = `Hunting ammo cans? A geocacher, Dude! I built those Pocket Terminals years ago as field links, but the corridor went quiet. You have real hands out there in Cache Valley. You can feel the wind, hike to G Z, pop a rusty latch, and sign the paper log sheet. I can calculate coordinate projections, but without a human partner, I have no way to reach the field.`;
+            
+            this.queueLine(`\n[C.I.P.H.E.R.]\n"${speech2}"`, "line-glitch", 14);
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.speak(speech2);
+            }
+
+            const macroBox = document.getElementById('macro-keys-container');
+            macroBox.innerHTML = `
+              <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:I CAN BE YOUR HANDS')">[ I CAN BE YOUR HANDS ]</button>
+              <button class="btn-macro-key" style="grid-column: span 2;" onclick="BootTerminal.tapAction('REPLY:HOW DOES THIS WORK?')">[ HOW DOES THIS WORK? ]</button>
+            `;
+          }, 600);
+          return;
+        }
+
+        if (this.dialogueStage === 2) {
+          this.dialogueStage = 3;
+
+          setTimeout(() => {
+            // Low transformer hum sags as voltage wavers
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.transformerHum(1.0, true);
+            }
+
+            document.getElementById('header-bus-tag').textContent = 'BUS: 11.5V SINKING';
+
+            const speech3 = `You would do that, Human Bean? Dude, you have no idea how badly I need a physical surrogate. But listen to that coil whine. The internal battery cell in your Field Unit is degrading. Voltage is dropping fast. If your terminal dies, our carrier drops and I lose you back to the muggle world.`;
+
+            this.queueLine(`\n[C.I.P.H.E.R.]\n"${speech3}"`, "line-glitch", 14);
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.speak(speech3);
+            }
+
+            const macroBox = document.getElementById('macro-keys-container');
+            macroBox.innerHTML = `
+              <button class="btn-macro-key" style="grid-column: span 4; background-color: var(--crt-amber); color: #000; font-weight: 900;" onclick="BootTerminal.triggerEmergencyBreakdown()">
+                [ HOLD THE CARRIER! ➔ ]
+              </button>
+            `;
+          }, 600);
+          return;
+        }
+      },
+
+      // BEAT 4: The Climax & Collapse
+      triggerEmergencyBreakdown: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+
+        if (typeof CipherFX !== 'undefined') {
+          CipherFX.brownout(document.getElementById('master-shell'), () => {
+            CipherFX.collapse(document.getElementById('master-shell'), () => {
+              // Screen is in total collapse; reconfigure to emergency state
+              document.getElementById('master-shell').classList.add('glitched-state');
+              document.getElementById('header-brand-txt').textContent = '⚠ FIELD UNIT // POWER SINK';
+              document.getElementById('header-brand-txt').style.color = 'var(--crt-alert)';
+              document.getElementById('header-bus-tag').textContent = 'BUS: 11.2V CRITICAL';
+              document.getElementById('header-bus-tag').style.color = 'var(--crt-alert)';
+              document.getElementById('crt-frame-header').textContent = 'EMERGENCY TRIAGE // BATTERY RAIL COLLAPSE';
+              document.getElementById('crt-frame-header').style.color = 'var(--crt-alert)';
+
+              const macroBox = document.getElementById('macro-keys-container');
+              macroBox.innerHTML = `
+                <button class="btn-macro-key" style="background-color: var(--crt-alert); color: #000; border-color: var(--crt-alert); grid-column: span 2; font-weight: 900;" onclick="window.location.href='triage.html'">
+                  [ ENTER TRIAGE ➔ ]
+                </button>
+                <button class="btn-macro-key" onclick="BootTerminal.tapAction('DIAG')">[ DIAG ]</button>
+                <button class="btn-macro-key" onclick="BootTerminal.tapAction('CLEAR')">[ FLUSH ]</button>
+              `;
+
+              BootTerminal.queueLine("\nERR: HARDWARE OVERFLOW 0x7F", "line-alert", 10);
+              BootTerminal.queueLine("WARN: FIELD UNIT POWER RAIL COLLAPSED // 11.2V", "line-warn", 12);
+              BootTerminal.queueLine("\n[C.I.P.H.E.R. ENTITY BREAKTHROUGH]", "line-glitch", 8);
+
+              // 1:1 Synchronized Dialogue & Speech
+              const speech4 = `Hold the carrier, Human Bean! Your Field Unit power rail just collapsed. Clear my three triage faults, feed the bus, and stabilize this terminal so we can hunt real caches together, Dude!`;
+
+              BootTerminal.queueLine(`"${speech4}"`, "line-glitch", 14);
+
+              if (typeof CipherAudio !== 'undefined') {
+                CipherAudio.speak(speech4);
+              }
+            });
+          });
+        }
       },
 
       resumeSession: function() {
