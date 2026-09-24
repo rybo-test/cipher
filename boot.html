@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C.I.P.H.E.R. // 1984 COLD BOOT</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
+  <style>
+    .boot-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px;
+      position: relative;
+      background-color: var(--bg-primary);
+    }
+    .boot-terminal-box {
+      background-color: #06110a;
+      border: 2px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);
+    }
+    .boot-log {
+      font-family: var(--font-mono);
+      font-size: var(--font-sm);
+      color: var(--text-dim);
+      line-height: 1.45;
+      min-height: 140px;
+      white-space: pre-wrap;
+    }
+    .boot-log .highlight { color: #ffffff; font-weight: bold; }
+    .boot-log .warn { color: var(--accent-amber); font-weight: bold; }
+    .boot-log .alert { color: var(--accent-alert); font-weight: bold; }
+    .boot-log .bright { color: var(--text-bright); font-weight: bold; }
+    .power-btn-glow {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 4px var(--border-bright); }
+      50% { box-shadow: 0 0 16px var(--border-bright); }
+      100% { box-shadow: 0 0 4px var(--border-bright); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="status-header">
+      <span class="brand-title">RSI SURPLUS HARDWARE // MK-IV</span>
+      <span class="telemetry-pill" style="color: var(--accent-amber);">BUS: 11.8V LOW</span>
+    </header>
+
+    <main class="boot-stage">
+      <section class="boot-terminal-box" aria-labelledby="boot-title">
+        <div class="section-category-tag" id="boot-title">PROPERTY OF THE RAT PACK // FIELD TERMINAL</div>
+
+        <!-- Initial Power On Trigger -->
+        <div id="power-cta" style="text-align: center; padding: 20px 0;">
+          <button class="btn-cipher primary-solid power-btn-glow" style="min-height: 52px; font-size: 16px;" onclick="BootController.initiateColdBoot()">
+            ⚡ ENGAGE TERMINAL POWER
+          </button>
+          <div style="font-size: 13px; color: var(--text-dim); margin-top: 10px;">
+            Physical battery latch detected. Tap to close circuit.
+          </div>
+        </div>
+
+        <!-- Monospace Boot Log -->
+        <div id="boot-terminal-log" class="boot-log" style="display: none;" role="status" aria-live="polite"></div>
+
+        <!-- Callsign / Handle Registration Form -->
+        <form id="callsign-form" style="display: none; flex-direction: column; gap: 10px; margin-top: 6px;" onsubmit="event.preventDefault(); BootController.registerCallsign();">
+          <label for="username-input" class="section-category-tag">OPERATOR IDENTIFICATION PROTOCOL:</label>
+          <div style="font-size: var(--font-base); color: #ffffff;">
+            Input your official geocaching handle to provision device custody:
+          </div>
+          <input 
+            type="text" 
+            id="username-input" 
+            class="cipher-input" 
+            placeholder="GEOCACHING USERNAME..." 
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            required
+          >
+          <button type="submit" class="btn-cipher primary-solid" style="min-height: 48px;">
+            INITIALIZE RECEPTACLE ➔
+          </button>
+        </form>
+
+        <!-- Bootstrap Complete Confirmation -->
+        <div id="boot-done-card" style="display: none; flex-direction: column; gap: 12px; margin-top: 6px;">
+          <div class="section-category-tag" style="color: var(--text-bright);">✔ SYSTEM READY // SYNCKEY GENERATED</div>
+          <div id="new-synckey-display" style="font-size: var(--font-xl); color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono);">
+            CT-NEZZ-2026
+          </div>
+          <p style="font-size: var(--font-base); color: var(--text-dim); line-height: 1.4;">
+            Custody locked to your session. Initial field calibration mission loaded in your PACK.
+          </p>
+          <button class="btn-cipher primary-solid" style="min-height: 48px;" onclick="window.location.href='pack.html'">
+            OPEN FIELD PACK ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- CB Radio Scanner Dock -->
+      <aside class="rat-comms-dock" style="margin-top: auto; border-radius: 6px;">
+        <span class="rat-comms-channel">CH 19</span>
+        <div class="s-meter-block" aria-hidden="true">
+          <div class="s-meter-bar">
+            <div id="boot-meter-1" class="s-meter-seg"></div>
+            <div id="boot-meter-2" class="s-meter-seg"></div>
+            <div id="boot-meter-3" class="s-meter-seg"></div>
+            <div id="boot-meter-4" class="s-meter-seg"></div>
+          </div>
+        </div>
+        <div id="boot-comms-ticker" class="rat-comms-ticker">[RADIO CARRIER: SILENT]</div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="js/cipher-audio.js"></script>
+  <script src="js/cipher-core.js"></script>
+  <script>
+    const BootController = {
+      initiateColdBoot: function() {
+        document.getElementById('power-cta').style.display = 'none';
+        const logBox = document.getElementById('boot-terminal-log');
+        logBox.style.display = 'block';
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.micClick();
+          CipherAudio.click();
+        }
+
+        const lines = [
+          { text: "ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", cls: "highlight", delay: 300 },
+          { text: "CHASSIS DETECT: MK-IV FIELD TRANSLATOR [TIER-0]", cls: "", delay: 700 },
+          { text: "POWER BUS: 11.8V [BROWNOUT WARNING // FLOAT UNSTABLE]", cls: "warn", delay: 1200 },
+          { text: "CPU TEST: MOS 6502 @ 1.77 MHz ............ OK", cls: "", delay: 1700 },
+          { text: "RAM TEST: 64KB BASELINE .................. OK", cls: "", delay: 2200 },
+          { text: "NON-STANDARD RAT-MOD FIRMWARE IDENTIFIED", cls: "alert", delay: 2700 },
+          { text: "RADIO INTERCEPT SINK ENGAGED: MONITORING CH 19", cls: "bright", delay: 3200 }
+        ];
+
+        lines.forEach(item => {
+          setTimeout(() => {
+            const p = document.createElement('div');
+            p.className = item.cls;
+            p.textContent = item.text;
+            logBox.appendChild(p);
+            if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+          }, item.delay);
+        });
+
+        // Incoming Crew CB Banter Intercept
+        setTimeout(() => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.squelchTail();
+          document.querySelectorAll('.s-meter-seg').forEach(s => s.classList.add('lit'));
+          document.getElementById('boot-comms-ticker').textContent = '[NEZZ] "Auxiliary terminal carrier is live! Who pulled it out of the ammo can?"';
+        }, 3800);
+
+        setTimeout(() => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.squelchTail();
+          document.getElementById('boot-comms-ticker').textContent = '[CHED] "Check the log sheet. If it\'s a muggle, pull the circuit breaker."';
+        }, 5800);
+
+        // Speech Prompt and Form Reveal
+        setTimeout(() => {
+          if (typeof CipherAudio !== 'undefined') {
+            CipherAudio.speak("Operator presence detected. Identify yourself under official geocaching protocol.");
+          }
+          document.getElementById('callsign-form').style.display = 'flex';
+          document.getElementById('username-input').focus();
+        }, 7500);
+      },
+
+      registerCallsign: function() {
+        const input = document.getElementById('username-input');
+        const user = input.value.trim().toUpperCase();
+        if (!user) return;
+
+        if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
+
+        // Provision State via CipherCore
+        const syncKey = CipherCore.bootstrapUser(user);
+
+        document.getElementById('callsign-form').style.display = 'none';
+        document.getElementById('new-synckey-display').textContent = syncKey;
+        document.getElementById('boot-done-card').style.display = 'flex';
+
+        document.getElementById('boot-comms-ticker').textContent = `[MISF] "Callsign verified: ${user}. Relaying calibration coordinates."`;
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.speak(`Welcome, ${user}. System initialized. Check your pack.`);
+        }
+      }
+    };
+  </script>
+</body>
+</html>
