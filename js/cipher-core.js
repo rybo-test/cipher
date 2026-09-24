@@ -1,7 +1,7 @@
 /**
- * C.I.P.H.E.R. Core State & Independent Hardware Evolution Engine (v3.8)
+ * C.I.P.H.E.R. Core State & Independent Hardware Evolution Engine (v3.9)
  * Manages independent CPU, RAM, and Battery power scaling, scavenger ingestion,
- * feature unlock thresholds, and the first-run zero-state gate.
+ * feature unlock thresholds, the first-run zero-state gate, and factory rebooting.
  */
 
 const CipherCore = (function () {
@@ -140,12 +140,25 @@ const CipherCore = (function () {
       return state;
     },
 
-    // Zero-State Gatekeeper (Redirects first-time users to boot.html)
+    // Zero-State Gatekeeper (Redirects un-booted cachers to boot.html)
     enforceBootstrapGate: function () {
       const isBootPage = window.location.pathname.endsWith('boot.html');
       if (!state.bootstrapped && !isBootPage) {
         window.location.replace('boot.html');
       }
+    },
+
+    // Factory Reset & Cold Reboot Subroutine
+    factoryReset: function () {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.clear();
+      } catch (e) {
+        console.warn('CipherCore: Failed clearing storage.');
+      }
+      state = JSON.parse(JSON.stringify(defaultState));
+      persistLocal();
+      window.location.replace('boot.html');
     },
 
     // First-Run Bootstrap Registration
@@ -173,7 +186,6 @@ const CipherCore = (function () {
 
       let logMessage = '';
 
-      // Independent Increment Processing
       if (item.targetPillar === 'ramKB') {
         state.hardware.ramKB += item.increment;
         logMessage = `RAM memory array expanded by +${item.increment}KB. Total: ${state.hardware.ramKB}KB.`;
@@ -186,7 +198,6 @@ const CipherCore = (function () {
         logMessage = `Power float increased by +${item.increment}V. Float status: ${state.hardware.batteryVolts.toFixed(1)}V (${state.hardware.floatStatus}).`;
       }
 
-      // Check Feature Thresholds
       if (state.hardware.ramKB >= 96 && !state.secrets.scratchpadUnlocked) {
         state.secrets.scratchpadUnlocked = true;
         logMessage += ' [FEATURE UNLOCKED: FIELD SCRATCHPAD]';
@@ -195,7 +206,6 @@ const CipherCore = (function () {
         logMessage += ' [CB SCANNER CALIBRATED // FULL RANGE ACQUIRED]';
       }
 
-      // Consume Item
       state.inventory.splice(itemIndex, 1);
       updateFloatStatus();
       persistLocal();
