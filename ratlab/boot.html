@@ -6,12 +6,11 @@
   <title>C.I.P.H.E.R. // 1984 Field Terminal Gateway</title>
   <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
   <style>
-    /* Direct High-Contrast Self-Contained Overrides */
     :root {
       --crt-bg: #050d07;
       --crt-bezel: #0a1c10;
-      --crt-text-dim: #7ee787;      /* Bright, legible terminal green */
-      --crt-text-bright: #00ff66;   /* High-luminescence phosphor */
+      --crt-text-dim: #7ee787;
+      --crt-text-bright: #00ff66;
       --crt-text-white: #ffffff;
       --crt-amber: #ffb300;
       --crt-alert: #ff5252;
@@ -43,7 +42,7 @@
       position: relative;
     }
 
-    /* Fixed Clean Status Header */
+    /* Top Status Header */
     .terminal-top-header {
       display: flex;
       justify-content: space-between;
@@ -72,7 +71,7 @@
       flex-shrink: 0;
     }
 
-    /* Archaic CRT Bezel and Log */
+    /* CRT Frame */
     .crt-monitor-frame {
       flex: 1;
       margin: 8px 10px;
@@ -114,7 +113,7 @@
       100% { opacity: 1; text-shadow: 0 0 12px #00ff66; }
     }
 
-    /* Prompt Dock & Buttons */
+    /* CLI Prompt Dock */
     .cli-dock-tray {
       display: flex;
       flex-direction: column;
@@ -169,7 +168,7 @@
     }
     .btn-cli-exec:active { background-color: #ffffff; }
 
-    /* Tactile Quick-Tap Keys */
+    /* Tactile Macro Keys */
     .cli-macro-keys {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -210,13 +209,11 @@
 <body>
 
   <div class="app-viewport-shell">
-    <!-- Top System Header -->
     <header class="terminal-top-header">
       <span class="terminal-brand-txt">C.I.P.H.E.R. // GATEWAY DOCK</span>
       <span class="terminal-bus-tag" id="top-bus-status">BUS: 11.8V COLD</span>
     </header>
 
-    <!-- Recognized Operative Quick-Resume -->
     <div id="returning-cacher-bar" class="recognized-custody-card" style="display: none;">
       <div>
         <div style="font-size: 10px; color: var(--crt-text-dim); font-weight: bold;">KNOWN CUSTODIAN:</div>
@@ -227,16 +224,13 @@
       </button>
     </div>
 
-    <!-- Archaic CRT Dumb Terminal Screen -->
     <main class="crt-monitor-frame">
       <div style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
         CACHE TALES INGRESS // CHASSIS MK-IV [300 BAUD]
       </div>
 
-      <!-- Scrolling Monospace Log Stream -->
       <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
 
-      <!-- CLI Prompt & Quick Keys -->
       <section class="cli-dock-tray">
         <form class="cli-input-line" onsubmit="event.preventDefault(); BootTerminal.submitCommandLine();">
           <span class="cli-prompt-symbol">&gt;</span>
@@ -245,7 +239,7 @@
             type="text" 
             id="cli-input-field" 
             class="cli-text-input" 
-            placeholder="TYPE COMMAND OR CALLSIGN..." 
+            placeholder="TYPE COMMAND (e.g. LOGON NEZZMUK)..." 
             autocomplete="off"
             autocorrect="off"
             autocapitalize="characters"
@@ -266,7 +260,6 @@
       </section>
     </main>
 
-    <!-- Emergency Glitch Transition Modal (Reveals on callsign entry) -->
     <section id="glitch-triage-box" class="emergency-triage-modal" style="display: none;">
       <div style="font-size: 11px; color: var(--crt-alert); font-weight: 900; letter-spacing: 0.5px;">
         ⚠ CRITICAL COGNITIVE OVERFLOW DETECTED
@@ -294,18 +287,16 @@
 
         const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : null;
 
-        // Check if returning user is recognized
         if (state && state.cacher && state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
           document.getElementById('returning-cacher-bar').style.display = 'flex';
           document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
         }
 
-        // Render Initial 300 Baud Lines
         this.appendLine("ROM BIOS (C) 1984 ROCKET SCIENCE INSTITUTE // PROMONTORY UT", "line-bright");
         this.appendLine("CHASSIS DETECT: MK-IV DUMB TERMINAL // 300 BAUD LINK", "line-dim");
         this.appendLine("SYSTEM HALTED: UNKNOWN OPERATOR DETECTED.\n", "line-warn");
-        this.appendLine("IDENTIFICATION PROTOCOL REQUIRED.", "line-white");
-        this.appendLine("Enter your official geocaching handle or tap [ LOGON ]:", "line-dim");
+        this.appendLine("OPERATOR REGISTRATION REQUIRED.", "line-white");
+        this.appendLine("Type \"LOGON <CALLSIGN>\" or tap [ LOGON ] below:", "line-dim");
       },
 
       appendLine: function(text, cls = "line-dim") {
@@ -324,8 +315,7 @@
           return;
         }
         if (cmd === 'LOGON') {
-          this.inputEl.value = '';
-          this.inputEl.placeholder = 'ENTER GEOCACHING USERNAME...';
+          this.inputEl.value = 'LOGON ';
           this.inputEl.focus();
           return;
         }
@@ -340,25 +330,68 @@
 
         this.appendLine(`> ${raw}`, "line-white");
 
-        // Parse command via CipherCore
-        if (typeof CipherCore !== 'undefined') {
-          const res = CipherCore.parseCliCommand(raw);
+        const tokens = raw.toUpperCase().split(/\s+/);
+        const commandVerb = tokens[0];
+        const commandParam = tokens.slice(1).join(' ').trim();
 
-          if (res.bypass) {
+        // 1. HELP
+        if (commandVerb === 'HELP') {
+          this.appendLine(
+            "COMMAND SYNTAX GUIDE:\n" +
+            "  LOGON <CALLSIGN> : Register your Geocaching handle (e.g. LOGON NEZZMUK)\n" +
+            "  BYPASS <KEY>     : Restore previous session (e.g. BYPASS CT-NEZZ-1234)\n" +
+            "  DIAG             : Display 1984 hardware telemetry bus\n" +
+            "  CLEAR            : Clear screen buffer",
+            "line-dim"
+          );
+          return;
+        }
+
+        // 2. DIAG
+        if (commandVerb === 'DIAG') {
+          const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.8, floatStatus: 'BROWNOUT' }, pack: { items: [], maxSlots: 3 } };
+          this.appendLine(
+            `CHASSIS: RSI MK-IV SURPLUS [1984]\n` +
+            `CPU BUS: ${state.hardware.cpuMHz.toFixed(2)} MHz\n` +
+            `RAM MEM: ${state.hardware.ramKB} KB\n` +
+            `VOLTAGE: ${state.hardware.batteryVolts.toFixed(1)}V (${state.hardware.floatStatus})\n` +
+            `PACK   : ${state.pack.items.length}/${state.pack.maxSlots} SLOTS OCCUPIED`,
+            "line-dim"
+          );
+          return;
+        }
+
+        // 3. BYPASS / RESTORE
+        if (commandVerb === 'BYPASS' || commandVerb === 'RESTORE') {
+          if (!commandParam) {
+            this.appendLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert");
+            if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
+            return;
+          }
+          if (typeof CipherCore !== 'undefined') {
+            const res = CipherCore.parseCliCommand(`BYPASS ${commandParam}`);
             this.appendLine(res.output, "line-warn");
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
             setTimeout(() => { window.location.href = 'mission.html'; }, 1200);
             return;
           }
-
-          if (res.success) {
-            this.appendLine(res.output, "line-dim");
-            return;
-          }
         }
 
-        // If not a recognized CLI command, treat string as username
-        this.onboardCallsign(raw);
+        // 4. LOGON
+        if (commandVerb === 'LOGON') {
+          if (!commandParam) {
+            this.appendLine("SYNTAX ERROR: Geocaching callsign required. Usage: LOGON <CALLSIGN>", "line-alert");
+            if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
+            return;
+          }
+          this.onboardCallsign(commandParam);
+          return;
+        }
+
+        // 5. UNKNOWN COMMAND / ARBITRARY TEXT (e.g. "HELLO")
+        this.appendLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert");
+        this.appendLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim");
+        if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
       },
 
       onboardCallsign: function(callsign) {
