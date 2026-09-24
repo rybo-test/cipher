@@ -42,7 +42,7 @@
       position: relative;
     }
 
-    /* Top Status Header */
+    /* Top Status Header with Sound Toggle */
     .terminal-top-header {
       display: flex;
       justify-content: space-between;
@@ -56,7 +56,18 @@
       flex-shrink: 0;
     }
     .terminal-brand-txt { color: var(--crt-text-bright); }
-    .terminal-bus-tag { color: var(--crt-amber); }
+    .btn-audio-pill {
+      background-color: #08170c;
+      border: 1px solid var(--crt-border-bright);
+      color: var(--crt-text-bright);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
 
     /* Returning Operative Ingress */
     .recognized-custody-card {
@@ -95,7 +106,7 @@
       padding-right: 4px;
     }
 
-    /* High Visibility Typography */
+    /* Typography */
     .line-dim { color: var(--crt-text-dim); }
     .line-bright { color: var(--crt-text-bright); font-weight: bold; }
     .line-white { color: var(--crt-text-white); font-weight: bold; }
@@ -191,7 +202,7 @@
       color: #000000;
     }
 
-    /* Emergency Glitch Hand-Off Modal */
+    /* Emergency Glitch Modal */
     .emergency-triage-modal {
       background-color: #1a0808;
       border: 2px solid var(--crt-alert);
@@ -211,7 +222,9 @@
   <div class="app-viewport-shell">
     <header class="terminal-top-header">
       <span class="terminal-brand-txt">C.I.P.H.E.R. // GATEWAY DOCK</span>
-      <span class="terminal-bus-tag" id="top-bus-status">BUS: 11.8V COLD</span>
+      <button id="audio-toggle-btn" class="btn-audio-pill" onclick="BootTerminal.testOrToggleAudio()">
+        🔊 SOUND: READY
+      </button>
     </header>
 
     <div id="returning-cacher-bar" class="recognized-custody-card" style="display: none;">
@@ -280,10 +293,23 @@
     const BootTerminal = {
       logEl: null,
       inputEl: null,
+      audioUnlocked: false,
 
       init: function() {
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
+
+        // Global One-Tap Audio Unlock for Mobile Browsers
+        const unlockAudio = () => {
+          if (!this.audioUnlocked && typeof CipherAudio !== 'undefined') {
+            CipherAudio.click();
+            this.audioUnlocked = true;
+            const btn = document.getElementById('audio-toggle-btn');
+            if (btn) btn.textContent = '🔊 SOUND: ON';
+          }
+        };
+        document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+        document.addEventListener('click', unlockAudio, { once: true });
 
         const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : null;
 
@@ -299,6 +325,14 @@
         this.appendLine("Type \"LOGON <CALLSIGN>\" or tap [ LOGON ] below:", "line-dim");
       },
 
+      testOrToggleAudio: function() {
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.chime();
+          this.audioUnlocked = true;
+          document.getElementById('audio-toggle-btn').textContent = '🔊 SOUND: ACTIVE';
+        }
+      },
+
       appendLine: function(text, cls = "line-dim") {
         const p = document.createElement('div');
         p.className = cls;
@@ -306,10 +340,14 @@
         this.logEl.appendChild(p);
         this.logEl.scrollTop = this.logEl.scrollHeight;
 
-        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+        if (this.audioUnlocked && typeof CipherAudio !== 'undefined') {
+          CipherAudio.click();
+        }
       },
 
       tapAction: function(cmd) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.click();
+
         if (cmd === 'CLEAR') {
           this.logEl.innerHTML = '';
           return;
@@ -336,6 +374,7 @@
 
         // 1. HELP
         if (commandVerb === 'HELP') {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
           this.appendLine(
             "COMMAND SYNTAX GUIDE:\n" +
             "  LOGON <CALLSIGN> : Register your Geocaching handle (e.g. LOGON NEZZMUK)\n" +
@@ -349,6 +388,7 @@
 
         // 2. DIAG
         if (commandVerb === 'DIAG') {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.click();
           const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.8, floatStatus: 'BROWNOUT' }, pack: { items: [], maxSlots: 3 } };
           this.appendLine(
             `CHASSIS: RSI MK-IV SURPLUS [1984]\n` +
@@ -388,7 +428,7 @@
           return;
         }
 
-        // 5. UNKNOWN COMMAND / ARBITRARY TEXT (e.g. "HELLO")
+        // 5. UNKNOWN COMMAND / ARBITRARY TEXT
         this.appendLine(`SYNTAX ERROR: "${commandVerb}" is not recognized as an internal command.`, "line-alert");
         this.appendLine('Type "HELP" for valid commands, or "LOGON <CALLSIGN>" to register.', "line-dim");
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
