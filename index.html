@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>C.I.P.H.E.R. // Access Protocol</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
+  <style>
+    :root {
+      --crt-bg: #050d07;
+      --crt-text-dim: #7ee787;
+      --crt-text-bright: #00ff66;
+      --crt-amber: #ffb300;
+      --crt-border: #1b5e20;
+      --crt-border-bright: #00e676;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      color: var(--crt-text-bright);
+      font-family: 'Courier New', Courier, monospace;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 16px;
+    }
+
+    .gateway-card {
+      width: 100%;
+      max-width: 440px;
+      background-color: var(--crt-bg);
+      border: 2px solid var(--crt-border-bright);
+      border-radius: 8px;
+      padding: 24px 20px;
+      box-shadow: 0 0 25px rgba(0, 230, 118, 0.2);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .gateway-title {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      color: #ffffff;
+      text-shadow: 0 0 10px var(--crt-text-bright);
+    }
+
+    .gateway-subtitle {
+      font-size: 13px;
+      color: var(--crt-text-dim);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    .surface-choice-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 64px;
+      margin-bottom: 14px;
+      background-color: #081a0e;
+      border: 2px solid var(--crt-border-bright);
+      border-radius: 6px;
+      color: #ffffff;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      box-sizing: border-box;
+      padding: 10px 14px;
+      touch-action: manipulation;
+    }
+
+    .surface-choice-btn:active {
+      background-color: var(--crt-border-bright);
+      color: #000000;
+    }
+
+    .btn-headline {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .btn-subtext {
+      font-size: 11px;
+      color: var(--crt-text-dim);
+    }
+    .surface-choice-btn:active .btn-subtext {
+      color: #000000;
+    }
+
+    .recommended-badge {
+      font-size: 10px;
+      color: var(--crt-amber);
+      font-weight: bold;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="gateway-card">
+    <div class="gateway-title">RSI HARDWARE INTERFACE</div>
+    <div class="gateway-subtitle">
+      Select your operational terminal surface to link with C.I.P.H.E.R.:
+    </div>
+
+    <!-- Handheld Choice (Mobile-Optimized) -->
+    <a href="mobile/index.html" class="surface-choice-btn" id="btn-handheld-choice">
+      <span class="recommended-badge" id="badge-handheld" style="display: none;">RECOMMENDED FOR THIS DEVICE</span>
+      <span class="btn-headline">📱 ACTIVATE FIELD HANDHELD</span>
+      <span class="btn-subtext">Optimized for phone, large touch controls & outdoor trail use</span>
+    </a>
+
+    <!-- Base Station Choice (Desktop-Optimized) -->
+    <a href="desktop/index.html" class="surface-choice-btn" id="btn-station-choice">
+      <span class="recommended-badge" id="badge-station" style="display: none;">RECOMMENDED FOR THIS DEVICE</span>
+      <span class="btn-headline">🖥️ CONNECT VIA BASE STATION</span>
+      <span class="btn-subtext">Widescreen CRT console, legacy diagnostic boards & full keyboard</span>
+    </a>
+  </div>
+
+  <script>
+    // In-universe auto-detection
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                     || (window.innerWidth <= 768);
+
+    if (isMobile) {
+      document.getElementById('badge-handheld').style.display = 'block';
+    } else {
+      document.getElementById('badge-station').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
