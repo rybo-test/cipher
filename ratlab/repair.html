@@ -234,7 +234,7 @@
 
   <script src="js/cipher-audio.js"></script>
   <script src="js/cipher-fx.js"></script>
-  <!-- <script src="js/cipher-core.js"></script> -->
+  <script src="js/cipher-core.js"></script>
   <script src="js/cipher-dialog.js"></script>
   <script>
     const RepairTerminal = {
@@ -259,7 +259,6 @@
         window.addEventListener('touchstart', unlock, { once: true, passive: true });
         window.addEventListener('click', unlock, { once: true });
 
-        // Initialize REPAIR_HANDHELD_ARC synchronously from cipher-dialog
         const firstStage = CipherDialog.init('REPAIR_HANDHELD_ARC');
         if (firstStage) {
           this.printLine(firstStage.screenText, "line-glitch", 16);
@@ -337,6 +336,9 @@
             document.getElementById('tile-power').innerHTML = 'POWER SUPPLY<br>[ 12.6V OK ]';
             document.getElementById('status-volts-txt').textContent = 'POWER: 12.6V GOOD';
             document.getElementById('status-volts-txt').style.color = 'var(--crt-text-bright)';
+            if (typeof CipherCore !== 'undefined') {
+              CipherCore.setHardwareRepaired('battery');
+            }
             if (typeof CipherAudio !== 'undefined') {
               CipherAudio.keyThud();
               CipherAudio.transformerHum(0.8, false);
@@ -346,6 +348,9 @@
           this.showWorkbench("INPUTTING 64KB STATIC RAM CHIP...", () => {
             document.getElementById('tile-ram').className = 'status-tile repaired';
             document.getElementById('tile-ram').innerHTML = 'RAM BUFFER<br>[ 64KB OK ]';
+            if (typeof CipherCore !== 'undefined') {
+              CipherCore.setHardwareRepaired('ram');
+            }
             if (typeof CipherAudio !== 'undefined') {
               CipherAudio.chime();
             }
@@ -357,6 +362,9 @@
             document.getElementById('status-title-txt').textContent = 'HANDHELD // STABLE';
             document.getElementById('status-title-txt').style.color = 'var(--crt-text-bright)';
             document.getElementById('master-shell').classList.add('repaired-state');
+            if (typeof CipherCore !== 'undefined') {
+              CipherCore.setHardwareRepaired('wheel');
+            }
             if (typeof CipherAudio !== 'undefined') {
               CipherAudio.wheelTick();
               setTimeout(() => CipherAudio.wheelSlam(), 250);
