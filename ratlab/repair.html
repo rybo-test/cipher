@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>C.I.P.H.E.R. // Handheld Repair</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
+  <style>
+    :root {
+      --crt-bg: #050d07;
+      --crt-text-dim: #7ee787;
+      --crt-text-bright: #00ff66;
+      --crt-text-white: #ffffff;
+      --crt-amber: #ffb300;
+      --crt-alert: #ff5252;
+      --crt-border: #1b5e20;
+      --crt-border-bright: #00e676;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      color: var(--crt-text-dim);
+      font-family: 'Courier New', Courier, monospace;
+      -webkit-font-smoothing: antialiased;
+      box-sizing: border-box;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-viewport-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      background-color: var(--crt-bg);
+      border-left: 1px solid var(--crt-border);
+      border-right: 1px solid var(--crt-border);
+      position: relative;
+    }
+
+    .terminal-top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background-color: #1a0808;
+      border-bottom: 1.5px solid var(--crt-alert);
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+      transition: background-color 0.4s ease, border-color 0.4s ease;
+    }
+    .status-title { color: var(--crt-alert); font-weight: 900; }
+    .status-volts { color: var(--crt-alert); font-weight: 900; }
+
+    /* Diagnostic Gauge Strip */
+    .repair-status-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 8px 10px;
+      background-color: #030804;
+      border-bottom: 1px dashed var(--crt-border);
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    .status-tile {
+      border: 1px solid var(--crt-border);
+      padding: 6px 4px;
+      text-align: center;
+      border-radius: 4px;
+      background: rgba(0, 255, 102, 0.04);
+    }
+    .status-tile.damaged {
+      border-color: var(--crt-alert);
+      color: var(--crt-alert);
+      background: rgba(255, 82, 82, 0.08);
+    }
+    .status-tile.repaired {
+      border-color: var(--crt-border-bright);
+      color: var(--crt-text-bright);
+      background: rgba(0, 255, 102, 0.12);
+    }
+
+    .crt-monitor-frame {
+      flex: 1;
+      margin: 8px 10px;
+      background-color: #020503;
+      border: 2px solid var(--crt-alert);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 15px rgba(255, 82, 82, 0.2), 0 0 15px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .crt-monitor-frame::after {
+      content: " ";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .crt-screen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding-right: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Mechanical Repair Workbench (Interactive Visuals) */
+    .repair-workbench-view {
+      display: none;
+      background-color: #08170c;
+      border: 1px solid var(--crt-border-bright);
+      border-radius: 4px;
+      padding: 10px;
+      margin: 6px 0;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .line-dim { color: var(--crt-text-dim); }
+    .line-bright { color: var(--crt-text-bright); font-weight: bold; }
+    .line-white { color: var(--crt-text-white); font-weight: bold; }
+    .line-warn { color: var(--crt-amber); font-weight: bold; }
+    .line-alert { color: var(--crt-alert); font-weight: bold; }
+    .line-glitch {
+      color: #00ff66;
+      font-weight: 900;
+      text-shadow: 0 0 8px #00ff66;
+    }
+
+    .cli-dock-tray {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px dashed var(--crt-border);
+      padding-top: 8px;
+      margin-top: 6px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .cli-macro-keys {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .btn-macro-key {
+      min-height: 44px;
+      background-color: #08170c;
+      border: 1.5px solid var(--crt-border);
+      border-radius: 4px;
+      color: var(--crt-text-bright);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+      padding: 4px;
+    }
+    .btn-macro-key:active {
+      background-color: var(--crt-border-bright);
+      color: #000000;
+    }
+    .btn-macro-key.primary-action {
+      background-color: var(--crt-border-bright);
+      color: #000000;
+      grid-column: span 2;
+      font-weight: 900;
+    }
+
+    /* Healthy State When Fully Repaired */
+    .app-viewport-shell.repaired-state .terminal-top-header {
+      background-color: #030804;
+      border-bottom-color: var(--crt-border-bright);
+    }
+    .app-viewport-shell.repaired-state .status-title {
+      color: var(--crt-text-bright);
+    }
+    .app-viewport-shell.repaired-state .status-volts {
+      color: var(--crt-text-bright);
+    }
+    .app-viewport-shell.repaired-state .crt-monitor-frame {
+      border-color: var(--crt-border-bright);
+      box-shadow: inset 0 0 15px rgba(0, 230, 118, 0.2), 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport-shell" id="master-shell">
+    <header class="terminal-top-header">
+      <span class="status-title" id="status-title-txt">HANDHELD // DAMAGED</span>
+      <span class="status-volts" id="status-volts-txt">POWER: 11.2V LOW</span>
+    </header>
+
+    <div class="repair-status-strip">
+      <div class="status-tile damaged" id="tile-power">POWER SUPPLY<br>[ DAMAGED ]</div>
+      <div class="status-tile damaged" id="tile-ram">RAM BUFFER<br>[ DAMAGED ]</div>
+      <div class="status-tile damaged" id="tile-wheel">CYPHER-WHEEL<br>[ UNALIGNED ]</div>
+    </div>
+
+    <main class="crt-monitor-frame" onclick="RepairTerminal.flushActiveTypewriter()">
+      <div style="font-size: 11px; color: var(--crt-text-dim); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
+        PORTABLE DEVICE DIAGNOSTIC BAY // SIGNAL STATIC
+      </div>
+
+      <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
+
+      <!-- Workbench Area for Part Visuals -->
+      <div id="workbench-view" class="repair-workbench-view">
+        <div id="workbench-content" style="font-size: 12px; font-weight: bold; color: #fff;"></div>
+      </div>
+
+      <section class="cli-dock-tray">
+        <div class="cli-macro-keys" id="macro-keys-container"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/cipher-audio.js"></script>
+  <script src="js/cipher-fx.js"></script>
+  <script src="js/cipher-core.js"></script>
+  <script src="js/cipher-dialog.js"></script>
+  <script>
+    /**
+     * RepairTerminal Controller (Audited to Master Terminology & Natural Arc)
+     */
+    const RepairTerminal = {
+      logEl: null,
+      buttonsBay: null,
+      workbenchEl: null,
+      workbenchContent: null,
+
+      printQueue: [],
+      isPrinting: false,
+      skipActiveLine: false,
+
+      init: async function() {
+        this.logEl = document.getElementById('cli-screen-log');
+        this.buttonsBay = document.getElementById('macro-keys-container');
+        this.workbenchEl = document.getElementById('workbench-view');
+        this.workbenchContent = document.getElementById('workbench-content');
+
+        const unlock = () => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
+        };
+        window.addEventListener('touchstart', unlock, { once: true, passive: true });
+        window.addEventListener('click', unlock, { once: true });
+
+        // Initialize dialogue arc
+        await CipherDialog.init('REPAIR_HANDHELD_ARC');
+        const firstStage = CipherDialog.getCurrentStage();
+
+        if (firstStage) {
+          this.printLine(firstStage.screenText, "line-glitch");
+          if (firstStage.spokenText && typeof CipherAudio !== 'undefined') {
+            CipherAudio.speak(firstStage.spokenText);
+          }
+          if (firstStage.buttons) {
+            this.renderButtons(firstStage.buttons);
+          }
+        }
+      },
+
+      flushActiveTypewriter: function() {
+        this.skipActiveLine = true;
+      },
+
+      printLine: function(text, cls = "line-dim", charSpeedMs = 18) {
+        this.printQueue.push({ text, cls, charSpeedMs });
+        if (!this.isPrinting) {
+          this.processQueue();
+        }
+      },
+
+      processQueue: async function() {
+        if (this.printQueue.length === 0) {
+          this.isPrinting = false;
+          return;
+        }
+
+        this.isPrinting = true;
+        const current = this.printQueue.shift();
+        const p = document.createElement('div');
+        p.className = current.cls;
+        this.logEl.appendChild(p);
+
+        this.skipActiveLine = false;
+
+        for (let i = 0; i < current.text.length; i++) {
+          p.textContent += current.text[i];
+          this.logEl.scrollTop = this.logEl.scrollHeight;
+
+          if (!this.skipActiveLine) {
+            await new Promise(r => setTimeout(r, current.charSpeedMs));
+          }
+        }
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.lineChatter();
+        }
+
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 120));
+        this.processQueue();
+      },
+
+      renderButtons: function(buttonsList) {
+        this.buttonsBay.innerHTML = '';
+        buttonsList.forEach(btn => {
+          const b = document.createElement('button');
+          b.className = 'btn-macro-key';
+          if (btn.label.includes('➔')) {
+            b.classList.add('primary-action');
+          }
+          b.textContent = btn.label;
+          b.onclick = () => {
+            this.handlePlayerAction(btn.textToSend);
+          };
+          this.buttonsBay.appendChild(b);
+        });
+      },
+
+      handlePlayerAction: function(text) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        this.printLine(`> ${text}`, "line-white", 10);
+
+        // Custom UI hooks triggered by the dialogue action
+        if (text === 'INSTALL BATTERY') {
+          this.showWorkbench("INSTALLING 12V BATTERY PACK...", () => {
+            document.getElementById('tile-power').className = 'status-tile repaired';
+            document.getElementById('tile-power').innerHTML = 'POWER SUPPLY<br>[ 12.6V OK ]';
+            document.getElementById('status-volts-txt').textContent = 'POWER: 12.6V GOOD';
+            document.getElementById('status-volts-txt').style.color = 'var(--crt-text-bright)';
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.keyThud();
+              CipherAudio.transformerHum(0.8, false);
+            }
+          });
+        } else if (text === 'INPUT RAM CHIP') {
+          this.showWorkbench("INPUTTING 64KB STATIC RAM CHIP...", () => {
+            document.getElementById('tile-ram').className = 'status-tile repaired';
+            document.getElementById('tile-ram').innerHTML = 'RAM BUFFER<br>[ 64KB OK ]';
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.chime();
+            }
+          });
+        } else if (text === 'ALIGN CYPHER-WHEEL') {
+          this.showWorkbench("ALIGNING DUAL-ROTOR CYPHER-WHEEL...", () => {
+            document.getElementById('tile-wheel').className = 'status-tile repaired';
+            document.getElementById('tile-wheel').innerHTML = 'CYPHER-WHEEL<br>[ LOCKED ]';
+            document.getElementById('status-title-txt').textContent = 'HANDHELD // STABLE';
+            document.getElementById('status-title-txt').style.color = 'var(--crt-text-bright)';
+            document.getElementById('master-shell').classList.add('repaired-state');
+            if (typeof CipherAudio !== 'undefined') {
+              CipherAudio.wheelTick();
+              setTimeout(() => CipherAudio.wheelSlam(), 250);
+            }
+          });
+        } else if (text === 'GO_MISSIONS') {
+          window.location.href = 'mission.html';
+          return;
+        }
+
+        CipherDialog.processInput(text, this);
+      },
+
+      showWorkbench: function(label, onFinish) {
+        this.workbenchEl.style.display = 'block';
+        this.workbenchContent.textContent = label;
+        setTimeout(() => {
+          if (onFinish) onFinish();
+          setTimeout(() => {
+            this.workbenchEl.style.display = 'none';
+          }, 600);
+        }, 800);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      RepairTerminal.init();
+    });
+  </script>
+</body>
+</html>
