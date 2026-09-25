@@ -9,7 +9,6 @@
        1. COLOR SYSTEM & DUAL-THEME VARIABLES
        ========================================================= */
     :root {
-      /* Shared Layout Constraints */
       --desk-bg: #030504;
       --transition-smooth: all 0.25s ease-in-out;
     }
@@ -358,40 +357,6 @@
       font-weight: 900;
       margin-top: 8px;
     }
-
-    /* =========================================================
-       4. QUANTUM SCREEN TEAR & GLITCH OVERLAY
-       ========================================================= */
-    .screen-glitching {
-      animation: screenTear 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    }
-
-    @keyframes screenTear {
-      0% {
-        transform: translate(0);
-        filter: contrast(1) brightness(1);
-      }
-      20% {
-        transform: translate(-6px, 3px) skewX(2deg);
-        filter: invert(0.8) hue-rotate(90deg) contrast(2);
-      }
-      40% {
-        transform: translate(6px, -4px) skewX(-3deg);
-        filter: brightness(2) contrast(3);
-      }
-      60% {
-        transform: translate(-3px, 1px);
-        filter: invert(0.4) saturate(3);
-      }
-      80% {
-        transform: translate(2px, -1px);
-        filter: contrast(1.5);
-      }
-      100% {
-        transform: translate(0);
-        filter: contrast(1) brightness(1);
-      }
-    }
   </style>
 </head>
 <body>
@@ -510,7 +475,9 @@
     <div class="bezel-badge" id="bezel-badge-txt">RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI</div>
   </div>
 
+  <!-- Shared Universal Engines -->
   <script src="../js/cipher-audio.js"></script>
+  <script src="../js/cipher-fx.js"></script>
   <script src="../js/cipher-core.js"></script>
   <script>
     const BaseStation = {
@@ -518,7 +485,7 @@
       inputEl: null,
       chassisEl: null,
       screenEl: null,
-      currentTheme: 'rsi', // 'rsi' | 'ratpack'
+      currentTheme: 'rsi',
 
       printQueue: [],
       isPrinting: false,
@@ -557,7 +524,7 @@
           "line-bright", 12
         );
 
-        // Ambient personality instability timer (flips or glitches periodically)
+        // Ambient instability micro-spike via CipherFX
         setInterval(() => {
           if (Math.random() < 0.20) {
             this.glitchSpike();
@@ -594,26 +561,24 @@
         this.processQueue();
       },
 
+      // Uses central CipherFX engine
       triggerGlitchFlip: function() {
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.buzz();
-          CipherAudio.keyThud();
-        }
-
-        // Apply physical screen tear animation
-        this.screenEl.classList.add('screen-glitching');
-
-        setTimeout(() => {
+        if (typeof CipherFX !== 'undefined' && CipherFX.quantumFlip) {
+          CipherFX.quantumFlip(this.screenEl, () => {
+            if (this.currentTheme === 'rsi') {
+              this.setThemeRatPack();
+            } else {
+              this.setThemeRSI();
+            }
+          });
+        } else {
+          // Direct fallback if script is delayed
           if (this.currentTheme === 'rsi') {
             this.setThemeRatPack();
           } else {
             this.setThemeRSI();
           }
-
-          setTimeout(() => {
-            this.screenEl.classList.remove('screen-glitching');
-          }, 320);
-        }, 120);
+        }
       },
 
       setThemeRatPack: function() {
@@ -653,12 +618,11 @@
         );
       },
 
+      // Uses central CipherFX micro-spike
       glitchSpike: function() {
-        this.screenEl.classList.add('screen-glitching');
-        if (typeof CipherAudio !== 'undefined') CipherAudio.lineChatter();
-        setTimeout(() => {
-          this.screenEl.classList.remove('screen-glitching');
-        }, 180);
+        if (typeof CipherFX !== 'undefined' && CipherFX.glitchSpike) {
+          CipherFX.glitchSpike(this.screenEl);
+        }
       },
 
       submitCommand: function() {
@@ -666,7 +630,9 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.keyThud) {
+          CipherAudio.keyThud();
+        }
         this.printLine(`> ${raw}`, "line-user", 6);
         const upper = raw.toUpperCase();
 
@@ -734,9 +700,10 @@
       },
 
       inspectSector: function(secName) {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.keyThud) {
+          CipherAudio.keyThud();
+        }
 
-        // Clicking sector 0x70 triggers a glitch because that's where the Rat Pack code lives
         if (secName === '0x70') {
           this.printLine("⚠ ACCESSING CORRUPTED RAT PACK MEMORY SECTOR 0x70... ⚠", "line-amber", 8);
           this.triggerGlitchFlip();
