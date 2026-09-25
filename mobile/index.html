@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>C.I.P.H.E.R. // Field Handheld</title>
+  <link rel="stylesheet" href="css/handheld.css?v=4.0">
+</head>
+<body>
+
+  <div class="handheld-shell" id="handheld-view">
+    <!-- 1. Glanceable Status Banner -->
+    <header class="handheld-header">
+      <div class="header-badge">
+        OPERATIVE: <strong id="hdr-username">BUDDY</strong>
+      </div>
+      <div class="header-volts" id="hdr-power-tag">
+        12.6V OK
+      </div>
+    </header>
+
+    <!-- 2. Scrollable Dialogue Cards -->
+    <main class="handheld-stream" id="dialogue-stream" role="log" aria-live="polite">
+      <!-- Cards render dynamically here -->
+    </main>
+
+    <!-- 3. Ergonomic Thumb-Zone Dock -->
+    <footer class="handheld-thumb-dock">
+      <div class="thumb-button-stack" id="thumb-button-container">
+        <!-- Big 52px thumb buttons render here -->
+      </div>
+      <div class="quick-tools-row">
+        <button class="btn-sub-tool" onclick="HandheldUI.openWheelModal()">⚙️ CYPHER-WHEEL</button>
+        <button class="btn-sub-tool" onclick="HandheldUI.viewCoordinates()">📍 ACTIVE COORDS</button>
+      </div>
+    </footer>
+
+    <!-- 4. Full-Screen Cypher-Wheel Slide-Over Tool -->
+    <div class="full-screen-tool-modal" id="modal-cypher-wheel">
+      <div class="tool-modal-header">
+        <span class="tool-modal-title">FIELD CYPHER-WHEEL</span>
+        <button class="btn-close-modal" onclick="HandheldUI.closeWheelModal()">CLOSE ✕</button>
+      </div>
+      <div class="wheel-rotor-box">
+        <div style="font-size: 13px; color: var(--handheld-text-dim);">ALIGN ROTORS FOR FIELD CIPHERS:</div>
+        <div class="wheel-rotor-strip" id="rotor-a-display">A B C D E F G H I J K L M</div>
+        <div class="wheel-rotor-strip active-outer" id="rotor-b-display">N O P Q R S T U V W X Y Z</div>
+        <button class="btn-thumb-choice" style="width: 100%; min-height: 56px;" onclick="HandheldUI.rotateRotor()">
+          ROTATE ROTOR (+1)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Universal Core Engines -->
+  <script src="../js/cipher-audio.js"></script>
+  <script src="../js/cipher-fx.js"></script>
+  <script src="../js/cipher-core.js"></script>
+  <script src="../js/cipher-dialog.js"></script>
+  <script>
+    /**
+     * HandheldUI: Mobile-first card stream controller (CT-125)
+     */
+    const HandheldUI = {
+      streamEl: null,
+      buttonsBay: null,
+      wheelModal: null,
+      rotorOffset: 13,
+
+      init: function() {
+        this.streamEl = document.getElementById('dialogue-stream');
+        this.buttonsBay = document.getElementById('thumb-button-container');
+        this.wheelModal = document.getElementById('modal-cypher-wheel');
+
+        // Audio unlock on touch
+        const unlock = () => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
+        };
+        window.addEventListener('touchstart', unlock, { once: true, passive: true });
+        window.addEventListener('click', unlock, { once: true });
+
+        // Load username
+        if (typeof CipherCore !== 'undefined') {
+          const s = CipherCore.getState();
+          if (s && s.cacher && s.cacher.username) {
+            document.getElementById('hdr-username').textContent = s.cacher.username;
+          }
+        }
+
+        // Initialize dialogue stage
+        const initial = CipherDialog.init('MISSION_COMMAND_ARC');
+        if (initial) {
+          this.postEntityCard(initial.screenText);
+          if (initial.buttons) {
+            this.renderThumbButtons(initial.buttons);
+          }
+        }
+      },
+
+      postEntityCard: function(rawText) {
+        const card = document.createElement('article');
+        card.className = 'dialogue-card entity-card';
+
+        const label = document.createElement('div');
+        label.className = 'speaker-label';
+        label.textContent = 'C.I.P.H.E.R. // FIELD TRANSMISSION';
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+        body.textContent = rawText.replace(/\[C\.I\.P\.H\.E\.R\.\]\n?/, '').replace(/^"/, '').replace(/"$/, '');
+
+        card.appendChild(label);
+        card.appendChild(body);
+        this.streamEl.appendChild(card);
+        this.scrollToBottom();
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.lineChatter();
+        }
+      },
+
+      postPlayerCard: function(text) {
+        const card = document.createElement('article');
+        card.className = 'dialogue-card player-card';
+        card.textContent = text;
+        this.streamEl.appendChild(card);
+        this.scrollToBottom();
+      },
+
+      renderThumbButtons: function(buttonsList) {
+        this.buttonsBay.innerHTML = '';
+        buttonsList.forEach(btn => {
+          const b = document.createElement('button');
+          b.className = 'btn-thumb-choice';
+          b.textContent = btn.label.replace(/^\[\s*/, '').replace(/\s*\]$/, '');
+          b.onclick = () => {
+            this.handleChoice(btn.textToSend, b.textContent);
+          };
+          this.buttonsBay.appendChild(b);
+        });
+      },
+
+      handleChoice: function(textToSend, labelText) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        this.postPlayerCard(labelText);
+
+        if (textToSend === 'OPEN CYPHER TOOL') {
+          this.openWheelModal();
+          return;
+        }
+
+        // Pass to Universal Conversation Engine
+        const mockRenderer = {
+          printLine: (txt) => {
+            this.postEntityCard(txt);
+          },
+          renderButtons: (btnList) => {
+            this.renderThumbButtons(btnList);
+          }
+        };
+
+        CipherDialog.processInput(textToSend, mockRenderer);
+      },
+
+      scrollToBottom: function() {
+        setTimeout(() => {
+          this.streamEl.scrollTop = this.streamEl.scrollHeight;
+        }, 50);
+      },
+
+      openWheelModal: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        this.wheelModal.style.display = 'flex';
+        this.updateWheelDisplay();
+      },
+
+      closeWheelModal: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        this.wheelModal.style.display = 'none';
+      },
+
+      rotateRotor: function() {
+        this.rotorOffset = (this.rotorOffset + 1) % 26;
+        if (typeof CipherAudio !== 'undefined') CipherAudio.wheelTick();
+        this.updateWheelDisplay();
+      },
+
+      updateWheelDisplay: function() {
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const shifted = alphabet.slice(this.rotorOffset) + alphabet.slice(0, this.rotorOffset);
+        document.getElementById('rotor-a-display').textContent = alphabet.slice(0, 13).split('').join(' ');
+        document.getElementById('rotor-b-display').textContent = shifted.slice(0, 13).split('').join(' ');
+      },
+
+      viewCoordinates: function() {
+        this.handleChoice('SHOW COORDINATES', 'SHOW COORDINATES');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      HandheldUI.init();
+    });
+  </script>
+</body>
+</html>
