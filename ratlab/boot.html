@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>C.I.P.H.E.R. // Pocket Terminal Ingress</title>
+  <title>C.I.P.H.E.R. // Handheld Ingress</title>
   <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
   <style>
     :root {
@@ -43,7 +43,6 @@
       transform-origin: center center;
     }
 
-    /* Top Status Header */
     .terminal-top-header {
       display: flex;
       justify-content: space-between;
@@ -60,7 +59,6 @@
     .terminal-brand-txt { color: var(--crt-text-bright); }
     .terminal-bus-tag { color: var(--crt-amber); font-weight: 900; }
 
-    /* Returning Operative Ingress */
     .recognized-custody-card {
       background-color: #092110;
       border: 1.5px solid var(--crt-border-bright);
@@ -73,7 +71,6 @@
       flex-shrink: 0;
     }
 
-    /* CRT Monitor Frame */
     .crt-monitor-frame {
       flex: 1;
       margin: 8px 10px;
@@ -111,7 +108,6 @@
       z-index: 2;
     }
 
-    /* Typography */
     .line-dim { color: var(--crt-text-dim); }
     .line-bright { color: var(--crt-text-bright); font-weight: bold; }
     .line-white { color: var(--crt-text-white); font-weight: bold; }
@@ -121,15 +117,8 @@
       color: #00ff66;
       font-weight: 900;
       text-shadow: 0 0 10px #00ff66;
-      animation: crt-flicker 0.12s infinite alternate;
     }
 
-    @keyframes crt-flicker {
-      0% { opacity: 0.88; transform: skewX(0.5deg); }
-      100% { opacity: 1; text-shadow: 0 0 14px #00ff66; transform: skewX(-0.5deg); }
-    }
-
-    /* Prompt Dock & Buttons */
     .cli-dock-tray {
       display: flex;
       flex-direction: column;
@@ -186,7 +175,6 @@
     }
     .btn-cli-exec:active { background-color: #ffffff; }
 
-    /* Tactile Macro Keys */
     .cli-macro-keys {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -211,7 +199,6 @@
       color: #000000;
     }
 
-    /* Glitched State */
     .app-viewport-shell.glitched-state {
       background-color: #0d0606;
       border-color: var(--crt-alert);
@@ -230,13 +217,13 @@
 
   <div class="app-viewport-shell" id="master-shell">
     <header class="terminal-top-header">
-      <span class="terminal-brand-txt" id="header-brand-txt">RSI FIELD UNIT // ACCESS POINT</span>
-      <span class="terminal-bus-tag" id="header-bus-tag">BUS: 11.9V PORTABLE</span>
+      <span class="terminal-brand-txt" id="header-brand-txt">RSI HANDHELD // ACCESS POINT</span>
+      <span class="terminal-bus-tag" id="header-bus-tag">POWER: 11.9V FLOATING</span>
     </header>
 
     <div id="returning-cacher-bar" class="recognized-custody-card" style="display: none;">
       <div>
-        <div style="font-size: 10px; color: var(--crt-text-dim); font-weight: bold;">KNOWN OPERATIVE:</div>
+        <div style="font-size: 10px; color: var(--crt-text-dim); font-weight: bold;">KNOWN USER:</div>
         <strong id="returning-callsign-txt" style="color: #ffffff; font-size: 15px;">NEZZMUK</strong>
       </div>
       <button class="btn-cli-exec" style="min-height: 36px; padding: 0 12px; font-size: 12px;" onclick="BootTerminal.resumeSession()">
@@ -246,7 +233,7 @@
 
     <main class="crt-monitor-frame" onclick="BootTerminal.flushActiveTypewriter()">
       <div id="crt-frame-header" style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
-        PORTABLE LINK // UNKNOWN SUBCARRIER MESH
+        PORTABLE LINK // SIGNAL PACKETS DETECTED
       </div>
 
       <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
@@ -281,9 +268,6 @@
   <script src="js/cipher-core.js"></script>
   <script src="js/cipher-dialog.js"></script>
   <script>
-    /**
-     * BootTerminal View Controller
-     */
     const BootTerminal = {
       logEl: null,
       inputEl: null,
@@ -293,33 +277,32 @@
       isPrinting: false,
       skipActiveLine: false,
 
-      init: async function() {
+      init: function() {
         this.logEl = document.getElementById('cli-screen-log');
         this.inputEl = document.getElementById('cli-input-field');
         this.buttonsBay = document.getElementById('macro-keys-container');
 
-        const unlock = () => {
+        const unlockAudio = () => {
           if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
         };
-        window.addEventListener('touchstart', unlock, { once: true, passive: true });
-        window.addEventListener('click', unlock, { once: true });
+        window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+        window.addEventListener('click', unlockAudio, { once: true });
 
-        const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : null;
-
-        if (state && state.cacher && state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
-          document.getElementById('returning-cacher-bar').style.display = 'flex';
-          document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
-        }
-
-        // Initialize Dialogue Engine and render first stage
-        await CipherDialog.init('POCKET_TERMINAL_INGRESS');
-        const initialStage = CipherDialog.getCurrentStage();
-
-        if (initialStage) {
-          this.printLine(initialStage.screenText, "line-bright");
-          if (initialStage.spokenText && typeof CipherAudio !== 'undefined') {
-            CipherAudio.speak(initialStage.spokenText);
+        // Check returning player
+        try {
+          if (typeof CipherCore !== 'undefined') {
+            const state = CipherCore.getState();
+            if (state && state.cacher && state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
+              document.getElementById('returning-cacher-bar').style.display = 'flex';
+              document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
+            }
           }
+        } catch (e) {}
+
+        // Direct synchronous initialize
+        const initialStage = CipherDialog.init('POCKET_TERMINAL_INGRESS');
+        if (initialStage) {
+          this.printLine(initialStage.screenText, "line-bright", 16);
           if (initialStage.buttons) {
             this.renderButtons(initialStage.buttons);
           }
@@ -330,7 +313,7 @@
         this.skipActiveLine = true;
       },
 
-      printLine: function(text, cls = "line-dim", charSpeedMs = 20) {
+      printLine: function(text, cls = "line-dim", charSpeedMs = 16) {
         this.printQueue.push({ text, cls, charSpeedMs });
         if (!this.isPrinting) {
           this.processQueue();
@@ -364,18 +347,19 @@
           CipherAudio.lineChatter();
         }
 
-        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 120));
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 100));
         this.processQueue();
       },
 
       renderButtons: function(buttonsList) {
         this.buttonsBay.innerHTML = '';
-        const colSpan = buttonsList.length <= 2 ? 'span 2' : (buttonsList.length === 3 ? 'span 1' : 'span 1');
+        const count = buttonsList.length;
+        const spanClass = count <= 2 ? 'span 2' : (count === 3 ? 'span 1' : 'span 1');
 
         buttonsList.forEach(btn => {
           const b = document.createElement('button');
           b.className = 'btn-macro-key';
-          b.style.gridColumn = colSpan;
+          b.style.gridColumn = spanClass;
           b.textContent = btn.label;
           b.onclick = () => {
             this.tapAction(btn.textToSend);
@@ -409,13 +393,13 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        this.printLine(`> ${raw}`, "line-white", 10);
+        this.printLine(`> ${raw}`, "line-white", 8);
 
-        // Pass directly to the 8-Step Dialogue Engine
-        const handledByDialog = CipherDialog.processInput(raw, this);
-        if (handledByDialog) return;
+        // Process through Conversation Engine
+        const handled = CipherDialog.processInput(raw, this);
+        if (handled) return;
 
-        // Global CLI Fallbacks (HELP, DIAG, BYPASS)
+        // Fallback standard commands
         const tokens = raw.toUpperCase().split(/\s+/);
         const verb = tokens[0];
         const param = tokens.slice(1).join(' ').trim();
@@ -423,44 +407,43 @@
         if (verb === 'HELP') {
           this.printLine(
             "COMMAND SYNTAX GUIDE:\n" +
-            "  LOGON <CALLSIGN> : Register your geocaching handle\n" +
-            "  BYPASS <KEY>     : Restore existing field session\n" +
-            "  DIAG             : Read Field Unit battery and bus telemetry\n" +
+            "  LOGON <USERNAME> : Register your geocaching username\n" +
+            "  BYPASS <KEY>     : Restore previous session\n" +
+            "  DIAG             : Read handheld telemetry\n" +
             "  CLEAR            : Clear screen buffer",
-            "line-dim", 16
+            "line-dim", 14
           );
           return;
         }
 
         if (verb === 'DIAG') {
-          const state = (typeof CipherCore !== 'undefined') ? CipherCore.getState() : { hardware: { cpuMHz: 1.77, ramKB: 64, batteryVolts: 11.9, floatStatus: 'PORTABLE' }, pack: { items: [], maxSlots: 3 } };
           this.printLine(
-            `HARDWARE: RSI POCKET TERMINAL MK-IV\n` +
-            `LINK    : SUBCARRIER MESH // CARRIER DETECTED\n` +
-            `BATTERY : ${state.hardware.batteryVolts.toFixed(1)}V (DEGRADING)\n` +
-            `RAM BUS : ${state.hardware.ramKB} KB // CLOCK: ${state.hardware.cpuMHz.toFixed(2)} MHz`,
-            "line-dim", 16
+            "HARDWARE: RSI HANDHELD MK-IV\n" +
+            "SIGNAL  : SIGNAL PACKETS ACTIVE\n" +
+            "POWER   : 11.9V FLOATING\n" +
+            "STATUS  : READY FOR OPERATOR",
+            "line-dim", 14
           );
           return;
         }
 
         if (verb === 'BYPASS' || verb === 'RESTORE') {
           if (!param) {
-            this.printLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 16);
+            this.printLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 14);
             if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
             return;
           }
           if (typeof CipherCore !== 'undefined') {
             const res = CipherCore.parseCliCommand(`BYPASS ${param}`);
-            this.printLine(res.output, "line-warn", 20);
+            this.printLine(res.output, "line-warn", 16);
             if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
-            setTimeout(() => { window.location.href = 'mission.html'; }, 1500);
+            setTimeout(() => { window.location.href = 'mission.html'; }, 1200);
             return;
           }
         }
 
-        this.printLine(`SYNTAX ERROR: "${verb}" is not recognized.`, "line-alert", 15);
-        this.printLine('Type "HELP" or tap an action key to continue.', "line-dim", 16);
+        this.printLine(`SYNTAX ERROR: "${verb}" is not recognized.`, "line-alert", 14);
+        this.printLine('Type "HELP" or tap an action key to continue.', "line-dim", 14);
         if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
       },
 
