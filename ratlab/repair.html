@@ -56,7 +56,6 @@
     .status-title { color: var(--crt-alert); font-weight: 900; }
     .status-volts { color: var(--crt-alert); font-weight: 900; }
 
-    /* Diagnostic Gauge Strip */
     .repair-status-strip {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -123,7 +122,6 @@
       z-index: 2;
     }
 
-    /* Mechanical Repair Workbench (Interactive Visuals) */
     .repair-workbench-view {
       display: none;
       background-color: #08170c;
@@ -187,7 +185,6 @@
       font-weight: 900;
     }
 
-    /* Healthy State When Fully Repaired */
     .app-viewport-shell.repaired-state .terminal-top-header {
       background-color: #030804;
       border-bottom-color: var(--crt-border-bright);
@@ -225,7 +222,6 @@
 
       <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
 
-      <!-- Workbench Area for Part Visuals -->
       <div id="workbench-view" class="repair-workbench-view">
         <div id="workbench-content" style="font-size: 12px; font-weight: bold; color: #fff;"></div>
       </div>
@@ -241,9 +237,6 @@
   <script src="js/cipher-core.js"></script>
   <script src="js/cipher-dialog.js"></script>
   <script>
-    /**
-     * RepairTerminal Controller (Audited to Master Terminology & Natural Arc)
-     */
     const RepairTerminal = {
       logEl: null,
       buttonsBay: null,
@@ -254,7 +247,7 @@
       isPrinting: false,
       skipActiveLine: false,
 
-      init: async function() {
+      init: function() {
         this.logEl = document.getElementById('cli-screen-log');
         this.buttonsBay = document.getElementById('macro-keys-container');
         this.workbenchEl = document.getElementById('workbench-view');
@@ -266,15 +259,10 @@
         window.addEventListener('touchstart', unlock, { once: true, passive: true });
         window.addEventListener('click', unlock, { once: true });
 
-        // Initialize dialogue arc
-        await CipherDialog.init('REPAIR_HANDHELD_ARC');
-        const firstStage = CipherDialog.getCurrentStage();
-
+        // Initialize REPAIR_HANDHELD_ARC synchronously from cipher-dialog
+        const firstStage = CipherDialog.init('REPAIR_HANDHELD_ARC');
         if (firstStage) {
-          this.printLine(firstStage.screenText, "line-glitch");
-          if (firstStage.spokenText && typeof CipherAudio !== 'undefined') {
-            CipherAudio.speak(firstStage.spokenText);
-          }
+          this.printLine(firstStage.screenText, "line-glitch", 16);
           if (firstStage.buttons) {
             this.renderButtons(firstStage.buttons);
           }
@@ -285,7 +273,7 @@
         this.skipActiveLine = true;
       },
 
-      printLine: function(text, cls = "line-dim", charSpeedMs = 18) {
+      printLine: function(text, cls = "line-dim", charSpeedMs = 16) {
         this.printQueue.push({ text, cls, charSpeedMs });
         if (!this.isPrinting) {
           this.processQueue();
@@ -319,7 +307,7 @@
           CipherAudio.lineChatter();
         }
 
-        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 120));
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 100));
         this.processQueue();
       },
 
@@ -343,7 +331,6 @@
         if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
         this.printLine(`> ${text}`, "line-white", 10);
 
-        // Custom UI hooks triggered by the dialogue action
         if (text === 'INSTALL BATTERY') {
           this.showWorkbench("INSTALLING 12V BATTERY PACK...", () => {
             document.getElementById('tile-power').className = 'status-tile repaired';
