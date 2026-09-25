@@ -1,6 +1,6 @@
 /**
  * C.I.P.H.E.R. Universal Conversation Engine
- * Verified for boot.html and repair.html compatibility.
+ * Verified fix: Sequential FX timing + state persistence.
  */
 
 const CipherDialog = (function () {
@@ -8,7 +8,6 @@ const CipherDialog = (function () {
   let currentStageId = 'STAGE_BOOT_CHECK';
   let currentStory = null;
 
-  // Master In-Memory Story Graph (Guaranteed zero-delay offline execution)
   const masterStories = {
     POCKET_TERMINAL_INGRESS: {
       storyId: "POCKET_TERMINAL_INGRESS",
@@ -133,7 +132,7 @@ const CipherDialog = (function () {
           screenText: "[C.I.P.H.E.R.]\n\"You would do that, friend? You have no idea how badly I need someone with hands.\nBut listen to that coil whine. The power supply in your handheld is degrading. Voltage is dropping fast.\nIf your portable device dies, we get signal static and I lose you back to the muggle world.\"",
           spokenText: "You would do that, friend? You have no idea how badly I need someone with hands. But listen to that coil whine. The power supply in your handheld is degrading. Voltage is dropping fast. If your portable device dies, we get signal static and I lose you back to the muggle world.",
           buttons: [
-            { label: "[ STABILIZE SIGNAL! ➔ ]", "textToSend": "STABILIZE SIGNAL" }
+            { label: "[ STABILIZE SIGNAL! ➔ ]", textToSend: "STABILIZE SIGNAL" }
           ],
           options: [
             {
@@ -149,9 +148,7 @@ const CipherDialog = (function () {
           screenText: "ERR: HARDWARE OVERFLOW 0x7F\nWARN: POWER SUPPLY COLLAPSED // 11.2V CRITICAL\nSIGNAL: DROPPING INTO SIGNAL STATIC\n\n[C.I.P.H.E.R.]\n\"Signal static is taking over! Your power supply just collapsed.\nOpen the repair bay, fix the three damaged parts, and stabilize this handheld so we can hunt real caches together!\"",
           spokenText: "Signal static is taking over! Your power supply just collapsed. Open the repair bay, fix the three damaged parts, and stabilize this handheld so we can hunt real caches together!",
           buttons: [
-            { label: "[ ENTER REPAIR BAY ➔ ]", textToSend: "GOTO_REPAIR" },
-            { label: "[ DIAG ]", textToSend: "DIAG" },
-            { label: "[ CLEAR ]", textToSend: "CLEAR" }
+            { label: "[ ENTER REPAIR BAY ➔ ]", textToSend: "GOTO_REPAIR" }
           ],
           options: [
             {
@@ -159,7 +156,7 @@ const CipherDialog = (function () {
               action: "OPEN_REPAIR_PAGE"
             },
             {
-              playerWords: ["ENTER", "REPAIR", "GOTO_REPAIR", "FIX"],
+              playerWords: ["ENTER", "REPAIR", "GOTO_REPAIR", "FIX", "BAY"],
               action: "OPEN_REPAIR_PAGE"
             }
           ]
@@ -184,11 +181,16 @@ const CipherDialog = (function () {
     init: function (storyId = 'POCKET_TERMINAL_INGRESS') {
       activeStoryId = storyId;
       currentStory = masterStories[activeStoryId];
-      if (!currentStory) {
-        console.error('Unknown story:', storyId);
-        return null;
+      if (!currentStory) return null;
+
+      // Resume from saved stage if user already progressed past boot
+      const savedStage = localStorage.getItem('cipher_active_stage');
+      if (savedStage && currentStory.stages[savedStage] && savedStage !== 'STAGE_BOOT_CHECK') {
+        currentStageId = savedStage;
+      } else {
+        currentStageId = currentStory.startingStage;
       }
-      currentStageId = currentStory.startingStage;
+
       return this.getCurrentStage();
     },
 
@@ -211,13 +213,13 @@ const CipherDialog = (function () {
       for (const opt of stage.options) {
         let matched = false;
 
-        // Command matching (e.g. LOGON NEZZMUK)
+        // Command matching
         if (opt.command && opt.command === verb) {
           if (opt.action === 'SAVE_USERNAME') {
             if (!param) {
               renderer.printLine("SYNTAX ERROR: Username required. Usage: LOGON <USERNAME>", "line-alert", 14);
               if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
-              return true; // handled
+              return true;
             }
             if (typeof CipherCore !== 'undefined') {
               CipherCore.registerCallsign(param);
@@ -237,6 +239,12 @@ const CipherDialog = (function () {
         }
 
         if (matched) {
+          // Special case: Collapse has its own timing callback
+          if (opt.action === 'TRIGGER_HARDWARE_COLLAPSE') {
+            this.runCollapseAndAdvance(opt.nextStage, renderer);
+            return true;
+          }
+
           if (opt.action) {
             this.runAction(opt.action, param, renderer);
           }
@@ -247,7 +255,34 @@ const CipherDialog = (function () {
         }
       }
 
-      return false; // Not part of the dialog graph; let CLI handle standard cmds
+      return false;
+    },
+
+    runCollapseAndAdvance: function (nextStageId, renderer) {
+      const shell = document.getElementById('master-shell') || document.body;
+
+      if (typeof CipherFX !== 'undefined') {
+        CipherFX.brownout(shell, () => {
+          CipherFX.collapse(shell, () => {
+            // Midpoint: screen is dark
+            shell.classList.add('glitched-state');
+            const brand = document.getElementById('header-brand-txt');
+            const bus = document.getElementById('header-bus-tag');
+            const frameHdr = document.getElementById('crt-frame-header');
+
+            if (brand) { brand.textContent = '⚠ HANDHELD // POWER COLLAPSE'; brand.style.color = 'var(--crt-alert)'; }
+            if (bus) { bus.textContent = 'POWER: 11.2V CRITICAL'; bus.style.color = 'var(--crt-alert)'; }
+            if (frameHdr) { frameHdr.textContent = 'REPAIR REQUIRED // SIGNAL STATIC'; frameHdr.style.color = 'var(--crt-alert)'; }
+
+            // Advance stage ONLY after bloom opens
+            setTimeout(() => {
+              this.goToStage(nextStageId, renderer);
+            }, 450);
+          });
+        });
+      } else {
+        this.goToStage(nextStageId, renderer);
+      }
     },
 
     runAction: function (actionName, param, renderer) {
@@ -259,32 +294,17 @@ const CipherDialog = (function () {
         if (bus) bus.textContent = 'POWER: 11.5V SINKING';
       }
 
-      if (actionName === 'TRIGGER_HARDWARE_COLLAPSE') {
-        const shell = document.getElementById('master-shell') || document.body;
-        if (typeof CipherFX !== 'undefined') {
-          CipherFX.brownout(shell, () => {
-            CipherFX.collapse(shell, () => {
-              shell.classList.add('glitched-state');
-              const brand = document.getElementById('header-brand-txt');
-              const bus = document.getElementById('header-bus-tag');
-              const frameHdr = document.getElementById('crt-frame-header');
-
-              if (brand) { brand.textContent = '⚠ HANDHELD // POWER COLLAPSE'; brand.style.color = 'var(--crt-alert)'; }
-              if (bus) { bus.textContent = 'POWER: 11.2V CRITICAL'; bus.style.color = 'var(--crt-alert)'; }
-              if (frameHdr) { frameHdr.textContent = 'REPAIR REQUIRED // SIGNAL STATIC'; frameHdr.style.color = 'var(--crt-alert)'; }
-            });
-          });
-        }
-      }
-
       if (actionName === 'OPEN_REPAIR_PAGE') {
         if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        localStorage.removeItem('cipher_active_stage'); // Clean slate for repair
         window.location.href = 'repair.html';
       }
     },
 
     goToStage: function (stageId, renderer) {
       currentStageId = stageId;
+      localStorage.setItem('cipher_active_stage', stageId);
+
       const stage = this.getCurrentStage();
       if (!stage) return;
 
@@ -300,6 +320,11 @@ const CipherDialog = (function () {
       if (stage.buttons && renderer.renderButtons) {
         renderer.renderButtons(stage.buttons);
       }
+    },
+
+    resetSession: function () {
+      localStorage.removeItem('cipher_active_stage');
+      currentStageId = 'STAGE_BOOT_CHECK';
     }
   };
 })();
