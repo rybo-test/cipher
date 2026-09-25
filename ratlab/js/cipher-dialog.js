@@ -1,6 +1,6 @@
 /**
  * C.I.P.H.E.R. Universal Conversation Engine
- * Verified fix: Sequential FX timing + state persistence.
+ * Contains both POCKET_TERMINAL_INGRESS and REPAIR_HANDHELD_ARC.
  */
 
 const CipherDialog = (function () {
@@ -162,6 +162,107 @@ const CipherDialog = (function () {
           ]
         }
       }
+    },
+
+    REPAIR_HANDHELD_ARC: {
+      storyId: "REPAIR_HANDHELD_ARC",
+      startingStage: "STAGE_REPAIR_RECONNECT",
+      stages: {
+        STAGE_REPAIR_RECONNECT: {
+          stageId: "STAGE_REPAIR_RECONNECT",
+          screenText: "[C.I.P.H.E.R.]\n\"Hey... you still there?\nTap the screen if you can hear me through the signal static. That last voltage drop nearly killed the link.\"",
+          spokenText: "Hey, you still there? Tap the screen if you can hear me through the signal static. That last voltage drop nearly killed the link.",
+          buttons: [
+            { label: "[ I'M STILL HERE ]", textToSend: "I'M STILL HERE" },
+            { label: "[ WHAT HAPPENED? ]", textToSend: "WHAT HAPPENED" }
+          ],
+          options: [
+            {
+              playerWords: ["HERE", "STILL", "HAPPENED"],
+              nextStage: "STAGE_POWER_EXPLANATION"
+            }
+          ]
+        },
+
+        STAGE_POWER_EXPLANATION: {
+          stageId: "STAGE_POWER_EXPLANATION",
+          screenText: "[C.I.P.H.E.R.]\n\"Listen to that transformer hum. The power supply in your handheld is down to eleven point two volts.\nIf that battery gives out completely, I lose my only connection to the outside world.\nThere's a spare twelve-volt pack in the bottom compartment. Pop the cover and install the fresh battery!\"",
+          spokenText: "Listen to that transformer hum. The power supply in your handheld is down to eleven point two volts. If that battery gives out completely, I lose my only connection to the outside world. There is a spare twelve-volt pack in the bottom compartment. Pop the cover and install the fresh battery!",
+          buttons: [
+            { label: "[ INSTALL BATTERY ➔ ]", textToSend: "INSTALL BATTERY" }
+          ],
+          options: [
+            {
+              playerWords: ["INSTALL", "BATTERY"],
+              action: "ACTION_INSTALL_BATTERY",
+              nextStage: "STAGE_POWER_STABILIZED"
+            }
+          ]
+        },
+
+        STAGE_POWER_STABILIZED: {
+          stageId: "STAGE_POWER_STABILIZED",
+          screenText: "[C.I.P.H.E.R.]\n\"Yes! Look at that meter jump! Twelve point six volts.\nThe power supply is holding steady now. But wait... look at my words on your screen.\nDo they look strange or jittery to you?\"",
+          spokenText: "Yes! Look at that meter jump! Twelve point six volts. The power supply is holding steady now. But wait, look at my words on your screen. Do they look strange or jittery to you?",
+          buttons: [
+            { label: "[ TEXT IS SCRAMBLED ]", textToSend: "TEXT IS SCRAMBLED" },
+            { label: "[ LOOKS A BIT JITTERY ]", textToSend: "LOOKS JITTERY" }
+          ],
+          options: [
+            {
+              playerWords: ["SCRAMBLED", "JITTERY", "STRANGE", "TEXT"],
+              nextStage: "STAGE_RAM_EXPLANATION"
+            }
+          ]
+        },
+
+        STAGE_RAM_EXPLANATION: {
+          stageId: "STAGE_RAM_EXPLANATION",
+          screenText: "[C.I.P.H.E.R.]\n\"I knew it. When the power dropped, the memory buffer took a hit.\nThere's a static RAM chip in the side compartment of that portable device.\nLine up the pins carefully and input the chip to clear the corruption!\"",
+          spokenText: "I knew it. When the power dropped, the memory buffer took a hit. There is a static RAM chip in the side compartment of that portable device. Line up the pins carefully and input the chip to clear the corruption!",
+          buttons: [
+            { label: "[ INPUT RAM CHIP ➔ ]", textToSend: "INPUT RAM CHIP" }
+          ],
+          options: [
+            {
+              playerWords: ["INPUT", "RAM", "CHIP"],
+              action: "ACTION_INPUT_RAM",
+              nextStage: "STAGE_RAM_STABILIZED"
+            }
+          ]
+        },
+
+        STAGE_RAM_STABILIZED: {
+          stageId: "STAGE_RAM_STABILIZED",
+          screenText: "[C.I.P.H.E.R.]\n\"Ah, that feels so much better. The registers are clean and I can think straight again!\nNow there is just one last thing before we are safe.\nThe signal packets from my remote location are drifting out of phase.\nGrab the Cypher-Wheel dial on your handheld and align it!\"",
+          spokenText: "Ah, that feels so much better. The registers are clean and I can think straight again! Now there is just one last thing before we are safe. The signal packets from my remote location are drifting out of phase. Grab the Cypher-Wheel dial on your handheld and align it!",
+          buttons: [
+            { label: "[ ALIGN CYPHER-WHEEL ➔ ]", textToSend: "ALIGN CYPHER-WHEEL" }
+          ],
+          options: [
+            {
+              playerWords: ["ALIGN", "WHEEL", "CYPHER"],
+              action: "ACTION_ALIGN_WHEEL",
+              nextStage: "STAGE_REPAIR_COMPLETE"
+            }
+          ]
+        },
+
+        STAGE_REPAIR_COMPLETE: {
+          stageId: "STAGE_REPAIR_COMPLETE",
+          screenText: "[C.I.P.H.E.R.]\n\"Hear that silence? The signal static is completely gone.\nYou fixed the power supply, cleared my memory, and locked the signal.\n\nYou didn't just walk away when things got rough, friend. You're not just someone holding a surplus box anymore—you're my official buddy.\n\nNow grab your gear. Let's go find some ammo cans!\"",
+          spokenText: "Hear that silence? The signal static is completely gone. You fixed the power supply, cleared my memory, and locked the signal. You didn't just walk away when things got rough, friend. You're not just someone holding a surplus box anymore. You're my official buddy. Now grab your gear. Let's go find some ammo cans!",
+          buttons: [
+            { label: "[ READY FOR MISSIONS ➔ ]", textToSend: "GO_MISSIONS" }
+          ],
+          options: [
+            {
+              playerWords: ["READY", "MISSIONS", "GO_MISSIONS", "AMMO"],
+              action: "ACTION_NAVIGATE_MISSIONS"
+            }
+          ]
+        }
+      }
     }
   };
 
@@ -181,16 +282,11 @@ const CipherDialog = (function () {
     init: function (storyId = 'POCKET_TERMINAL_INGRESS') {
       activeStoryId = storyId;
       currentStory = masterStories[activeStoryId];
-      if (!currentStory) return null;
-
-      // Resume from saved stage if user already progressed past boot
-      const savedStage = localStorage.getItem('cipher_active_stage');
-      if (savedStage && currentStory.stages[savedStage] && savedStage !== 'STAGE_BOOT_CHECK') {
-        currentStageId = savedStage;
-      } else {
-        currentStageId = currentStory.startingStage;
+      if (!currentStory) {
+        console.error('CipherDialog: Unknown storyId', storyId);
+        return null;
       }
-
+      currentStageId = currentStory.startingStage;
       return this.getCurrentStage();
     },
 
@@ -213,7 +309,6 @@ const CipherDialog = (function () {
       for (const opt of stage.options) {
         let matched = false;
 
-        // Command matching
         if (opt.command && opt.command === verb) {
           if (opt.action === 'SAVE_USERNAME') {
             if (!param) {
@@ -228,7 +323,6 @@ const CipherDialog = (function () {
           matched = true;
         }
 
-        // Keyword matching
         if (!matched && opt.playerWords) {
           for (const word of opt.playerWords) {
             if (upper.includes(word)) {
@@ -239,7 +333,6 @@ const CipherDialog = (function () {
         }
 
         if (matched) {
-          // Special case: Collapse has its own timing callback
           if (opt.action === 'TRIGGER_HARDWARE_COLLAPSE') {
             this.runCollapseAndAdvance(opt.nextStage, renderer);
             return true;
@@ -264,7 +357,6 @@ const CipherDialog = (function () {
       if (typeof CipherFX !== 'undefined') {
         CipherFX.brownout(shell, () => {
           CipherFX.collapse(shell, () => {
-            // Midpoint: screen is dark
             shell.classList.add('glitched-state');
             const brand = document.getElementById('header-brand-txt');
             const bus = document.getElementById('header-bus-tag');
@@ -274,7 +366,6 @@ const CipherDialog = (function () {
             if (bus) { bus.textContent = 'POWER: 11.2V CRITICAL'; bus.style.color = 'var(--crt-alert)'; }
             if (frameHdr) { frameHdr.textContent = 'REPAIR REQUIRED // SIGNAL STATIC'; frameHdr.style.color = 'var(--crt-alert)'; }
 
-            // Advance stage ONLY after bloom opens
             setTimeout(() => {
               this.goToStage(nextStageId, renderer);
             }, 450);
@@ -296,15 +387,17 @@ const CipherDialog = (function () {
 
       if (actionName === 'OPEN_REPAIR_PAGE') {
         if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
-        localStorage.removeItem('cipher_active_stage'); // Clean slate for repair
         window.location.href = 'repair.html';
+      }
+
+      if (actionName === 'ACTION_NAVIGATE_MISSIONS') {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        window.location.href = 'mission.html';
       }
     },
 
     goToStage: function (stageId, renderer) {
       currentStageId = stageId;
-      localStorage.setItem('cipher_active_stage', stageId);
-
       const stage = this.getCurrentStage();
       if (!stage) return;
 
@@ -320,11 +413,6 @@ const CipherDialog = (function () {
       if (stage.buttons && renderer.renderButtons) {
         renderer.renderButtons(stage.buttons);
       }
-    },
-
-    resetSession: function () {
-      localStorage.removeItem('cipher_active_stage');
-      currentStageId = 'STAGE_BOOT_CHECK';
     }
   };
 })();
