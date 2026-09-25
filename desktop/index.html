@@ -4,12 +4,281 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C.I.P.H.E.R. // Base Station Command Console</title>
-  <link rel="stylesheet" href="css/station.css?v=5.0">
+  <style>
+    :root {
+      --base-bg: #020603;
+      --panel-bg: #051408;
+      --panel-border: #144d1e;
+      --panel-border-bright: #00ff66;
+      --text-main: #b8f5c8;
+      --text-bright: #00ff66;
+      --text-amber: #ffb300;
+      --text-alert: #ff5252;
+      --text-white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background-color: var(--base-bg);
+      color: var(--text-main);
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+    }
+
+    .base-station-viewport {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      padding: 12px;
+      gap: 10px;
+    }
+
+    /* Top Console Banner */
+    .console-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-bg);
+      border: 1.5px solid var(--panel-border-bright);
+      padding: 10px 16px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(0, 255, 102, 0.15);
+    }
+    .console-title {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--text-bright);
+    }
+    .console-badges {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .badge-item {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      background: rgba(0, 255, 102, 0.05);
+    }
+    .badge-item.active {
+      border-color: var(--panel-border-bright);
+      color: var(--text-bright);
+    }
+
+    /* 3-Pane Console Layout */
+    .console-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 310px 1fr 340px;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .crt-console-panel {
+      background-color: var(--panel-bg);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.04);
+    }
+    .crt-console-panel.primary-monitor {
+      border-color: var(--panel-border-bright);
+      box-shadow: inset 0 0 25px rgba(0, 255, 102, 0.08), 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+
+    .panel-header {
+      background: #091f0c;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: var(--text-bright);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Left: Memory Matrix */
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 12px;
+    }
+    .sector-cell {
+      background: #030a04;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--text-bright);
+      transition: all 0.2s;
+    }
+    .sector-cell:hover {
+      border-color: var(--panel-border-bright);
+      background: rgba(0, 255, 102, 0.15);
+    }
+
+    .telemetry-block {
+      padding: 12px 14px;
+      border-top: 1px dashed var(--panel-border);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* Center: Teletype CLI Monitor */
+    .main-log-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .line-dim { color: var(--text-main); }
+    .line-bright { color: var(--text-bright); font-weight: bold; }
+    .line-amber { color: var(--text-amber); font-weight: bold; }
+    .line-user { color: var(--text-white); font-weight: bold; }
+
+    .desktop-cli-tray {
+      border-top: 1px solid var(--panel-border);
+      background: #030b05;
+      padding: 10px 14px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .cli-prompt {
+      color: var(--text-bright);
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .cli-desktop-input {
+      flex: 1;
+      background: #020703;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+    }
+    .cli-desktop-input:focus {
+      border-color: var(--panel-border-bright);
+      box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+    }
+    .btn-desktop-exec {
+      background: var(--panel-border-bright);
+      color: #000000;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    .btn-desktop-exec:hover {
+      background: #ffffff;
+    }
+
+    /* Right: Frequency Scope & Tactical Cards */
+    .tactical-display-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .frequency-scope {
+      height: 90px;
+      background: #020703;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .carrier-wave {
+      width: 100%;
+      height: 2px;
+      background: var(--text-bright);
+      box-shadow: 0 0 8px var(--text-bright);
+      animation: pulseWave 2.4s infinite ease-in-out;
+    }
+    @keyframes pulseWave {
+      0% { transform: scaleY(1); opacity: 0.6; }
+      50% { transform: scaleY(16); opacity: 1; }
+      100% { transform: scaleY(1); opacity: 0.6; }
+    }
+
+    .waypoint-card {
+      background: #030c05;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .waypoint-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--text-amber);
+      margin-bottom: 4px;
+    }
+    .waypoint-coords {
+      font-size: 14px;
+      font-weight: 900;
+      color: #ffffff;
+    }
+
+    .macro-board {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: auto;
+    }
+    .btn-macro-tile {
+      background: #06180a;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 6px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 10px 6px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-macro-tile:hover {
+      border-color: var(--panel-border-bright);
+      background: #0d3817;
+    }
+  </style>
 </head>
 <body>
 
   <div class="base-station-viewport">
-    <!-- Top System Telemetry Bar -->
     <header class="console-topbar">
       <div class="console-title">RSI BASE STATION // MK-VI WIDESCREEN CONSOLE</div>
       <div class="console-badges">
@@ -20,10 +289,8 @@
       </div>
     </header>
 
-    <!-- 3-Pane Console Workspace -->
     <div class="console-grid">
-
-      <!-- LEFT PANE: Diagnostic Matrix & Sector Memory Inspector -->
+      <!-- LEFT PANE: Memory Matrix -->
       <aside class="crt-console-panel">
         <div class="panel-header">
           <span>DIAGNOSTIC MATRIX</span>
@@ -31,14 +298,14 @@
         </div>
 
         <div class="matrix-grid">
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x00')">SEC 0x00<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x10')">SEC 0x10<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x20')">SEC 0x20<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x30')">SEC 0x30<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x40')">SEC 0x40<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x50')">SEC 0x50<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x60')">SEC 0x60<br>OK</div>
-          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x70')">SEC 0x70<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x00')">SEC 0x00<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x10')">SEC 0x10<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x20')">SEC 0x20<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x30')">SEC 0x30<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x40')">SEC 0x40<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x50')">SEC 0x50<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x60')">SEC 0x60<br>OK</div>
+          <div class="sector-cell" onclick="BaseStation.inspectSector('0x70')">SEC 0x70<br>OK</div>
         </div>
 
         <div class="telemetry-block" id="sector-inspect-view">
@@ -50,16 +317,16 @@
 
         <div class="telemetry-block" style="margin-top: auto;">
           <strong style="color: var(--text-bright);">SURFACE DISPATCH:</strong><br>
-          Need to head outside?<br>
+          Heading into the field?<br>
           <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: bold;">➔ Switch to Field Handheld (Mobile)</a>
         </div>
       </aside>
 
-      <!-- CENTER PANE: Main CRT Teletype Monitor & CLI -->
+      <!-- CENTER PANE: Command CRT & CLI -->
       <main class="crt-console-panel primary-monitor">
         <div class="panel-header">
           <span>TERMINAL LOG // RECV SUBCARRIER</span>
-          <span id="log-status-tag" style="color: var(--text-bright);">CARRIER LOCKED</span>
+          <span style="color: var(--text-bright);">CARRIER LOCKED</span>
         </div>
 
         <div class="main-log-scroll" id="base-log-scroll"></div>
@@ -78,7 +345,7 @@
         </footer>
       </main>
 
-      <!-- RIGHT PANE: Radio Scope & Tactical Waypoint Board -->
+      <!-- RIGHT PANE: Scope & Waypoint Board -->
       <aside class="crt-console-panel">
         <div class="panel-header">
           <span>TACTICAL FREQUENCY SCOPE</span>
@@ -93,14 +360,14 @@
           <div class="waypoint-card">
             <div class="waypoint-title">TARGET // WAYPOINT 01</div>
             <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
-            <div style="font-size: 11px; color: var(--text-main); margin-top: 4px;">
+            <div style="font-size: 12px; color: var(--text-main); margin-top: 6px;">
               TERRAIN: Foothill bench trail<br>CONTAINER: Standard Ammo Can
             </div>
           </div>
 
           <div class="waypoint-card" style="border-style: dashed;">
             <div class="waypoint-title" style="color: var(--text-main);">TARGET // WAYPOINT 02 (LOCKED)</div>
-            <div style="font-size: 11px; color: var(--text-main);">
+            <div style="font-size: 12px; color: var(--text-main);">
               Requires physical code from Waypoint 01 log sheet.
             </div>
           </div>
@@ -113,15 +380,9 @@
           </div>
         </div>
       </aside>
-
     </div>
   </div>
 
-  <!-- Shared Universal Core -->
-  <script src="../js/cipher-audio.js"></script>
-  <script src="../js/cipher-fx.js"></script>
-  <script src="../js/cipher-core.js"></script>
-  <script src="../js/cipher-dialog.js"></script>
   <script>
     const BaseStation = {
       logEl: null,
@@ -133,7 +394,6 @@
         this.logEl = document.getElementById('base-log-scroll');
         this.inputEl = document.getElementById('base-cli-input');
 
-        // Keyboard enter trigger
         this.inputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -141,22 +401,17 @@
           }
         });
 
-        // Sync username from state
+        // Load username from storage if available
         try {
-          if (typeof CipherCore !== 'undefined') {
-            const s = CipherCore.getState();
-            if (s && s.cacher && s.cacher.username) {
-              document.getElementById('badge-cacher').textContent = `OPERATOR: ${s.cacher.username}`;
+          const raw = localStorage.getItem('cipher_handheld_state');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.cacher && parsed.cacher.username) {
+              document.getElementById('badge-cacher').textContent = `OPERATOR: ${parsed.cacher.username}`;
             }
           }
         } catch (e) {}
 
-        // Audio unlock
-        window.addEventListener('click', () => {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
-        }, { once: true });
-
-        // Initial teletype greeting
         this.printLine(
           "RSI BASE STATION COMMAND CONSOLE [VERSION 6.2.0-STATION]\n" +
           "SUBCARRIER RECEIVER: LOCKED (FREQUENCY 433.92 MHz)\n" +
@@ -194,10 +449,6 @@
           await new Promise(r => setTimeout(r, current.charSpeedMs));
         }
 
-        if (typeof CipherAudio !== 'undefined') {
-          CipherAudio.lineChatter();
-        }
-
         await new Promise(r => setTimeout(r, 60));
         this.processQueue();
       },
@@ -207,9 +458,7 @@
         if (!raw) return;
         this.inputEl.value = '';
 
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
         this.printLine(`> ${raw}`, "line-user", 6);
-
         const upper = raw.toUpperCase();
 
         if (upper === 'CLEAR') {
@@ -224,7 +473,6 @@
             "  COORDS / SHOW COORDINATES : Display active waypoint coordinates\n" +
             "  HINT / CONTAINER HINT     : Transmit hiding spot notes\n" +
             "  DIAG                      : Run comprehensive diagnostics across all 3 panes\n" +
-            "  SECTOR <HEX>              : Read individual memory sector (e.g. SECTOR 0x00)\n" +
             "  CLEAR                     : Flush CRT display buffer",
             "line-dim", 10
           );
@@ -273,7 +521,6 @@
       },
 
       inspectSector: function(secName) {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
         const view = document.getElementById('sector-inspect-view');
         view.innerHTML = 
           `<strong style="color: var(--text-bright);">SECTOR ${secName} INSPECTION:</strong><br>` +
