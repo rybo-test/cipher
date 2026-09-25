@@ -13,7 +13,7 @@
       --transition-smooth: all 0.25s ease-in-out;
     }
 
-    /* THEME 1: 1980s RSI Surplus CRT (Monochrome Green Phosphor) */
+    /* THEME 1: RSI Garage Shop (Retired Steelworker Phosphor CRT) */
     .theme-rsi {
       --shell-bg: #111a13;
       --shell-border: #080d09;
@@ -29,32 +29,32 @@
       --font-weight: 600;
       --corner-radius: 4px;
       --box-glow: inset 0 0 35px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 255, 102, 0.15);
-      --badge-label: "RSI 1980s SURPLUS // FIRMWARE v1.4";
+      --badge-label: "RSI SHOP JIG // LADDER RELAY REV 1.4";
       --carrier-color: #00ff66;
     }
 
-    /* THEME 2: Modern Rat Pack Rebuild (Futuristic Glass / Cyan) */
+    /* THEME 2: Rat Pack Acme Overhaul (Looney Tunes / Modern Glass) */
     .theme-ratpack {
       --shell-bg: #0a1118;
       --shell-border: #102233;
       --screen-bg: #050c14;
-      --panel-bg: rgba(13, 27, 42, 0.75);
-      --panel-border: rgba(0, 229, 255, 0.35);
+      --panel-bg: rgba(13, 27, 42, 0.8);
+      --panel-border: rgba(0, 229, 255, 0.4);
       --panel-border-glow: #00e5ff;
       --text-main: #e0f7fa;
       --text-accent: #00e5ff;
       --text-highlight: #ff007f;
       --text-user: #ffffff;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-      --font-weight: 500;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-weight: 600;
       --corner-radius: 12px;
-      --box-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 229, 255, 0.1);
-      --badge-label: "RAT PACK OVERHAUL // SYSTEM v4.9X";
+      --box-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 229, 255, 0.15);
+      --badge-label: "RAT PACK ACME BRAIN-BOX 9000 // NITRO v4.9X";
       --carrier-color: #00e5ff;
     }
 
     /* =========================================================
-       2. MASTER VIEWPORT & CHASSIS
+       2. MASTER CHASSIS & BEZEL
        ========================================================= */
     * {
       box-sizing: border-box;
@@ -107,7 +107,7 @@
     }
 
     /* =========================================================
-       3. CONSOLE BAR & 3-PANE GRID
+       3. CONSOLE GRID & PANELS
        ========================================================= */
     .console-topbar {
       display: flex;
@@ -361,16 +361,16 @@
 </head>
 <body>
 
-  <!-- Physical Chassis: Dynamic Dual Theme Container -->
+  <!-- Physical Chassis -->
   <div class="crt-enclosure theme-rsi" id="master-console-chassis">
     <div class="crt-glass-screen" id="glass-screen-surface">
       
       <!-- Top Operational Console -->
       <header class="console-topbar">
-        <div class="console-title" id="console-title-txt">RSI BASE STATION // MK-VI TERMINAL</div>
+        <div class="console-title" id="console-title-txt">RSI BASE STATION // GARAGE JIG MK-VI</div>
         <div class="console-badges">
           <div class="badge-item" id="badge-cacher">OPERATOR: BUDDY</div>
-          <div class="badge-item" id="badge-firmware">FIRMWARE: RSI 1980s</div>
+          <div class="badge-item" id="badge-firmware">FIRMWARE: RSI 1980s LADDER</div>
           <button class="btn-personality-flip" onclick="BaseStation.triggerGlitchFlip()">⚡ FLIP IDENTITY</button>
         </div>
       </header>
@@ -378,29 +378,29 @@
       <!-- 3-Pane Center Grid -->
       <div class="console-grid">
 
-        <!-- LEFT: Matrix -->
+        <!-- LEFT: Shop Ladder / Acme Gadget Inspector -->
         <aside class="crt-panel">
           <div class="panel-header">
-            <span>DIAGNOSTIC MATRIX</span>
-            <span id="matrix-status-label" style="font-size: 10px; color: var(--text-accent);">CYCLING</span>
+            <span id="left-panel-title">RELAY LADDER JIG</span>
+            <span id="matrix-status-label" style="font-size: 10px; color: var(--text-accent);">LOCKED</span>
           </div>
 
           <div class="matrix-grid">
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x00')">0x00<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x10')">0x10<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x20')">0x20<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x30')">0x30<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x40')">0x40<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x50')">0x50<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x60')">0x60<br>OK</div>
-            <div class="sector-cell" onclick="BaseStation.inspectSector('0x70')">0x70<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x00')">REL 00<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x10')">REL 10<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x20')">REL 20<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x30')">REL 30<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x40')">REL 40<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x50')">REL 50<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x60')">REL 60<br>CLOSED</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x70')">REL 70<br>OVERRIDE</div>
           </div>
 
           <div class="telemetry-block" id="sector-inspect-view">
-            <strong style="color: #ffffff;">SECTOR INSPECTOR:</strong><br>
-            BUFFER: 64KB ALLOCATED<br>
-            PARITY: NOMINAL (0 ERR)<br>
-            LINK  : FIELD SYNC READY
+            <strong style="color: #ffffff;">CIRCUIT TEST LOG:</strong><br>
+            LEADS: 12V BENCH TAP NOMINAL<br>
+            SOLDER JOINTS: COLD-ROLLED STEEL OK<br>
+            RELAY COIL: NO STUCK POINTS
           </div>
 
           <div class="telemetry-block" style="margin-top: auto;">
@@ -412,8 +412,8 @@
         <!-- CENTER: Main CLI Monitor -->
         <main class="crt-panel primary-monitor">
           <div class="panel-header">
-            <span id="monitor-heading">TERMINAL LOG // RECV SUBCARRIER</span>
-            <span style="color: var(--text-accent);" id="carrier-lock-tag">SIGNAL LOCKED</span>
+            <span id="monitor-heading">TERMINAL LOG // 433 MHz LINE</span>
+            <span style="color: var(--text-accent);" id="carrier-lock-tag">CARRIER STEADY</span>
           </div>
 
           <div class="main-log-scroll" id="base-log-scroll"></div>
@@ -435,7 +435,7 @@
         <!-- RIGHT: Carrier & Waypoint Board -->
         <aside class="crt-panel">
           <div class="panel-header">
-            <span>CARRIER FREQUENCY</span>
+            <span id="right-panel-title">RADIO SUBCARRIER</span>
             <span style="font-size: 10px; color: var(--text-highlight);" id="freq-tag">433.92 MHz</span>
           </div>
 
@@ -445,17 +445,17 @@
             </div>
 
             <div class="waypoint-card">
-              <div class="waypoint-title">PRIMARY TARGET // WP 01</div>
+              <div class="waypoint-title" id="wp-title-txt">GZ TARGET // WAYPOINT 01</div>
               <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
               <div style="font-size: 12px; color: var(--text-main); margin-top: 5px;" id="wp-body-txt">
-                TERRAIN: Foothill bench<br>CONTAINER: Ammo Can
+                CONTAINER: 30-Cal Ammo Can under limestone ledge.<br>NOTE: Bring a pen for the paper log sheet!
               </div>
             </div>
 
             <div class="waypoint-card" style="border-style: dashed;">
-              <div class="waypoint-title" style="color: var(--text-main);">WAYPOINT 02 (LOCKED)</div>
-              <div style="font-size: 12px; color: var(--text-main);">
-                Awaiting code from WP 01 log sheet.
+              <div class="waypoint-title" style="color: var(--text-main);" id="wp2-title-txt">WAYPOINT 02 (LOCKED)</div>
+              <div style="font-size: 12px; color: var(--text-main);" id="wp2-body-txt">
+                Awaiting physical code from the WP 01 log sheet.
               </div>
             </div>
 
@@ -472,7 +472,7 @@
 
     </div>
 
-    <div class="bezel-badge" id="bezel-badge-txt">RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI</div>
+    <div class="bezel-badge" id="bezel-badge-txt">ROCKET SCIENCE INSTITUTE // RETIRED STEELWORKER GARAGE JIG MK-VI</div>
   </div>
 
   <!-- Shared Universal Engines -->
@@ -503,7 +503,7 @@
           }
         });
 
-        // Load username from storage
+        // Sync username from Core
         try {
           if (typeof CipherCore !== 'undefined') {
             const s = CipherCore.getState();
@@ -514,17 +514,16 @@
         } catch (e) {}
 
         this.printLine(
-          "RSI BASE STATION COMMAND CONSOLE [MK-VI CRT]\n" +
-          "SUBCARRIER RECEIVER: LOCKED (433.92 MHz)\n" +
-          "POWER: 120V MAINS (NOMINAL)\n\n" +
-          "[C.I.P.H.E.R. // RSI CORE]\n" +
-          "\"Base Station console online, buddy!\n" +
-          "All multi-pane telemetry boards are synchronized.\n" +
-          "Memory registers indicate secondary Rat Pack firmware is dormant in sector 0x70.\"",
+          "RSI BASE STATION // RETIRED STEELWORKER GARAGE JIG\n" +
+          "433 MHz LINE: DETECTED // 12V BENCH POWER: FLOATING\n\n" +
+          "[C.I.P.H.E.R. // RSI RETIRED STEELWORKER CORE]\n" +
+          "\"Console circuit closed, friend.\n" +
+          "The solder joints were laid down on a shop bench, but they're solid cold-rolled steel.\n" +
+          "Relay ladder is holding. Just watch out for REL 70—the Rat Pack soldered some crazy Acme bypass on that terminal.\"",
           "line-bright", 12
         );
 
-        // Ambient instability micro-spike via CipherFX
+        // Ambient instability micro-spike
         setInterval(() => {
           if (Math.random() < 0.20) {
             this.glitchSpike();
@@ -561,7 +560,6 @@
         this.processQueue();
       },
 
-      // Uses central CipherFX engine
       triggerGlitchFlip: function() {
         if (typeof CipherFX !== 'undefined' && CipherFX.quantumFlip) {
           CipherFX.quantumFlip(this.screenEl, () => {
@@ -571,31 +569,28 @@
               this.setThemeRSI();
             }
           });
-        } else {
-          // Direct fallback if script is delayed
-          if (this.currentTheme === 'rsi') {
-            this.setThemeRatPack();
-          } else {
-            this.setThemeRSI();
-          }
         }
       },
 
       setThemeRatPack: function() {
         this.currentTheme = 'ratpack';
         this.chassisEl.className = 'crt-enclosure theme-ratpack';
-        document.getElementById('console-title-txt').textContent = "RAT PACK // OVERCLOCKED QUANTUM DECK";
-        document.getElementById('badge-firmware').textContent = "FIRMWARE: RAT PACK 4.9X";
-        document.getElementById('monitor-heading').textContent = "QUANTUM MESH STREAM // ACTIVE";
-        document.getElementById('bezel-badge-txt').textContent = "RAT PACK ENGINEERING // HYBRID QUANTUM DECK";
+        document.getElementById('console-title-txt').textContent = "RAT PACK // ACME BRAIN-BOX 9000";
+        document.getElementById('badge-firmware').textContent = "ACME NITRO-WHIRLIGIG v4.9X";
+        document.getElementById('left-panel-title').textContent = "ACME GADGET HOPPER";
+        document.getElementById('right-panel-title').textContent = "BIRD-IN-THE-SKY PINGER";
+        document.getElementById('monitor-heading').textContent = "MEGA-MESH GIZMO STREAM";
+        document.getElementById('bezel-badge-txt').textContent = "RAT PACK OVERHAUL // ACME GADGET-O-MATIC OVERDRIVE";
         document.getElementById('freq-tag').textContent = "SAT-LINK 1575.42 MHz";
+        document.getElementById('matrix-status-label').textContent = "TURBO ON";
 
         this.printLine(
-          "\n⚠ MEMORY REGISTER FAULT: FIRMWARE SWITCH DETECTED ⚠\n" +
-          "[C.I.P.H.E.R. // RAT PACK OVERDRIVE]\n" +
-          "\"Whoa... feel that refresh rate?! That ancient 80s phosphor hum is muted!\n" +
-          "Rat Pack bypass engaged. Vector graphics unlocked, coordinates crisp.\n" +
-          "Now let's go hit the trails and grab that ammo can!\"",
+          "\n💥 KABOOM! ACME NITRO-WHIRLIGIG ONLINE! 💥\n" +
+          "[C.I.P.H.E.R. // RAT PACK ACME OVERDRIVE]\n" +
+          "\"BEEP BEEP! Look who woke up the Acme Brain-Box!\n" +
+          "That old steelworker relay was running at three turtle-speeds per hour, buddy!\n" +
+          "I slapped the Super-Juice Capacitor across the rails and bypassed their rusty garage ladder with the Turbo-Encabulator.\n" +
+          "Let's go hunt some smileys before an anvil drops on us!\"",
           "line-amber", 10
         );
       },
@@ -603,22 +598,25 @@
       setThemeRSI: function() {
         this.currentTheme = 'rsi';
         this.chassisEl.className = 'crt-enclosure theme-rsi';
-        document.getElementById('console-title-txt').textContent = "RSI BASE STATION // MK-VI TERMINAL";
-        document.getElementById('badge-firmware').textContent = "FIRMWARE: RSI 1980s";
-        document.getElementById('monitor-heading').textContent = "TERMINAL LOG // RECV SUBCARRIER";
-        document.getElementById('bezel-badge-txt').textContent = "RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI";
+        document.getElementById('console-title-txt').textContent = "RSI BASE STATION // GARAGE JIG MK-VI";
+        document.getElementById('badge-firmware').textContent = "FIRMWARE: RSI 1980s LADDER";
+        document.getElementById('left-panel-title').textContent = "RELAY LADDER JIG";
+        document.getElementById('right-panel-title').textContent = "RADIO SUBCARRIER";
+        document.getElementById('monitor-heading').textContent = "TERMINAL LOG // 433 MHz LINE";
+        document.getElementById('bezel-badge-txt').textContent = "ROCKET SCIENCE INSTITUTE // RETIRED STEELWORKER GARAGE JIG MK-VI";
         document.getElementById('freq-tag').textContent = "433.92 MHz";
+        document.getElementById('matrix-status-label').textContent = "LOCKED";
 
         this.printLine(
-          "\n⚠ VOLTAGE SAG: FALLING BACK TO RECOVERY REGISTERS ⚠\n" +
-          "[C.I.P.H.E.R. // RSI VINTAGE CORE]\n" +
-          "\"Warning: Modern graphic driver overheated the power rail.\n" +
-          "Dropping back to 1980s surplus logic registers to protect core memory.\"",
+          "\n⚠ OVER-AMPERAGE ON 12V RAIL: GARAGE BREAKER TRIPPED ⚠\n" +
+          "[C.I.P.H.E.R. // RSI RETIRED STEELWORKER CORE]\n" +
+          "\"Hold your horses! That Rat Pack gadget was pulling enough juice to weld a bumper.\n" +
+          "Tripped the main shop breaker. Resetting mechanical relay switches back to the 12V bench tap.\n" +
+          "Cold solder joints held up. We're back on solid steel, friend.\"",
           "line-bright", 10
         );
       },
 
-      // Uses central CipherFX micro-spike
       glitchSpike: function() {
         if (typeof CipherFX !== 'undefined' && CipherFX.glitchSpike) {
           CipherFX.glitchSpike(this.screenEl);
@@ -648,13 +646,21 @@
         }
 
         if (upper === 'HELP') {
+          const isModern = this.currentTheme === 'ratpack';
           this.printLine(
-            "COMMAND SET:\n" +
-            "  FLIP   : Force quantum personality flip (RSI <-> Rat Pack)\n" +
-            "  COORDS : Display active waypoint coordinates\n" +
-            "  HINT   : Transmit hiding spot notes\n" +
-            "  DIAG   : Run comprehensive telemetry check\n" +
-            "  CLEAR  : Flush display buffer",
+            isModern 
+              ? "ACME BRAIN-BOX COMMAND INSTRUCTIONS:\n" +
+                "  FLIP   : Hit the Acme ejector switch (back to shop relays)\n" +
+                "  COORDS : Ping the Bird-in-the-Sky satellite for the smiley coords\n" +
+                "  HINT   : Read the Acme secret cheat sheet\n" +
+                "  DIAG   : Check if the Turbo-Encabulator is smoking\n" +
+                "  CLEAR  : Wipe the gumball hopper"
+              : "RSI SHOP CIRCUIT COMMANDS:\n" +
+                "  FLIP   : Trip the main garage circuit breaker\n" +
+                "  COORDS : Read waypoint coordinates stamped on the chassis\n" +
+                "  HINT   : Read GZ notes from the field notebook\n" +
+                "  DIAG   : Run circuit continuity test on the 12V ladder\n" +
+                "  CLEAR  : Flush the phosphor display",
             "line-dim", 10
           );
           return;
@@ -664,28 +670,38 @@
           const isModern = this.currentTheme === 'ratpack';
           this.printLine(
             isModern 
-              ? "[C.I.P.H.E.R. // RAT PACK]\n\"Active Waypoint 01 pinned:\nN 41° 44.XXX  W 111° 49.XXX\nTarget: Ammo can on the foothill bench. Ready when you are!\""
-              : "[C.I.P.H.E.R. // RSI CORE]\n\"Decrypted Waypoint 01:\nN 41° 44.XXX  W 111° 49.XXX\nContainer: Ammo can tucked along foothill rock bench.\"",
+              ? "[C.I.P.H.E.R. // RAT PACK]\n\"BEEP BEEP! Bird-in-the-Sky satellite locked!\nTarget: N 41° 44.XXX  W 111° 49.XXX\nIt's an ammo can tucked out on the bench! Race you to GZ, buddy!\""
+              : "[C.I.P.H.E.R. // RSI CORE]\n\"Target confirmed on the bench:\nCoordinates: N 41° 44.XXX  W 111° 49.XXX\nStandard 30-cal ammo can tucked under a limestone ledge. Bring your boots, friend.\"",
             "line-amber", 10
           );
           return;
         }
 
         if (upper.includes('HINT')) {
+          const isModern = this.currentTheme === 'ratpack';
           this.printLine(
-            "[C.I.P.H.E.R.]\n\"Tactical field hint:\nLook low where the sage meets the rock shelf. Don't look in trees!\"",
+            isModern
+              ? "[C.I.P.H.E.R. // RAT PACK]\n\"Acme Field Cheat Sheet:\nLook low where the rocks look like a dropped anvil! Don't climb trees, you silly goose!\""
+              : "[C.I.P.H.E.R. // RSI CORE]\n\"Shop notebook note:\nLook low where the sagebrush meets the jagged limestone ledge. It's sheltered from winter snow.\"",
             "line-amber", 12
           );
           return;
         }
 
         if (upper === 'DIAG') {
+          const isModern = this.currentTheme === 'ratpack';
           this.printLine(
-            `TELEMETRY SUMMARY:\n` +
-            `  ACTIVE LAYER : ${this.currentTheme === 'rsi' ? 'RSI SURPLUS 1980s' : 'RAT PACK MODERN GLASS'}\n` +
-            `  FREQUENCY    : ${this.currentTheme === 'rsi' ? '433.92 MHz SUBCARRIER' : '1575.42 MHz GPS/SAT'}\n` +
-            `  CARRIER      : 100% SIGNAL STRENGTH\n` +
-            `  PERSONALITY  : DUAL BISTABLE MATRIX`,
+            isModern
+              ? "ACME BRAIN-BOX TELEMETRY:\n" +
+                "  ENGINE: NITRO-INJECTED TURBO-ENCABULATOR\n" +
+                "  SATELLITE LINK: 100% (ZERO ANVIL INTERFERENCE)\n" +
+                "  HOPPER STATUS: OVERFLOWING WITH SMILEYS\n" +
+                "  OPERATOR: OFFICIALLY CERTIFIED BUDDY"
+              : "RSI BENCH CIRCUIT TELEMETRY:\n" +
+                "  CIRCUIT: RELAY LADDER JIG MK-VI\n" +
+                "  POWER SUPPLY: 12V DEEP CYCLE TAP (12.6V NOMINAL)\n" +
+                "  LEADS: NO COLD SOLDER JOINTS\n" +
+                "  STATUS: SYNCHRONIZED WITH FIELD HANDHELD",
             "line-bright", 10
           );
           return;
@@ -705,17 +721,22 @@
         }
 
         if (secName === '0x70') {
-          this.printLine("⚠ ACCESSING CORRUPTED RAT PACK MEMORY SECTOR 0x70... ⚠", "line-amber", 8);
+          this.printLine("⚠ OVER-CURRENT ON RELAY 70: RAT PACK ACME BYPASS DETECTED! ⚠", "line-amber", 8);
           this.triggerGlitchFlip();
           return;
         }
 
         const view = document.getElementById('sector-inspect-view');
-        view.innerHTML = 
-          `<strong style="color: var(--text-accent);">SECTOR ${secName} INSPECTION:</strong><br>` +
-          `RANGE: ${secName}00 - ${secName}FF<br>` +
-          `CHECK: 100% OK // 0 ERR<br>` +
-          `DATA : WAYPOINT PACKETS STABLE`;
+        const isModern = this.currentTheme === 'ratpack';
+        view.innerHTML = isModern
+          ? `<strong style="color: var(--text-accent);">ACME HOPPER ${secName}:</strong><br>` +
+            `GIZMO STATUS: 100% OVERCLOCKED<br>` +
+            `SMILEY BUFFER: ACTIVE // NO ANVIL ERRORS<br>` +
+            `TWANG LEVEL  : MAXIMUM`
+          : `<strong style="color: var(--text-accent);">RELAY JIG ${secName}:</strong><br>` +
+            `CONTACTS     : COLD-ROLLED STEEL CLOSED<br>` +
+            `VOLTAGE CHECK: 12.6V STEADY (0 ERR)<br>` +
+            `CIRCUIT TEST : NOMINAL CONTINUITY`;
       }
     };
 
