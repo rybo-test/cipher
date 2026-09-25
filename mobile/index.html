@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>C.I.P.H.E.R. // Field Handheld</title>
-  <link rel="stylesheet" href="css/handheld.css?v=4.0">
+  <link rel="stylesheet" href="css/handheld.css?v=4.1">
 </head>
 <body>
 
   <div class="handheld-shell" id="handheld-view">
-    <!-- 1. Glanceable Status Banner -->
+    <!-- Top Status Banner -->
     <header class="handheld-header">
       <div class="header-badge">
         OPERATIVE: <strong id="hdr-username">BUDDY</strong>
@@ -19,48 +19,52 @@
       </div>
     </header>
 
-    <!-- 2. Scrollable Dialogue Cards -->
+    <!-- Scrollable Dialogue Stream -->
     <main class="handheld-stream" id="dialogue-stream" role="log" aria-live="polite">
-      <!-- Cards render dynamically here -->
+      <!-- Direct Default Card to Guarantee Content Always Renders -->
+      <article class="dialogue-card entity-card">
+        <div class="speaker-label">C.I.P.H.E.R. // FIELD TRANSMISSION</div>
+        <div class="card-body">Look at that signal bar—solid green, buddy!
+The handheld's power supply is humming along at twelve point six volts, and memory registers are crystal clear.
+I'm ready to push our first set of signal packets from my remote location. We've got coordinates pointing toward a real container tucked out along the bench.
+Ready to inspect our first waypoint?</div>
+      </article>
     </main>
 
-    <!-- 3. Ergonomic Thumb-Zone Dock -->
+    <!-- Ergonomic Thumb-Zone Dock -->
     <footer class="handheld-thumb-dock">
       <div class="thumb-button-stack" id="thumb-button-container">
-        <!-- Big 52px thumb buttons render here -->
+        <button class="btn-thumb-choice" onclick="HandheldUI.handleChoice('SHOW COORDINATES', 'SHOW COORDINATES')">SHOW COORDINATES</button>
+        <button class="btn-thumb-choice" onclick="HandheldUI.handleChoice('CONTAINER HINT', 'CONTAINER HINT')">CONTAINER HINT</button>
       </div>
       <div class="quick-tools-row">
         <button class="btn-sub-tool" onclick="HandheldUI.openWheelModal()">⚙️ CYPHER-WHEEL</button>
-        <button class="btn-sub-tool" onclick="HandheldUI.viewCoordinates()">📍 ACTIVE COORDS</button>
+        <button class="btn-sub-tool" onclick="HandheldUI.handleChoice('SHOW COORDINATES', 'ACTIVE COORDS')">📍 ACTIVE COORDS</button>
       </div>
     </footer>
 
-    <!-- 4. Full-Screen Cypher-Wheel Slide-Over Tool -->
+    <!-- Full-Screen Cypher-Wheel Slide-Over Tool -->
     <div class="full-screen-tool-modal" id="modal-cypher-wheel">
       <div class="tool-modal-header">
         <span class="tool-modal-title">FIELD CYPHER-WHEEL</span>
         <button class="btn-close-modal" onclick="HandheldUI.closeWheelModal()">CLOSE ✕</button>
       </div>
       <div class="wheel-rotor-box">
-        <div style="font-size: 13px; color: var(--handheld-text-dim);">ALIGN ROTORS FOR FIELD CIPHERS:</div>
+        <div style="font-size: 15px; color: var(--handheld-text-dim);">ALIGN ROTORS FOR FIELD CIPHERS:</div>
         <div class="wheel-rotor-strip" id="rotor-a-display">A B C D E F G H I J K L M</div>
         <div class="wheel-rotor-strip active-outer" id="rotor-b-display">N O P Q R S T U V W X Y Z</div>
-        <button class="btn-thumb-choice" style="width: 100%; min-height: 56px;" onclick="HandheldUI.rotateRotor()">
+        <button class="btn-thumb-choice" style="width: 100%; min-height: 64px;" onclick="HandheldUI.rotateRotor()">
           ROTATE ROTOR (+1)
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Shared Universal Core Engines -->
   <script src="../js/cipher-audio.js"></script>
   <script src="../js/cipher-fx.js"></script>
   <script src="../js/cipher-core.js"></script>
   <script src="../js/cipher-dialog.js"></script>
   <script>
-    /**
-     * HandheldUI: Mobile-first card stream controller (CT-125)
-     */
     const HandheldUI = {
       streamEl: null,
       buttonsBay: null,
@@ -72,7 +76,6 @@
         this.buttonsBay = document.getElementById('thumb-button-container');
         this.wheelModal = document.getElementById('modal-cypher-wheel');
 
-        // Audio unlock on touch
         const unlock = () => {
           if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
         };
@@ -80,21 +83,21 @@
         window.addEventListener('click', unlock, { once: true });
 
         // Load username
-        if (typeof CipherCore !== 'undefined') {
-          const s = CipherCore.getState();
-          if (s && s.cacher && s.cacher.username) {
-            document.getElementById('hdr-username').textContent = s.cacher.username;
+        try {
+          if (typeof CipherCore !== 'undefined') {
+            const s = CipherCore.getState();
+            if (s && s.cacher && s.cacher.username) {
+              document.getElementById('hdr-username').textContent = s.cacher.username;
+            }
           }
-        }
+        } catch (e) {}
 
-        // Initialize dialogue stage
-        const initial = CipherDialog.init('MISSION_COMMAND_ARC');
-        if (initial) {
-          this.postEntityCard(initial.screenText);
-          if (initial.buttons) {
-            this.renderThumbButtons(initial.buttons);
+        // Connect conversation engine
+        try {
+          if (typeof CipherDialog !== 'undefined') {
+            CipherDialog.init('MISSION_COMMAND_ARC');
           }
-        }
+        } catch (e) {}
       },
 
       postEntityCard: function(rawText) {
@@ -149,7 +152,6 @@
           return;
         }
 
-        // Pass to Universal Conversation Engine
         const mockRenderer = {
           printLine: (txt) => {
             this.postEntityCard(txt);
@@ -159,7 +161,9 @@
           }
         };
 
-        CipherDialog.processInput(textToSend, mockRenderer);
+        if (typeof CipherDialog !== 'undefined') {
+          CipherDialog.processInput(textToSend, mockRenderer);
+        }
       },
 
       scrollToBottom: function() {
@@ -190,10 +194,6 @@
         const shifted = alphabet.slice(this.rotorOffset) + alphabet.slice(0, this.rotorOffset);
         document.getElementById('rotor-a-display').textContent = alphabet.slice(0, 13).split('').join(' ');
         document.getElementById('rotor-b-display').textContent = shifted.slice(0, 13).split('').join(' ');
-      },
-
-      viewCoordinates: function() {
-        this.handleChoice('SHOW COORDINATES', 'SHOW COORDINATES');
       }
     };
 
