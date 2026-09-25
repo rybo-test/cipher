@@ -8,13 +8,12 @@
     :root {
       --desk-bg: #030504;
       --bezel-color: #111a13;
-      --bezel-border: #1d3322;
-      --crt-screen-bg: #041007;
-      --panel-border: #144d1e;
+      --crt-screen-bg: #030d05;
+      --panel-border: #185a25;
       --panel-border-bright: #00ff66;
-      --text-main: #b8f5c8;
-      --text-bright: #00ff66;
-      --text-amber: #ffb300;
+      --text-main: #d0f8d9;         /* High-contrast readable mint */
+      --text-bright: #00ff66;       /* Phosphor green */
+      --text-amber: #ffca28;        /* Warm gold */
       --text-alert: #ff5252;
       --text-white: #ffffff;
     }
@@ -32,85 +31,77 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Courier New', Courier, monospace;
+      /* Heavy, clean monospaced stack with Courier strictly last */
+      font-family: "Cascadia Code", "Fira Code", Consolas, "Menlo", "DejaVu Sans Mono", monospace;
+      font-weight: 600;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       overflow: hidden;
     }
 
     /* Heavy Industrial CRT Outer Enclosure */
     .crt-enclosure {
-      width: 1120px;
-      max-width: 95vw;
-      height: 820px;
-      max-height: 94vh;
+      width: 1160px;
+      max-width: 96vw;
+      height: 840px;
+      max-height: 95vh;
       background: var(--bezel-color);
       border: 6px solid #080d09;
-      border-radius: 24px;
+      border-radius: 20px;
       box-shadow: 
         0 0 50px rgba(0, 0, 0, 0.95),
         inset 0 0 20px rgba(0, 0, 0, 0.8),
-        0 10px 30px rgba(0, 255, 102, 0.08);
-      padding: 24px 28px 28px;
+        0 10px 30px rgba(0, 255, 102, 0.1);
+      padding: 22px 26px 26px;
       display: flex;
       flex-direction: column;
       position: relative;
     }
 
-    /* Screen Glass with Bezel Inset & Scanlines */
+    /* Clean Screen Glass (Scanlines removed to stop text degradation) */
     .crt-glass-screen {
       flex: 1;
       background-color: var(--crt-screen-bg);
-      border-radius: 12px;
-      border: 3px solid #0b2210;
+      border-radius: 10px;
+      border: 2px solid #0e3016;
       box-shadow: 
-        inset 0 0 40px rgba(0, 0, 0, 0.9),
-        inset 0 0 15px rgba(0, 255, 102, 0.15);
+        inset 0 0 35px rgba(0, 0, 0, 0.85),
+        0 0 10px rgba(0, 255, 102, 0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      position: relative;
-      padding: 12px;
-      gap: 10px;
+      padding: 14px;
+      gap: 12px;
     }
 
-    .crt-glass-screen::after {
-      content: " ";
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
-      background-size: 100% 3px;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    /* Console Banner */
+    /* Top Console Banner */
     .console-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #051408;
+      background: #06180a;
       border: 1.5px solid var(--panel-border-bright);
-      padding: 8px 14px;
+      padding: 10px 16px;
       border-radius: 4px;
       flex-shrink: 0;
-      z-index: 5;
     }
     .console-title {
-      font-size: 13px;
-      font-weight: 900;
+      font-size: 14px;
+      font-weight: 800;
       letter-spacing: 1px;
       color: var(--text-bright);
     }
     .console-badges {
       display: flex;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: bold;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 700;
     }
     .badge-item {
-      padding: 3px 8px;
-      border-radius: 3px;
-      border: 1px solid var(--panel-border);
-      background: rgba(0, 255, 102, 0.05);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1.5px solid var(--panel-border);
+      background: rgba(0, 255, 102, 0.08);
       color: var(--text-bright);
     }
 
@@ -118,33 +109,33 @@
     .console-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: 260px 1fr 280px;
-      gap: 10px;
+      grid-template-columns: 270px 1fr 290px;
+      gap: 12px;
       min-height: 0;
-      z-index: 5;
     }
 
     .crt-panel {
-      background-color: #030c05;
+      background-color: #041207;
       border: 1.5px solid var(--panel-border);
-      border-radius: 4px;
+      border-radius: 5px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
     .crt-panel.primary-monitor {
       border-color: var(--panel-border-bright);
-      background-color: #020803;
+      background-color: #030d05;
+      box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.05);
     }
 
     .panel-header {
-      background: #091f0c;
-      padding: 8px 10px;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
+      background: #092610;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
       color: var(--text-bright);
-      border-bottom: 1px solid var(--panel-border);
+      border-bottom: 1.5px solid var(--panel-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -154,99 +145,107 @@
     .matrix-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-      padding: 8px;
+      gap: 6px;
+      padding: 10px;
     }
     .sector-cell {
-      background: #030a04;
-      border: 1px solid var(--panel-border);
-      border-radius: 3px;
-      padding: 6px 2px;
+      background: #061c0c;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 8px 2px;
       text-align: center;
-      font-size: 10px;
-      font-weight: bold;
+      font-size: 11px;
+      font-weight: 800;
       cursor: pointer;
       color: var(--text-bright);
+      transition: all 0.15s ease;
     }
     .sector-cell:hover {
       border-color: var(--panel-border-bright);
-      background: rgba(0, 255, 102, 0.15);
+      background: #0a3316;
     }
 
     .telemetry-block {
-      padding: 10px;
+      padding: 12px;
       border-top: 1px dashed var(--panel-border);
-      font-size: 11px;
-      line-height: 1.5;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-main);
     }
 
     /* Center Log & CLI */
     .main-log-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
-      font-size: 13px;
-      line-height: 1.5;
+      padding: 16px;
+      font-size: 14.5px;
+      line-height: 1.55;
       white-space: pre-wrap;
       word-break: break-word;
+      font-weight: 600;
     }
     .line-dim { color: var(--text-main); }
-    .line-bright { color: var(--text-bright); font-weight: bold; }
-    .line-amber { color: var(--text-amber); font-weight: bold; }
-    .line-user { color: var(--text-white); font-weight: bold; }
+    .line-bright { color: var(--text-bright); font-weight: 800; }
+    .line-amber { color: var(--text-amber); font-weight: 800; }
+    .line-user { color: var(--text-white); font-weight: 800; }
 
     .desktop-cli-tray {
-      border-top: 1px solid var(--panel-border);
-      background: #030b05;
-      padding: 8px 10px;
+      border-top: 1.5px solid var(--panel-border);
+      background: #041007;
+      padding: 10px 12px;
       display: flex;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
     }
     .cli-prompt {
       color: var(--text-bright);
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 900;
     }
     .cli-desktop-input {
       flex: 1;
-      background: #010502;
-      border: 1px solid var(--panel-border);
-      border-radius: 3px;
+      background: #020703;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 4px;
       color: #ffffff;
       font-family: inherit;
-      font-size: 13px;
-      padding: 6px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 12px;
       outline: none;
     }
     .cli-desktop-input:focus {
       border-color: var(--panel-border-bright);
+      box-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
     }
     .btn-desktop-exec {
       background: var(--panel-border-bright);
       color: #000000;
       border: none;
-      border-radius: 3px;
+      border-radius: 4px;
       font-family: inherit;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 900;
-      padding: 7px 14px;
+      padding: 9px 18px;
       cursor: pointer;
+    }
+    .btn-desktop-exec:hover {
+      background: #ffffff;
     }
 
     /* Right Panel */
     .tactical-display-body {
-      padding: 10px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       flex: 1;
       overflow-y: auto;
     }
     .frequency-scope {
-      height: 75px;
+      height: 80px;
       background: #020703;
-      border: 1px solid var(--panel-border);
+      border: 1.5px solid var(--panel-border);
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -254,67 +253,67 @@
     }
     .carrier-wave {
       width: 100%;
-      height: 2px;
+      height: 3px;
       background: var(--text-bright);
-      box-shadow: 0 0 8px var(--text-bright);
+      box-shadow: 0 0 10px var(--text-bright);
       animation: pulseWave 2.4s infinite ease-in-out;
     }
     @keyframes pulseWave {
-      0% { transform: scaleY(1); opacity: 0.6; }
+      0% { transform: scaleY(1); opacity: 0.7; }
       50% { transform: scaleY(14); opacity: 1; }
-      100% { transform: scaleY(1); opacity: 0.6; }
+      100% { transform: scaleY(1); opacity: 0.7; }
     }
 
     .waypoint-card {
-      background: #020703;
-      border: 1px solid var(--panel-border);
-      border-radius: 4px;
-      padding: 8px 10px;
+      background: #041408;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 5px;
+      padding: 10px 12px;
     }
     .waypoint-title {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 900;
       color: var(--text-amber);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .waypoint-coords {
-      font-size: 13px;
-      font-weight: 900;
+      font-size: 14px;
+      font-weight: 800;
       color: #ffffff;
     }
 
     .macro-board {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
+      gap: 8px;
       margin-top: auto;
     }
     .btn-macro-tile {
-      background: #051408;
-      border: 1px solid var(--panel-border);
+      background: #061d0b;
+      border: 1.5px solid var(--panel-border);
       border-radius: 4px;
       color: var(--text-bright);
       font-family: inherit;
-      font-size: 11px;
-      font-weight: bold;
-      padding: 8px 4px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 10px 6px;
       cursor: pointer;
       text-align: center;
+      transition: all 0.15s ease;
     }
     .btn-macro-tile:hover {
       border-color: var(--panel-border-bright);
-      background: #09260f;
+      background: #0d3817;
+      color: #ffffff;
     }
 
-    /* Hardware Enclosure Badge */
     .bezel-badge {
       text-align: center;
       font-size: 10px;
       letter-spacing: 2px;
-      color: #2b4531;
+      color: #385e40;
       font-weight: 900;
-      margin-top: 6px;
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+      margin-top: 8px;
     }
   </style>
 </head>
@@ -334,11 +333,11 @@
       </header>
 
       <div class="console-grid">
-        <!-- LEFT: Matrix -->
+        <!-- LEFT: Diagnostic Matrix -->
         <aside class="crt-panel">
           <div class="panel-header">
             <span>DIAGNOSTIC MATRIX</span>
-            <span style="font-size: 9px; color: var(--text-bright);">CYCLING</span>
+            <span style="font-size: 10px; color: var(--text-bright);">CYCLING</span>
           </div>
 
           <div class="matrix-grid">
@@ -361,11 +360,11 @@
 
           <div class="telemetry-block" style="margin-top: auto;">
             <strong style="color: var(--text-bright);">SURFACE DISPATCH:</strong><br>
-            <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: bold;">➔ Switch to Field Handheld</a>
+            <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: 800;">➔ Switch to Field Handheld</a>
           </div>
         </aside>
 
-        <!-- CENTER: CLI Monitor -->
+        <!-- CENTER: Main CLI Monitor -->
         <main class="crt-panel primary-monitor">
           <div class="panel-header">
             <span>TERMINAL LOG // RECV SUBCARRIER</span>
@@ -388,11 +387,11 @@
           </footer>
         </main>
 
-        <!-- RIGHT: Scope & Waypoints -->
+        <!-- RIGHT: Carrier & Waypoint Board -->
         <aside class="crt-panel">
           <div class="panel-header">
             <span>CARRIER FREQUENCY</span>
-            <span style="font-size: 9px; color: var(--text-amber);">SUBCARRIER</span>
+            <span style="font-size: 10px; color: var(--text-amber);">SUBCARRIER</span>
           </div>
 
           <div class="tactical-display-body">
@@ -403,14 +402,14 @@
             <div class="waypoint-card">
               <div class="waypoint-title">PRIMARY TARGET // WP 01</div>
               <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
-              <div style="font-size: 11px; color: var(--text-main); margin-top: 4px;">
+              <div style="font-size: 12px; color: var(--text-main); margin-top: 5px;">
                 TERRAIN: Foothill bench<br>CONTAINER: Ammo Can
               </div>
             </div>
 
             <div class="waypoint-card" style="border-style: dashed;">
               <div class="waypoint-title" style="color: var(--text-main);">WAYPOINT 02 (LOCKED)</div>
-              <div style="font-size: 11px; color: var(--text-main);">
+              <div style="font-size: 12px; color: var(--text-main); margin-top: 4px;">
                 Awaiting code from WP 01 log sheet.
               </div>
             </div>
@@ -427,7 +426,6 @@
 
     </div>
 
-    <!-- Retro Hardware Stamp -->
     <div class="bezel-badge">RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI</div>
   </div>
 
@@ -496,7 +494,7 @@
           await new Promise(r => setTimeout(r, current.charSpeedMs));
         }
 
-        await new Promise(r => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 40));
         this.processQueue();
       },
 
