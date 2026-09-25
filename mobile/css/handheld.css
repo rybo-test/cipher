@@ -1,0 +1,238 @@
+:root {
+  --handheld-bg: #030804;
+  --handheld-card-bg: #08170c;
+  --handheld-border: #1b5e20;
+  --handheld-border-bright: #00ff66;
+  --handheld-text: #e6ffe6;
+  --handheld-text-dim: #88cc99;
+  --handheld-amber: #ffb300;
+  --handheld-alert: #ff5252;
+  --handheld-btn-bg: #0d2614;
+  --handheld-btn-active: #00ff66;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  background-color: #000000;
+  color: var(--handheld-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Courier New", monospace;
+  overflow: hidden;
+}
+
+.handheld-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: var(--handheld-bg);
+  position: relative;
+}
+
+/* 1. Glanceable Top Status Banner */
+.handheld-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #040e06;
+  border-bottom: 2px solid var(--handheld-border);
+  flex-shrink: 0;
+}
+.header-badge {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--handheld-text-dim);
+}
+.header-badge strong {
+  color: var(--handheld-border-bright);
+}
+.header-volts {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--handheld-border-bright);
+  background: rgba(0, 255, 102, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--handheld-border);
+}
+
+/* 2. Scrollable Dialogue Card Stream */
+.handheld-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+/* Dialogue Cards */
+.dialogue-card {
+  background-color: var(--handheld-card-bg);
+  border: 1.5px solid var(--handheld-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--handheld-text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.dialogue-card.entity-card {
+  border-left: 5px solid var(--handheld-border-bright);
+}
+.dialogue-card.player-card {
+  align-self: flex-end;
+  background-color: #061e0e;
+  border: 1.5px solid var(--handheld-border-bright);
+  color: #ffffff;
+  max-width: 85%;
+  font-weight: bold;
+}
+
+.speaker-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--handheld-border-bright);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.card-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 3. Thumb-Zone Action Bay (Bottom 40%) */
+.handheld-thumb-dock {
+  background-color: #020703;
+  border-top: 2px solid var(--handheld-border);
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 8px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.thumb-button-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-thumb-choice {
+  width: 100%;
+  min-height: 52px;
+  background-color: var(--handheld-btn-bg);
+  border: 2px solid var(--handheld-border-bright);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+.btn-thumb-choice:active {
+  background-color: var(--handheld-btn-active);
+  color: #000000;
+  transform: scale(0.98);
+}
+
+.quick-tools-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.btn-sub-tool {
+  min-height: 44px;
+  background-color: #061309;
+  border: 1.5px solid var(--handheld-border);
+  border-radius: 6px;
+  color: var(--handheld-text-dim);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn-sub-tool:active {
+  background-color: var(--handheld-border);
+  color: #ffffff;
+}
+
+/* 4. Full-Screen Cypher-Wheel Slide-Over */
+.full-screen-tool-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.94);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 8px));
+}
+.tool-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--handheld-border-bright);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.tool-modal-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--handheld-border-bright);
+}
+.btn-close-modal {
+  background: none;
+  border: 1.5px solid var(--handheld-border);
+  border-radius: 4px;
+  color: var(--handheld-text);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 6px 12px;
+}
+
+.wheel-rotor-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+.wheel-rotor-strip {
+  width: 100%;
+  background-color: #08170c;
+  border: 2px solid var(--handheld-border);
+  border-radius: 8px;
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--handheld-amber);
+}
+.wheel-rotor-strip.active-outer {
+  border-color: var(--handheld-border-bright);
+  color: #ffffff;
+}
