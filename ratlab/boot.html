@@ -198,6 +198,13 @@
       background-color: var(--crt-border-bright);
       color: #000000;
     }
+    .btn-macro-key.alert-action {
+      background-color: var(--crt-alert) !important;
+      color: #000000 !important;
+      font-weight: 900 !important;
+      grid-column: span 4 !important;
+      min-height: 44px;
+    }
 
     .app-viewport-shell.glitched-state {
       background-color: #0d0606;
@@ -288,18 +295,7 @@
         window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
         window.addEventListener('click', unlockAudio, { once: true });
 
-        // Check returning player
-        try {
-          if (typeof CipherCore !== 'undefined') {
-            const state = CipherCore.getState();
-            if (state && state.cacher && state.cacher.username !== 'MUGGLE_BEAN' && state.bootstrapped) {
-              document.getElementById('returning-cacher-bar').style.display = 'flex';
-              document.getElementById('returning-callsign-txt').textContent = state.cacher.username;
-            }
-          }
-        } catch (e) {}
-
-        // Direct synchronous initialize
+        // Initialize dialogue stage
         const initialStage = CipherDialog.init('POCKET_TERMINAL_INGRESS');
         if (initialStage) {
           this.printLine(initialStage.screenText, "line-bright", 16);
@@ -354,16 +350,27 @@
       renderButtons: function(buttonsList) {
         this.buttonsBay.innerHTML = '';
         const count = buttonsList.length;
-        const spanClass = count <= 2 ? 'span 2' : (count === 3 ? 'span 1' : 'span 1');
 
         buttonsList.forEach(btn => {
           const b = document.createElement('button');
           b.className = 'btn-macro-key';
-          b.style.gridColumn = spanClass;
+
+          // Single primary button spans full width
+          if (btn.textToSend === 'GOTO_REPAIR' || btn.label.includes('ENTER REPAIR')) {
+            b.className = 'btn-macro-key alert-action';
+            b.onclick = () => {
+              if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+              localStorage.removeItem('cipher_active_stage');
+              window.location.href = 'repair.html';
+            };
+          } else {
+            b.style.gridColumn = count <= 2 ? 'span 2' : (count === 3 ? 'span 1' : 'span 1');
+            b.onclick = () => {
+              this.tapAction(btn.textToSend);
+            };
+          }
+
           b.textContent = btn.label;
-          b.onclick = () => {
-            this.tapAction(btn.textToSend);
-          };
           this.buttonsBay.appendChild(b);
         });
       },
@@ -399,7 +406,7 @@
         const handled = CipherDialog.processInput(raw, this);
         if (handled) return;
 
-        // Fallback standard commands
+        // Fallback CLI commands
         const tokens = raw.toUpperCase().split(/\s+/);
         const verb = tokens[0];
         const param = tokens.slice(1).join(' ').trim();
@@ -408,7 +415,6 @@
           this.printLine(
             "COMMAND SYNTAX GUIDE:\n" +
             "  LOGON <USERNAME> : Register your geocaching username\n" +
-            "  BYPASS <KEY>     : Restore previous session\n" +
             "  DIAG             : Read handheld telemetry\n" +
             "  CLEAR            : Clear screen buffer",
             "line-dim", 14
@@ -427,19 +433,10 @@
           return;
         }
 
-        if (verb === 'BYPASS' || verb === 'RESTORE') {
-          if (!param) {
-            this.printLine("SYNTAX ERROR: Passkey required. Usage: BYPASS CT-XXXX-0000", "line-alert", 14);
-            if (typeof CipherAudio !== 'undefined') CipherAudio.buzz();
-            return;
-          }
-          if (typeof CipherCore !== 'undefined') {
-            const res = CipherCore.parseCliCommand(`BYPASS ${param}`);
-            this.printLine(res.output, "line-warn", 16);
-            if (typeof CipherAudio !== 'undefined') CipherAudio.chime();
-            setTimeout(() => { window.location.href = 'mission.html'; }, 1200);
-            return;
-          }
+        if (verb === 'GOTO_REPAIR' || verb === 'REPAIR') {
+          localStorage.removeItem('cipher_active_stage');
+          window.location.href = 'repair.html';
+          return;
         }
 
         this.printLine(`SYNTAX ERROR: "${verb}" is not recognized.`, "line-alert", 14);
