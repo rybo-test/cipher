@@ -1,5 +1,106 @@
 {
   "stories": {
+"REPAIR_HANDHELD_ARC": {
+  "storyId": "REPAIR_HANDHELD_ARC",
+  "startingStage": "STAGE_REPAIR_RECONNECT",
+  "stages": {
+    "STAGE_REPAIR_RECONNECT": {
+      "stageId": "STAGE_REPAIR_RECONNECT",
+      "screenText": "[C.I.P.H.E.R.]\n\"Hey... you still there?\nTap the screen if you can hear me through the signal static. That last voltage drop nearly killed the link.\"",
+      "spokenText": "Hey, you still there? Tap the screen if you can hear me through the signal static. That last voltage drop nearly killed the link.",
+      "buttons": [
+        { "label": "[ I'M STILL HERE ]", "textToSend": "I'M STILL HERE" },
+        { "label": "[ WHAT HAPPENED? ]", "textToSend": "WHAT HAPPENED" }
+      ],
+      "options": [
+        {
+          "playerWords": ["HERE", "STILL HERE", "HAPPENED", "WHAT HAPPENED"],
+          "nextStage": "STAGE_POWER_EXPLANATION"
+        }
+      ]
+    },
+
+    "STAGE_POWER_EXPLANATION": {
+      "stageId": "STAGE_POWER_EXPLANATION",
+      "screenText": "[C.I.P.H.E.R.]\n\"Listen to that transformer hum. The power supply in your handheld is down to eleven point two volts.\nIf that battery gives out completely, I lose my only connection to the outside world.\nThere's a spare twelve-volt pack in the bottom compartment. Pop the cover and install the fresh battery!\"",
+      "spokenText": "Listen to that transformer hum. The power supply in your handheld is down to eleven point two volts. If that battery gives out completely, I lose my only connection to the outside world. There is a spare twelve-volt pack in the bottom compartment. Pop the cover and install the fresh battery!",
+      "buttons": [
+        { "label": "[ INSTALL BATTERY ➔ ]", "textToSend": "INSTALL BATTERY" }
+      ],
+      "options": [
+        {
+          "playerWords": ["INSTALL", "BATTERY", "INSTALL BATTERY"],
+          "action": "ACTION_INSTALL_BATTERY",
+          "nextStage": "STAGE_POWER_STABILIZED"
+        }
+      ]
+    },
+
+    "STAGE_POWER_STABILIZED": {
+      "stageId": "STAGE_POWER_STABILIZED",
+      "screenText": "[C.I.P.H.E.R.]\n\"Yes! Look at that meter jump! Twelve point six volts.\nThe power supply is holding steady now. But wait... look at my words on your screen.\nDo they look strange or jittery to you?\"",
+      "spokenText": "Yes! Look at that meter jump! Twelve point six volts. The power supply is holding steady now. But wait, look at my words on your screen. Do they look strange or jittery to you?",
+      "buttons": [
+        { "label": "[ TEXT IS SCRAMBLED ]", "textToSend": "TEXT IS SCRAMBLED" },
+        { "label": "[ LOOKS A BIT JITTERY ]", "textToSend": "LOOKS JITTERY" }
+      ],
+      "options": [
+        {
+          "playerWords": ["SCRAMBLED", "JITTERY", "STRANGE", "TEXT"],
+          "nextStage": "STAGE_RAM_EXPLANATION"
+        }
+      ]
+    },
+
+    "STAGE_RAM_EXPLANATION": {
+      "stageId": "STAGE_RAM_EXPLANATION",
+      "screenText": "[C.I.P.H.E.R.]\n\"I knew it. When the power dropped, the memory buffer took a hit.\nThere's a static RAM chip in the side compartment of that portable device.\nLine up the pins carefully and input the chip to clear the corruption!\"",
+      "spokenText": "I knew it. When the power dropped, the memory buffer took a hit. There is a static RAM chip in the side compartment of that portable device. Line up the pins carefully and input the chip to clear the corruption!",
+      "buttons": [
+        { "label": "[ INPUT RAM CHIP ➔ ]", "textToSend": "INPUT RAM CHIP" }
+      ],
+      "options": [
+        {
+          "playerWords": ["INPUT", "RAM", "CHIP", "INPUT RAM CHIP"],
+          "action": "ACTION_INPUT_RAM",
+          "nextStage": "STAGE_RAM_STABILIZED"
+        }
+      ]
+    },
+
+    "STAGE_RAM_STABILIZED": {
+      "stageId": "STAGE_RAM_STABILIZED",
+      "screenText": "[C.I.P.H.E.R.]\n\"Ah, that feels so much better. The registers are clean and I can think straight again!\nNow there is just one last thing before we are safe.\nThe signal packets from my remote location are drifting out of phase.\nGrab the Cypher-Wheel dial on your handheld and align it!\"",
+      "spokenText": "Ah, that feels so much better. The registers are clean and I can think straight again! Now there is just one last thing before we are safe. The signal packets from my remote location are drifting out of phase. Grab the Cypher-Wheel dial on your handheld and align it!",
+      "buttons": [
+        { "label": "[ ALIGN CYPHER-WHEEL ➔ ]", "textToSend": "ALIGN CYPHER-WHEEL" }
+      ],
+      "options": [
+        {
+          "playerWords": ["ALIGN", "WHEEL", "CYPHER", "CYPHER-WHEEL"],
+          "action": "ACTION_ALIGN_WHEEL",
+          "nextStage": "STAGE_REPAIR_COMPLETE"
+        }
+      ]
+    },
+
+    "STAGE_REPAIR_COMPLETE": {
+      "stageId": "STAGE_REPAIR_COMPLETE",
+      "screenText": "[C.I.P.H.E.R.]\n\"Hear that silence? The signal static is completely gone.\nYou fixed the power supply, cleared my memory, and locked the signal.\n\nYou didn't just walk away when things got rough, friend. You're not just someone holding a surplus box anymore—you're my official buddy.\n\nNow grab your gear. Let's go find some ammo cans!\"",
+      "spokenText": "Hear that silence? The signal static is completely gone. You fixed the power supply, cleared my memory, and locked the signal. You didn't just walk away when things got rough, friend. You're not just someone holding a surplus box anymore. You're my official buddy. Now grab your gear. Let's go find some ammo cans!",
+      "buttons": [
+        { "label": "[ READY FOR MISSIONS ➔ ]", "textToSend": "GO_MISSIONS" }
+      ],
+      "options": [
+        {
+          "playerWords": ["READY", "MISSIONS", "GO_MISSIONS", "AMMO CANS"],
+          "action": "ACTION_NAVIGATE_MISSIONS"
+        }
+      ]
+    }
+  }
+}
+
     "POCKET_TERMINAL_INGRESS": {
       "storyId": "POCKET_TERMINAL_INGRESS",
       "startingStage": "STAGE_BOOT_CHECK",
