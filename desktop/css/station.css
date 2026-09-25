@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C.I.P.H.E.R. // Base Station Command Console</title>
+  <link rel="stylesheet" href="css/station.css?v=5.0">
+</head>
+<body>
+
+  <div class="base-station-viewport">
+    <!-- Top System Telemetry Bar -->
+    <header class="console-topbar">
+      <div class="console-title">RSI BASE STATION // MK-VI WIDESCREEN CONSOLE</div>
+      <div class="console-badges">
+        <div class="badge-item active" id="badge-cacher">OPERATOR: BUDDY</div>
+        <div class="badge-item active">POWER: 120V MAINS (STABLE)</div>
+        <div class="badge-item active">LINK: CARRIER MESH ONLINE</div>
+        <div class="badge-item" style="color: var(--text-amber);">MODE: DESKTOP CORE</div>
+      </div>
+    </header>
+
+    <!-- 3-Pane Console Workspace -->
+    <div class="console-grid">
+
+      <!-- LEFT PANE: Diagnostic Matrix & Sector Memory Inspector -->
+      <aside class="crt-console-panel">
+        <div class="panel-header">
+          <span>DIAGNOSTIC MATRIX</span>
+          <span style="font-size: 10px; color: var(--text-bright);">AUTO-CYCLE: ON</span>
+        </div>
+
+        <div class="matrix-grid">
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x00')">SEC 0x00<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x10')">SEC 0x10<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x20')">SEC 0x20<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x30')">SEC 0x30<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x40')">SEC 0x40<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x50')">SEC 0x50<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x60')">SEC 0x60<br>OK</div>
+          <div class="sector-cell healthy" onclick="BaseStation.inspectSector('0x70')">SEC 0x70<br>OK</div>
+        </div>
+
+        <div class="telemetry-block" id="sector-inspect-view">
+          <strong style="color: #ffffff;">SECTOR INSPECTOR:</strong><br>
+          BUFFER STATUS: 64KB STATIC ALLOCATED<br>
+          PARITY CHECK : NOMINAL (0 ERR)<br>
+          FIELD LINK   : HANDHELD SYNC READY
+        </div>
+
+        <div class="telemetry-block" style="margin-top: auto;">
+          <strong style="color: var(--text-bright);">SURFACE DISPATCH:</strong><br>
+          Need to head outside?<br>
+          <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: bold;">➔ Switch to Field Handheld (Mobile)</a>
+        </div>
+      </aside>
+
+      <!-- CENTER PANE: Main CRT Teletype Monitor & CLI -->
+      <main class="crt-console-panel primary-monitor">
+        <div class="panel-header">
+          <span>TERMINAL LOG // RECV SUBCARRIER</span>
+          <span id="log-status-tag" style="color: var(--text-bright);">CARRIER LOCKED</span>
+        </div>
+
+        <div class="main-log-scroll" id="base-log-scroll"></div>
+
+        <footer class="desktop-cli-tray">
+          <span class="cli-prompt">&gt;</span>
+          <input 
+            type="text" 
+            id="base-cli-input" 
+            class="cli-desktop-input" 
+            placeholder="Type command (HELP, COORDS, HINT, DIAG, CLEAR)..." 
+            autocomplete="off"
+            autofocus
+          >
+          <button class="btn-desktop-exec" onclick="BaseStation.submitCommand()">EXECUTE</button>
+        </footer>
+      </main>
+
+      <!-- RIGHT PANE: Radio Scope & Tactical Waypoint Board -->
+      <aside class="crt-console-panel">
+        <div class="panel-header">
+          <span>TACTICAL FREQUENCY SCOPE</span>
+          <span style="font-size: 10px; color: var(--text-amber);">433.92 MHz</span>
+        </div>
+
+        <div class="tactical-display-body">
+          <div class="frequency-scope">
+            <div class="carrier-wave"></div>
+          </div>
+
+          <div class="waypoint-card">
+            <div class="waypoint-title">TARGET // WAYPOINT 01</div>
+            <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
+            <div style="font-size: 11px; color: var(--text-main); margin-top: 4px;">
+              TERRAIN: Foothill bench trail<br>CONTAINER: Standard Ammo Can
+            </div>
+          </div>
+
+          <div class="waypoint-card" style="border-style: dashed;">
+            <div class="waypoint-title" style="color: var(--text-main);">TARGET // WAYPOINT 02 (LOCKED)</div>
+            <div style="font-size: 11px; color: var(--text-main);">
+              Requires physical code from Waypoint 01 log sheet.
+            </div>
+          </div>
+
+          <div class="macro-board">
+            <button class="btn-macro-tile" onclick="BaseStation.runMacro('SHOW COORDINATES')">📍 COORDS</button>
+            <button class="btn-macro-tile" onclick="BaseStation.runMacro('CONTAINER HINT')">🔍 HINT</button>
+            <button class="btn-macro-tile" onclick="BaseStation.runMacro('DIAG')">⚙️ DIAG</button>
+            <button class="btn-macro-tile" onclick="BaseStation.runMacro('CLEAR')">🧹 CLEAR</button>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- Shared Universal Core -->
+  <script src="../js/cipher-audio.js"></script>
+  <script src="../js/cipher-fx.js"></script>
+  <script src="../js/cipher-core.js"></script>
+  <script src="../js/cipher-dialog.js"></script>
+  <script>
+    const BaseStation = {
+      logEl: null,
+      inputEl: null,
+      printQueue: [],
+      isPrinting: false,
+
+      init: function() {
+        this.logEl = document.getElementById('base-log-scroll');
+        this.inputEl = document.getElementById('base-cli-input');
+
+        // Keyboard enter trigger
+        this.inputEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.submitCommand();
+          }
+        });
+
+        // Sync username from state
+        try {
+          if (typeof CipherCore !== 'undefined') {
+            const s = CipherCore.getState();
+            if (s && s.cacher && s.cacher.username) {
+              document.getElementById('badge-cacher').textContent = `OPERATOR: ${s.cacher.username}`;
+            }
+          }
+        } catch (e) {}
+
+        // Audio unlock
+        window.addEventListener('click', () => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
+        }, { once: true });
+
+        // Initial teletype greeting
+        this.printLine(
+          "RSI BASE STATION COMMAND CONSOLE [VERSION 6.2.0-STATION]\n" +
+          "SUBCARRIER RECEIVER: LOCKED (FREQUENCY 433.92 MHz)\n" +
+          "POWER SOURCE: 120V DEDICATED SUPPLY // ALL CIRCUITS NOMINAL\n\n" +
+          "[C.I.P.H.E.R.]\n" +
+          "\"Base Station console online, buddy!\n" +
+          "All multi-pane telemetry boards are synchronized with your field link.\n" +
+          "Use the widescreen command terminal to inspect coordinates, review hints, or analyze memory sectors.\"",
+          "line-bright", 12
+        );
+      },
+
+      printLine: function(text, cls = "line-dim", charSpeedMs = 12) {
+        this.printQueue.push({ text, cls, charSpeedMs });
+        if (!this.isPrinting) {
+          this.processQueue();
+        }
+      },
+
+      processQueue: async function() {
+        if (this.printQueue.length === 0) {
+          this.isPrinting = false;
+          return;
+        }
+
+        this.isPrinting = true;
+        const current = this.printQueue.shift();
+        const p = document.createElement('div');
+        p.className = current.cls;
+        this.logEl.appendChild(p);
+
+        for (let i = 0; i < current.text.length; i++) {
+          p.textContent += current.text[i];
+          this.logEl.scrollTop = this.logEl.scrollHeight;
+          await new Promise(r => setTimeout(r, current.charSpeedMs));
+        }
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.lineChatter();
+        }
+
+        await new Promise(r => setTimeout(r, 60));
+        this.processQueue();
+      },
+
+      submitCommand: function() {
+        const raw = this.inputEl.value.trim();
+        if (!raw) return;
+        this.inputEl.value = '';
+
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        this.printLine(`> ${raw}`, "line-user", 6);
+
+        const upper = raw.toUpperCase();
+
+        if (upper === 'CLEAR') {
+          this.printQueue = [];
+          this.logEl.innerHTML = '';
+          return;
+        }
+
+        if (upper === 'HELP') {
+          this.printLine(
+            "BASE STATION COMMAND SET:\n" +
+            "  COORDS / SHOW COORDINATES : Display active waypoint coordinates\n" +
+            "  HINT / CONTAINER HINT     : Transmit hiding spot notes\n" +
+            "  DIAG                      : Run comprehensive diagnostics across all 3 panes\n" +
+            "  SECTOR <HEX>              : Read individual memory sector (e.g. SECTOR 0x00)\n" +
+            "  CLEAR                     : Flush CRT display buffer",
+            "line-dim", 10
+          );
+          return;
+        }
+
+        if (upper.includes('COORD') || upper.includes('WAYPOINT')) {
+          this.printLine(
+            "[C.I.P.H.E.R.]\n" +
+            "\"Decrypted Waypoint 01:\n" +
+            "Coordinates: N 41° 44.XXX  W 111° 49.XXX\n" +
+            "Container is an ammo can tucked along the foothill bench.\"",
+            "line-amber", 12
+          );
+          return;
+        }
+
+        if (upper.includes('HINT')) {
+          this.printLine(
+            "[C.I.P.H.E.R.]\n" +
+            "\"Tactical field hint:\n" +
+            "Look low where the sage meets the rock shelf. Don't look in trees!\"",
+            "line-amber", 12
+          );
+          return;
+        }
+
+        if (upper === 'DIAG') {
+          this.printLine(
+            "SYSTEM TELEMETRY SUMMARY:\n" +
+            "  CONSOLE ARCH: DESKTOP WIDESCREEN CONSOLE\n" +
+            "  MEMORY BUS  : 8/8 SECTORS VERIFIED\n" +
+            "  CARRIER     : 100% SIGNAL STRENGTH\n" +
+            "  STATUS      : SYNCHRONIZED WITH FIELD HANDHELD",
+            "line-bright", 10
+          );
+          return;
+        }
+
+        this.printLine(`[BASE] Command "${raw}" processed. Carrier synchronized.`, "line-dim", 10);
+      },
+
+      runMacro: function(cmd) {
+        this.inputEl.value = cmd;
+        this.submitCommand();
+      },
+
+      inspectSector: function(secName) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        const view = document.getElementById('sector-inspect-view');
+        view.innerHTML = 
+          `<strong style="color: var(--text-bright);">SECTOR ${secName} INSPECTION:</strong><br>` +
+          `ADDRESS RANGE: ${secName}00 - ${secName}FF<br>` +
+          `INTEGRITY    : 100% OK // NO CORRUPTION<br>` +
+          `CACHE DATA   : WAYPOINT PACKETS STABLE`;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      BaseStation.init();
+    });
+  </script>
+</body>
+</html>
