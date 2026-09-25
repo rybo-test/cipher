@@ -9,6 +9,82 @@ const CipherDialog = (function () {
   let currentStory = null;
 
   const masterStories = {
+    MISSION_COMMAND_ARC: {
+      storyId: "MISSION_COMMAND_ARC",
+      startingStage: "STAGE_MISSION_BRIEF",
+      stages: {
+        STAGE_MISSION_BRIEF: {
+          stageId: "STAGE_MISSION_BRIEF",
+          screenText: "[C.I.P.H.E.R.]\n\"Look at that signal bar—solid green, buddy!\nThe handheld's power supply is humming along at twelve point six volts, and memory registers are crystal clear.\nI'm ready to push our first set of signal packets from my remote location. We've got coordinates pointing toward a real container tucked out along the bench.\nReady to inspect our first waypoint?\"",
+          spokenText: "Look at that signal bar, solid green, buddy! The handheld's power supply is humming along at twelve point six volts, and memory registers are crystal clear. I'm ready to push our first set of signal packets from my remote location. We have coordinates pointing toward a real container tucked out along the bench. Ready to inspect our first waypoint?",
+          buttons: [
+            { label: "[ SHOW COORDINATES ]", textToSend: "SHOW COORDINATES" },
+            { label: "[ CONTAINER HINT ]", textToSend: "CONTAINER HINT" },
+            { label: "[ CYPHER TOOL ]", textToSend: "OPEN CYPHER TOOL" }
+          ],
+          options: [
+            {
+              playerWords: ["SHOW", "COORDINATES", "COORDS", "WAYPOINT"],
+              action: "ACTION_REVEAL_COORDS",
+              nextStage: "STAGE_COORDS_REVEALED"
+            },
+            {
+              playerWords: ["HINT", "CONTAINER", "AMMO"],
+              action: "ACTION_REVEAL_HINT",
+              nextStage: "STAGE_HINT_REVEALED"
+            },
+            {
+              playerWords: ["CYPHER", "TOOL", "WHEEL"],
+              action: "ACTION_TOGGLE_WHEEL"
+            }
+          ]
+        },
+
+        STAGE_COORDS_REVEALED: {
+          stageId: "STAGE_COORDS_REVEALED",
+          screenText: "[C.I.P.H.E.R.]\n\"Signal packets decrypted!\n\nPRIMARY TARGET // WAYPOINT 01\nLOCATION: N 41° 44.XXX  W 111° 49.XXX\nTERRAIN: Foothill bench / gravel trail\nSTATUS: Sealed ammo can tucked under rock ledge.\n\nTake your handheld into the field. When you find the marker or lock code, input it below!\"",
+          spokenText: "Signal packets decrypted! Primary target, waypoint zero one. Foothill bench trail. Sealed ammo can tucked under a rock ledge. Take your handheld into the field. When you find the marker or lock code, input it below!",
+          buttons: [
+            { label: "[ CONTAINER HINT ]", textToSend: "CONTAINER HINT" },
+            { label: "[ CYPHER TOOL ]", textToSend: "OPEN CYPHER TOOL" },
+            { label: "[ STATUS DIAG ]", textToSend: "DIAG" }
+          ],
+          options: [
+            {
+              playerWords: ["HINT", "CONTAINER"],
+              action: "ACTION_REVEAL_HINT",
+              nextStage: "STAGE_HINT_REVEALED"
+            },
+            {
+              playerWords: ["CYPHER", "TOOL", "WHEEL"],
+              action: "ACTION_TOGGLE_WHEEL"
+            }
+          ]
+        },
+
+        STAGE_HINT_REVEALED: {
+          stageId: "STAGE_HINT_REVEALED",
+          screenText: "[C.I.P.H.E.R.]\n\"FIELD HINT TRANSMISSION:\n'Look low where sagebrush meets jagged limestone. Don't look up in the trees; the steel can is sheltered from mountain weather.'\n\nRemember to bring a pen for the log sheet, buddy!\"",
+          spokenText: "Field hint transmission: Look low where sagebrush meets jagged limestone. Do not look up in the trees. The steel can is sheltered from mountain weather. Remember to bring a pen for the log sheet, buddy!",
+          buttons: [
+            { label: "[ SHOW COORDINATES ]", textToSend: "SHOW COORDINATES" },
+            { label: "[ CYPHER TOOL ]", textToSend: "OPEN CYPHER TOOL" },
+            { label: "[ STATUS DIAG ]", textToSend: "DIAG" }
+          ],
+          options: [
+            {
+              playerWords: ["SHOW", "COORDINATES", "COORDS"],
+              action: "ACTION_REVEAL_COORDS",
+              nextStage: "STAGE_COORDS_REVEALED"
+            },
+            {
+              playerWords: ["CYPHER", "TOOL", "WHEEL"],
+              action: "ACTION_TOGGLE_WHEEL"
+            }
+          ]
+        }
+      }
+    }
     POCKET_TERMINAL_INGRESS: {
       storyId: "POCKET_TERMINAL_INGRESS",
       startingStage: "STAGE_BOOT_CHECK",
