@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C.I.P.H.E.R. // Base Station Command Console</title>
+  <title>C.I.P.H.E.R. // Base Station CRT Console</title>
   <style>
     :root {
-      --base-bg: #020603;
-      --panel-bg: #051408;
+      --desk-bg: #030504;
+      --bezel-color: #111a13;
+      --bezel-border: #1d3322;
+      --crt-screen-bg: #041007;
       --panel-border: #144d1e;
       --panel-border-bright: #00ff66;
       --text-main: #b8f5c8;
@@ -26,84 +28,119 @@
     html, body {
       width: 100vw;
       height: 100vh;
-      background-color: var(--base-bg);
-      color: var(--text-main);
+      background-color: var(--desk-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: 'Courier New', Courier, monospace;
       overflow: hidden;
     }
 
-    .base-station-viewport {
+    /* Heavy Industrial CRT Outer Enclosure */
+    .crt-enclosure {
+      width: 1120px;
+      max-width: 95vw;
+      height: 820px;
+      max-height: 94vh;
+      background: var(--bezel-color);
+      border: 6px solid #080d09;
+      border-radius: 24px;
+      box-shadow: 
+        0 0 50px rgba(0, 0, 0, 0.95),
+        inset 0 0 20px rgba(0, 0, 0, 0.8),
+        0 10px 30px rgba(0, 255, 102, 0.08);
+      padding: 24px 28px 28px;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      width: 100vw;
+      position: relative;
+    }
+
+    /* Screen Glass with Bezel Inset & Scanlines */
+    .crt-glass-screen {
+      flex: 1;
+      background-color: var(--crt-screen-bg);
+      border-radius: 12px;
+      border: 3px solid #0b2210;
+      box-shadow: 
+        inset 0 0 40px rgba(0, 0, 0, 0.9),
+        inset 0 0 15px rgba(0, 255, 102, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
       padding: 12px;
       gap: 10px;
     }
 
-    /* Top Console Banner */
+    .crt-glass-screen::after {
+      content: " ";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Console Banner */
     .console-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--panel-bg);
+      background: #051408;
       border: 1.5px solid var(--panel-border-bright);
-      padding: 10px 16px;
-      border-radius: 6px;
+      padding: 8px 14px;
+      border-radius: 4px;
       flex-shrink: 0;
-      box-shadow: 0 0 15px rgba(0, 255, 102, 0.15);
+      z-index: 5;
     }
     .console-title {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 900;
       letter-spacing: 1px;
       color: var(--text-bright);
     }
     .console-badges {
       display: flex;
-      gap: 12px;
-      font-size: 12px;
+      gap: 8px;
+      font-size: 11px;
       font-weight: bold;
     }
     .badge-item {
-      padding: 4px 10px;
-      border-radius: 4px;
+      padding: 3px 8px;
+      border-radius: 3px;
       border: 1px solid var(--panel-border);
       background: rgba(0, 255, 102, 0.05);
-    }
-    .badge-item.active {
-      border-color: var(--panel-border-bright);
       color: var(--text-bright);
     }
 
-    /* 3-Pane Console Layout */
+    /* 3-Pane Layout */
     .console-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: 310px 1fr 340px;
-      gap: 12px;
+      grid-template-columns: 260px 1fr 280px;
+      gap: 10px;
       min-height: 0;
+      z-index: 5;
     }
 
-    .crt-console-panel {
-      background-color: var(--panel-bg);
+    .crt-panel {
+      background-color: #030c05;
       border: 1.5px solid var(--panel-border);
-      border-radius: 6px;
+      border-radius: 4px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      position: relative;
-      box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.04);
     }
-    .crt-console-panel.primary-monitor {
+    .crt-panel.primary-monitor {
       border-color: var(--panel-border-bright);
-      box-shadow: inset 0 0 25px rgba(0, 255, 102, 0.08), 0 0 15px rgba(0, 0, 0, 0.8);
+      background-color: #020803;
     }
 
     .panel-header {
       background: #091f0c;
-      padding: 10px 14px;
-      font-size: 12px;
+      padding: 8px 10px;
+      font-size: 11px;
       font-weight: 900;
       letter-spacing: 0.5px;
       color: var(--text-bright);
@@ -113,24 +150,23 @@
       align-items: center;
     }
 
-    /* Left: Memory Matrix */
+    /* Left Matrix */
     .matrix-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      padding: 12px;
+      gap: 4px;
+      padding: 8px;
     }
     .sector-cell {
       background: #030a04;
       border: 1px solid var(--panel-border);
-      border-radius: 4px;
-      padding: 8px 4px;
+      border-radius: 3px;
+      padding: 6px 2px;
       text-align: center;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       cursor: pointer;
       color: var(--text-bright);
-      transition: all 0.2s;
     }
     .sector-cell:hover {
       border-color: var(--panel-border-bright);
@@ -138,19 +174,19 @@
     }
 
     .telemetry-block {
-      padding: 12px 14px;
+      padding: 10px;
       border-top: 1px dashed var(--panel-border);
-      font-size: 12px;
-      line-height: 1.6;
+      font-size: 11px;
+      line-height: 1.5;
     }
 
-    /* Center: Teletype CLI Monitor */
+    /* Center Log & CLI */
     .main-log-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
-      font-size: 14px;
-      line-height: 1.6;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.5;
       white-space: pre-wrap;
       word-break: break-word;
     }
@@ -162,64 +198,59 @@
     .desktop-cli-tray {
       border-top: 1px solid var(--panel-border);
       background: #030b05;
-      padding: 10px 14px;
+      padding: 8px 10px;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
     .cli-prompt {
       color: var(--text-bright);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
     }
     .cli-desktop-input {
       flex: 1;
-      background: #020703;
-      border: 1.5px solid var(--panel-border);
-      border-radius: 4px;
+      background: #010502;
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
       color: #ffffff;
       font-family: inherit;
-      font-size: 14px;
-      padding: 10px 12px;
+      font-size: 13px;
+      padding: 6px 10px;
       outline: none;
     }
     .cli-desktop-input:focus {
       border-color: var(--panel-border-bright);
-      box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
     }
     .btn-desktop-exec {
       background: var(--panel-border-bright);
       color: #000000;
       border: none;
-      border-radius: 4px;
+      border-radius: 3px;
       font-family: inherit;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
-      padding: 10px 20px;
+      padding: 7px 14px;
       cursor: pointer;
     }
-    .btn-desktop-exec:hover {
-      background: #ffffff;
-    }
 
-    /* Right: Frequency Scope & Tactical Cards */
+    /* Right Panel */
     .tactical-display-body {
-      padding: 14px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       flex: 1;
       overflow-y: auto;
     }
     .frequency-scope {
-      height: 90px;
+      height: 75px;
       background: #020703;
-      border: 1.5px solid var(--panel-border);
-      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
     }
     .carrier-wave {
       width: 100%;
@@ -230,24 +261,24 @@
     }
     @keyframes pulseWave {
       0% { transform: scaleY(1); opacity: 0.6; }
-      50% { transform: scaleY(16); opacity: 1; }
+      50% { transform: scaleY(14); opacity: 1; }
       100% { transform: scaleY(1); opacity: 0.6; }
     }
 
     .waypoint-card {
-      background: #030c05;
-      border: 1.5px solid var(--panel-border);
-      border-radius: 6px;
-      padding: 12px;
+      background: #020703;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 8px 10px;
     }
     .waypoint-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 900;
       color: var(--text-amber);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .waypoint-coords {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 900;
       color: #ffffff;
     }
@@ -255,132 +286,149 @@
     .macro-board {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      gap: 6px;
       margin-top: auto;
     }
     .btn-macro-tile {
-      background: #06180a;
-      border: 1.5px solid var(--panel-border);
-      border-radius: 6px;
+      background: #051408;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
       color: var(--text-bright);
       font-family: inherit;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
-      padding: 10px 6px;
+      padding: 8px 4px;
       cursor: pointer;
       text-align: center;
     }
     .btn-macro-tile:hover {
       border-color: var(--panel-border-bright);
-      background: #0d3817;
+      background: #09260f;
+    }
+
+    /* Hardware Enclosure Badge */
+    .bezel-badge {
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #2b4531;
+      font-weight: 900;
+      margin-top: 6px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
     }
   </style>
 </head>
 <body>
 
-  <div class="base-station-viewport">
-    <header class="console-topbar">
-      <div class="console-title">RSI BASE STATION // MK-VI WIDESCREEN CONSOLE</div>
-      <div class="console-badges">
-        <div class="badge-item active" id="badge-cacher">OPERATOR: BUDDY</div>
-        <div class="badge-item active">POWER: 120V MAINS (STABLE)</div>
-        <div class="badge-item active">LINK: CARRIER MESH ONLINE</div>
-        <div class="badge-item" style="color: var(--text-amber);">MODE: DESKTOP CORE</div>
+  <!-- Physical CRT Housing -->
+  <div class="crt-enclosure">
+    <div class="crt-glass-screen">
+      
+      <header class="console-topbar">
+        <div class="console-title">RSI BASE STATION // MK-VI TERMINAL</div>
+        <div class="console-badges">
+          <div class="badge-item" id="badge-cacher">OPERATOR: BUDDY</div>
+          <div class="badge-item">120V MAINS: NOMINAL</div>
+          <div class="badge-item">CARRIER: 433.92 MHz</div>
+        </div>
+      </header>
+
+      <div class="console-grid">
+        <!-- LEFT: Matrix -->
+        <aside class="crt-panel">
+          <div class="panel-header">
+            <span>DIAGNOSTIC MATRIX</span>
+            <span style="font-size: 9px; color: var(--text-bright);">CYCLING</span>
+          </div>
+
+          <div class="matrix-grid">
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x00')">0x00<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x10')">0x10<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x20')">0x20<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x30')">0x30<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x40')">0x40<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x50')">0x50<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x60')">0x60<br>OK</div>
+            <div class="sector-cell" onclick="BaseStation.inspectSector('0x70')">0x70<br>OK</div>
+          </div>
+
+          <div class="telemetry-block" id="sector-inspect-view">
+            <strong style="color: #ffffff;">SECTOR INSPECTOR:</strong><br>
+            BUFFER: 64KB ALLOCATED<br>
+            PARITY: NOMINAL (0 ERR)<br>
+            LINK  : FIELD SYNC READY
+          </div>
+
+          <div class="telemetry-block" style="margin-top: auto;">
+            <strong style="color: var(--text-bright);">SURFACE DISPATCH:</strong><br>
+            <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: bold;">➔ Switch to Field Handheld</a>
+          </div>
+        </aside>
+
+        <!-- CENTER: CLI Monitor -->
+        <main class="crt-panel primary-monitor">
+          <div class="panel-header">
+            <span>TERMINAL LOG // RECV SUBCARRIER</span>
+            <span style="color: var(--text-bright);">SIGNAL LOCKED</span>
+          </div>
+
+          <div class="main-log-scroll" id="base-log-scroll"></div>
+
+          <footer class="desktop-cli-tray">
+            <span class="cli-prompt">&gt;</span>
+            <input 
+              type="text" 
+              id="base-cli-input" 
+              class="cli-desktop-input" 
+              placeholder="Type command (HELP, COORDS, HINT, DIAG)..." 
+              autocomplete="off"
+              autofocus
+            >
+            <button class="btn-desktop-exec" onclick="BaseStation.submitCommand()">EXEC</button>
+          </footer>
+        </main>
+
+        <!-- RIGHT: Scope & Waypoints -->
+        <aside class="crt-panel">
+          <div class="panel-header">
+            <span>CARRIER FREQUENCY</span>
+            <span style="font-size: 9px; color: var(--text-amber);">SUBCARRIER</span>
+          </div>
+
+          <div class="tactical-display-body">
+            <div class="frequency-scope">
+              <div class="carrier-wave"></div>
+            </div>
+
+            <div class="waypoint-card">
+              <div class="waypoint-title">PRIMARY TARGET // WP 01</div>
+              <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
+              <div style="font-size: 11px; color: var(--text-main); margin-top: 4px;">
+                TERRAIN: Foothill bench<br>CONTAINER: Ammo Can
+              </div>
+            </div>
+
+            <div class="waypoint-card" style="border-style: dashed;">
+              <div class="waypoint-title" style="color: var(--text-main);">WAYPOINT 02 (LOCKED)</div>
+              <div style="font-size: 11px; color: var(--text-main);">
+                Awaiting code from WP 01 log sheet.
+              </div>
+            </div>
+
+            <div class="macro-board">
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('SHOW COORDINATES')">📍 COORDS</button>
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('CONTAINER HINT')">🔍 HINT</button>
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('DIAG')">⚙️ DIAG</button>
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('CLEAR')">🧹 CLEAR</button>
+            </div>
+          </div>
+        </aside>
       </div>
-    </header>
 
-    <div class="console-grid">
-      <!-- LEFT PANE: Memory Matrix -->
-      <aside class="crt-console-panel">
-        <div class="panel-header">
-          <span>DIAGNOSTIC MATRIX</span>
-          <span style="font-size: 10px; color: var(--text-bright);">AUTO-CYCLE: ON</span>
-        </div>
-
-        <div class="matrix-grid">
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x00')">SEC 0x00<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x10')">SEC 0x10<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x20')">SEC 0x20<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x30')">SEC 0x30<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x40')">SEC 0x40<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x50')">SEC 0x50<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x60')">SEC 0x60<br>OK</div>
-          <div class="sector-cell" onclick="BaseStation.inspectSector('0x70')">SEC 0x70<br>OK</div>
-        </div>
-
-        <div class="telemetry-block" id="sector-inspect-view">
-          <strong style="color: #ffffff;">SECTOR INSPECTOR:</strong><br>
-          BUFFER STATUS: 64KB STATIC ALLOCATED<br>
-          PARITY CHECK : NOMINAL (0 ERR)<br>
-          FIELD LINK   : HANDHELD SYNC READY
-        </div>
-
-        <div class="telemetry-block" style="margin-top: auto;">
-          <strong style="color: var(--text-bright);">SURFACE DISPATCH:</strong><br>
-          Heading into the field?<br>
-          <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: bold;">➔ Switch to Field Handheld (Mobile)</a>
-        </div>
-      </aside>
-
-      <!-- CENTER PANE: Command CRT & CLI -->
-      <main class="crt-console-panel primary-monitor">
-        <div class="panel-header">
-          <span>TERMINAL LOG // RECV SUBCARRIER</span>
-          <span style="color: var(--text-bright);">CARRIER LOCKED</span>
-        </div>
-
-        <div class="main-log-scroll" id="base-log-scroll"></div>
-
-        <footer class="desktop-cli-tray">
-          <span class="cli-prompt">&gt;</span>
-          <input 
-            type="text" 
-            id="base-cli-input" 
-            class="cli-desktop-input" 
-            placeholder="Type command (HELP, COORDS, HINT, DIAG, CLEAR)..." 
-            autocomplete="off"
-            autofocus
-          >
-          <button class="btn-desktop-exec" onclick="BaseStation.submitCommand()">EXECUTE</button>
-        </footer>
-      </main>
-
-      <!-- RIGHT PANE: Scope & Waypoint Board -->
-      <aside class="crt-console-panel">
-        <div class="panel-header">
-          <span>TACTICAL FREQUENCY SCOPE</span>
-          <span style="font-size: 10px; color: var(--text-amber);">433.92 MHz</span>
-        </div>
-
-        <div class="tactical-display-body">
-          <div class="frequency-scope">
-            <div class="carrier-wave"></div>
-          </div>
-
-          <div class="waypoint-card">
-            <div class="waypoint-title">TARGET // WAYPOINT 01</div>
-            <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
-            <div style="font-size: 12px; color: var(--text-main); margin-top: 6px;">
-              TERRAIN: Foothill bench trail<br>CONTAINER: Standard Ammo Can
-            </div>
-          </div>
-
-          <div class="waypoint-card" style="border-style: dashed;">
-            <div class="waypoint-title" style="color: var(--text-main);">TARGET // WAYPOINT 02 (LOCKED)</div>
-            <div style="font-size: 12px; color: var(--text-main);">
-              Requires physical code from Waypoint 01 log sheet.
-            </div>
-          </div>
-
-          <div class="macro-board">
-            <button class="btn-macro-tile" onclick="BaseStation.runMacro('SHOW COORDINATES')">📍 COORDS</button>
-            <button class="btn-macro-tile" onclick="BaseStation.runMacro('CONTAINER HINT')">🔍 HINT</button>
-            <button class="btn-macro-tile" onclick="BaseStation.runMacro('DIAG')">⚙️ DIAG</button>
-            <button class="btn-macro-tile" onclick="BaseStation.runMacro('CLEAR')">🧹 CLEAR</button>
-          </div>
-        </div>
-      </aside>
     </div>
+
+    <!-- Retro Hardware Stamp -->
+    <div class="bezel-badge">RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI</div>
   </div>
 
   <script>
@@ -401,7 +449,6 @@
           }
         });
 
-        // Load username from storage if available
         try {
           const raw = localStorage.getItem('cipher_handheld_state');
           if (raw) {
@@ -413,13 +460,13 @@
         } catch (e) {}
 
         this.printLine(
-          "RSI BASE STATION COMMAND CONSOLE [VERSION 6.2.0-STATION]\n" +
-          "SUBCARRIER RECEIVER: LOCKED (FREQUENCY 433.92 MHz)\n" +
-          "POWER SOURCE: 120V DEDICATED SUPPLY // ALL CIRCUITS NOMINAL\n\n" +
+          "RSI BASE STATION COMMAND CONSOLE [MK-VI CRT]\n" +
+          "SUBCARRIER RECEIVER: LOCKED (433.92 MHz)\n" +
+          "POWER: 120V MAINS (NOMINAL)\n\n" +
           "[C.I.P.H.E.R.]\n" +
           "\"Base Station console online, buddy!\n" +
-          "All multi-pane telemetry boards are synchronized with your field link.\n" +
-          "Use the widescreen command terminal to inspect coordinates, review hints, or analyze memory sectors.\"",
+          "All multi-pane telemetry boards are synchronized.\n" +
+          "Use the command terminal to inspect coordinates, review hints, or analyze memory sectors.\"",
           "line-bright", 12
         );
       },
@@ -449,7 +496,7 @@
           await new Promise(r => setTimeout(r, current.charSpeedMs));
         }
 
-        await new Promise(r => setTimeout(r, 60));
+        await new Promise(r => setTimeout(r, 50));
         this.processQueue();
       },
 
@@ -469,11 +516,11 @@
 
         if (upper === 'HELP') {
           this.printLine(
-            "BASE STATION COMMAND SET:\n" +
-            "  COORDS / SHOW COORDINATES : Display active waypoint coordinates\n" +
-            "  HINT / CONTAINER HINT     : Transmit hiding spot notes\n" +
-            "  DIAG                      : Run comprehensive diagnostics across all 3 panes\n" +
-            "  CLEAR                     : Flush CRT display buffer",
+            "COMMAND SET:\n" +
+            "  COORDS : Display active waypoint coordinates\n" +
+            "  HINT   : Transmit hiding spot notes\n" +
+            "  DIAG   : Run comprehensive telemetry check\n" +
+            "  CLEAR  : Flush display buffer",
             "line-dim", 10
           );
           return;
@@ -483,8 +530,8 @@
           this.printLine(
             "[C.I.P.H.E.R.]\n" +
             "\"Decrypted Waypoint 01:\n" +
-            "Coordinates: N 41° 44.XXX  W 111° 49.XXX\n" +
-            "Container is an ammo can tucked along the foothill bench.\"",
+            "N 41° 44.XXX  W 111° 49.XXX\n" +
+            "Container: Ammo can tucked along the foothill bench.\"",
             "line-amber", 12
           );
           return;
@@ -502,17 +549,17 @@
 
         if (upper === 'DIAG') {
           this.printLine(
-            "SYSTEM TELEMETRY SUMMARY:\n" +
-            "  CONSOLE ARCH: DESKTOP WIDESCREEN CONSOLE\n" +
-            "  MEMORY BUS  : 8/8 SECTORS VERIFIED\n" +
-            "  CARRIER     : 100% SIGNAL STRENGTH\n" +
-            "  STATUS      : SYNCHRONIZED WITH FIELD HANDHELD",
+            "TELEMETRY SUMMARY:\n" +
+            "  ARCH   : RETRO CRT 4:3 CONSOLE\n" +
+            "  BUS    : 8/8 SECTORS VERIFIED\n" +
+            "  CARRIER: 100% SIGNAL STRENGTH\n" +
+            "  SYNC   : FIELD HANDHELD PAIRED",
             "line-bright", 10
           );
           return;
         }
 
-        this.printLine(`[BASE] Command "${raw}" processed. Carrier synchronized.`, "line-dim", 10);
+        this.printLine(`[BASE] Command "${raw}" processed.`, "line-dim", 10);
       },
 
       runMacro: function(cmd) {
@@ -524,9 +571,9 @@
         const view = document.getElementById('sector-inspect-view');
         view.innerHTML = 
           `<strong style="color: var(--text-bright);">SECTOR ${secName} INSPECTION:</strong><br>` +
-          `ADDRESS RANGE: ${secName}00 - ${secName}FF<br>` +
-          `INTEGRITY    : 100% OK // NO CORRUPTION<br>` +
-          `CACHE DATA   : WAYPOINT PACKETS STABLE`;
+          `RANGE: ${secName}00 - ${secName}FF<br>` +
+          `CHECK: 100% OK // 0 ERR<br>` +
+          `DATA : WAYPOINT PACKETS STABLE`;
       }
     };
 
