@@ -1,13 +1,13 @@
 :root {
   --handheld-bg: #030804;
-  --handheld-card-bg: #08170c;
+  --handheld-card-bg: #091a0e;
   --handheld-border: #1b5e20;
   --handheld-border-bright: #00ff66;
-  --handheld-text: #e6ffe6;
-  --handheld-text-dim: #88cc99;
+  --handheld-text: #ffffff;
+  --handheld-text-dim: #99e6aa;
   --handheld-amber: #ffb300;
   --handheld-alert: #ff5252;
-  --handheld-btn-bg: #0d2614;
+  --handheld-btn-bg: #0e2b17;
   --handheld-btn-active: #00ff66;
 }
 
@@ -23,7 +23,7 @@ html, body {
   height: 100dvh;
   background-color: #000000;
   color: var(--handheld-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Courier New", monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   overflow: hidden;
 }
 
@@ -31,81 +31,84 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  max-width: 600px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   background-color: var(--handheld-bg);
   position: relative;
 }
 
-/* 1. Glanceable Top Status Banner */
+/* 1. Substantial Top Status Bar */
 .handheld-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background-color: #040e06;
-  border-bottom: 2px solid var(--handheld-border);
+  padding: 16px 18px;
+  background-color: #051408;
+  border-bottom: 2px solid var(--handheld-border-bright);
   flex-shrink: 0;
 }
 .header-badge {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: var(--handheld-text-dim);
 }
 .header-badge strong {
   color: var(--handheld-border-bright);
+  font-size: 18px;
 }
 .header-volts {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   color: var(--handheld-border-bright);
-  background: rgba(0, 255, 102, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--handheld-border);
+  background: rgba(0, 255, 102, 0.15);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--handheld-border-bright);
 }
 
-/* 2. Scrollable Dialogue Card Stream */
+/* 2. Scrollable Dialogue Stream */
 .handheld-stream {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Dialogue Cards */
 .dialogue-card {
   background-color: var(--handheld-card-bg);
-  border: 1.5px solid var(--handheld-border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  font-size: 17px;
-  line-height: 1.55;
+  border: 2px solid var(--handheld-border);
+  border-radius: 12px;
+  padding: 18px;
+  font-size: 19px;
+  line-height: 1.5;
   color: var(--handheld-text);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
 }
 .dialogue-card.entity-card {
-  border-left: 5px solid var(--handheld-border-bright);
+  border-left: 6px solid var(--handheld-border-bright);
 }
 .dialogue-card.player-card {
   align-self: flex-end;
-  background-color: #061e0e;
-  border: 1.5px solid var(--handheld-border-bright);
+  background-color: #0d3819;
+  border: 2px solid var(--handheld-border-bright);
   color: #ffffff;
-  max-width: 85%;
+  max-width: 90%;
   font-weight: bold;
 }
 
 .speaker-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 1px;
   color: var(--handheld-border-bright);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 .card-body {
@@ -113,41 +116,41 @@ html, body {
   word-break: break-word;
 }
 
-/* 3. Thumb-Zone Action Bay (Bottom 40%) */
+/* 3. Thumb-Zone Dock */
 .handheld-thumb-dock {
   background-color: #020703;
-  border-top: 2px solid var(--handheld-border);
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 8px));
+  border-top: 2px solid var(--handheld-border-bright);
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 12px));
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .thumb-button-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn-thumb-choice {
   width: 100%;
-  min-height: 52px;
+  min-height: 60px;
   background-color: var(--handheld-btn-bg);
-  border: 2px solid var(--handheld-border-bright);
-  border-radius: 8px;
+  border: 2.5px solid var(--handheld-border-bright);
+  border-radius: 10px;
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 900;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 10px 14px;
+  padding: 12px 16px;
   cursor: pointer;
   touch-action: manipulation;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 .btn-thumb-choice:active {
   background-color: var(--handheld-btn-active);
@@ -158,22 +161,22 @@ html, body {
 .quick-tools-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 .btn-sub-tool {
-  min-height: 44px;
-  background-color: #061309;
-  border: 1.5px solid var(--handheld-border);
-  border-radius: 6px;
-  color: var(--handheld-text-dim);
-  font-size: 13px;
-  font-weight: 700;
+  min-height: 52px;
+  background-color: #081a0e;
+  border: 2px solid var(--handheld-border);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
   cursor: pointer;
   touch-action: manipulation;
 }
 .btn-sub-tool:active {
-  background-color: var(--handheld-border);
-  color: #ffffff;
+  background-color: var(--handheld-border-bright);
+  color: #000000;
 }
 
 /* 4. Full-Screen Cypher-Wheel Slide-Over */
@@ -183,33 +186,33 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.94);
+  background-color: rgba(0, 0, 0, 0.96);
   z-index: 100;
   display: none;
   flex-direction: column;
-  padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 8px));
+  padding: 24px 16px calc(20px + env(safe-area-inset-bottom, 12px));
 }
 .tool-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid var(--handheld-border-bright);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
 }
 .tool-modal-title {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 900;
   color: var(--handheld-border-bright);
 }
 .btn-close-modal {
-  background: none;
-  border: 1.5px solid var(--handheld-border);
-  border-radius: 4px;
-  color: var(--handheld-text);
-  font-size: 14px;
-  font-weight: 800;
-  padding: 6px 12px;
+  background: #0d2614;
+  border: 2px solid var(--handheld-border-bright);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+  padding: 8px 16px;
 }
 
 .wheel-rotor-box {
@@ -218,18 +221,18 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 .wheel-rotor-strip {
   width: 100%;
   background-color: #08170c;
   border: 2px solid var(--handheld-border);
-  border-radius: 8px;
-  padding: 16px 12px;
+  border-radius: 10px;
+  padding: 18px 10px;
   text-align: center;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   color: var(--handheld-amber);
 }
 .wheel-rotor-strip.active-outer {
