@@ -53,9 +53,6 @@
       --carrier-color: #00e5ff;
     }
 
-    /* =========================================================
-       2. MASTER CHASSIS & BEZEL
-       ========================================================= */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -72,16 +69,17 @@
       overflow: hidden;
     }
 
+    /* Responsive Housing: Fits both widescreen desktops and Tesla split-screen */
     .crt-enclosure {
-      width: 1160px;
-      max-width: 96vw;
-      height: 840px;
-      max-height: 95vh;
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      max-height: 98vh;
       background: var(--shell-bg);
-      border: 6px solid var(--shell-border);
-      border-radius: 20px;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
-      padding: 22px 26px 26px;
+      border: 4px solid var(--shell-border);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.95);
+      padding: 12px 14px 14px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -93,52 +91,53 @@
     .crt-glass-screen {
       flex: 1;
       background-color: var(--screen-bg);
-      border-radius: 10px;
+      border-radius: 8px;
       border: 2px solid var(--panel-border);
       box-shadow: var(--box-glow);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      padding: 14px;
-      gap: 12px;
+      padding: 10px;
+      gap: 10px;
       position: relative;
       backdrop-filter: blur(10px);
-      transition: var(--transition-smooth);
+      min-height: 0;
     }
 
-    /* =========================================================
-       3. CONSOLE GRID & PANELS
-       ========================================================= */
+    /* Console Banner with Wrapping Support */
     .console-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       background: var(--panel-bg);
       border: 1.5px solid var(--panel-border-glow);
-      padding: 10px 16px;
+      padding: 8px 12px;
       border-radius: var(--corner-radius);
       flex-shrink: 0;
-      transition: var(--transition-smooth);
     }
     .console-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       color: var(--text-accent);
     }
     .console-badges {
       display: flex;
-      gap: 10px;
-      font-size: 12px;
+      gap: 8px;
+      font-size: 11px;
       font-weight: 700;
       align-items: center;
+      flex-wrap: wrap;
     }
     .badge-item {
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: var(--corner-radius);
       border: 1.5px solid var(--panel-border);
       background: rgba(255, 255, 255, 0.04);
       color: var(--text-accent);
+      white-space: nowrap;
     }
     .btn-personality-flip {
       background: var(--text-accent);
@@ -148,17 +147,29 @@
       font-family: inherit;
       font-size: 11px;
       font-weight: 900;
-      padding: 5px 12px;
+      padding: 5px 10px;
       cursor: pointer;
       box-shadow: 0 0 10px var(--text-accent);
+      white-space: nowrap;
     }
 
+    /* Fluid Adaptive Grid */
     .console-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: 270px 1fr 290px;
-      gap: 12px;
+      grid-template-columns: minmax(180px, 1fr) minmax(320px, 2fr) minmax(200px, 1.1fr);
+      gap: 10px;
       min-height: 0;
+    }
+
+    /* Split-View / Tesla Adaptation (When viewport drops below 960px) */
+    @media (max-width: 960px) {
+      .console-grid {
+        grid-template-columns: minmax(300px, 1.8fr) minmax(220px, 1.2fr);
+      }
+      .crt-panel.matrix-pane {
+        display: none;
+      }
     }
 
     .crt-panel {
@@ -168,7 +179,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: var(--transition-smooth);
+      min-width: 0;
     }
     .crt-panel.primary-monitor {
       border-color: var(--panel-border-glow);
@@ -176,8 +187,8 @@
 
     .panel-header {
       background: rgba(0, 0, 0, 0.35);
-      padding: 9px 12px;
-      font-size: 12px;
+      padding: 8px 10px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.8px;
       color: var(--text-accent);
@@ -185,26 +196,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Left Matrix */
     .matrix-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      padding: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+      padding: 8px;
     }
     .sector-cell {
       background: rgba(0, 0, 0, 0.4);
       border: 1.5px solid var(--panel-border);
       border-radius: var(--corner-radius);
-      padding: 8px 2px;
+      padding: 6px 2px;
       text-align: center;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       cursor: pointer;
       color: var(--text-accent);
-      transition: all 0.15s ease;
     }
     .sector-cell:hover {
       border-color: var(--panel-border-glow);
@@ -212,10 +226,10 @@
     }
 
     .telemetry-block {
-      padding: 12px;
+      padding: 10px;
       border-top: 1px dashed var(--panel-border);
-      font-size: 12px;
-      line-height: 1.6;
+      font-size: 11px;
+      line-height: 1.5;
       color: var(--text-main);
     }
 
@@ -223,11 +237,12 @@
     .main-log-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
-      font-size: 14.5px;
-      line-height: 1.55;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      line-height: 1.5;
       white-space: pre-wrap;
       word-break: break-word;
+      min-width: 0;
     }
     .line-dim { color: var(--text-main); }
     .line-bright { color: var(--text-accent); font-weight: 800; }
@@ -237,14 +252,15 @@
     .desktop-cli-tray {
       border-top: 1.5px solid var(--panel-border);
       background: rgba(0, 0, 0, 0.3);
-      padding: 10px 12px;
+      padding: 8px 10px;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
+      flex-shrink: 0;
     }
     .cli-prompt {
       color: var(--text-accent);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
     }
     .cli-desktop-input {
@@ -254,9 +270,10 @@
       border-radius: var(--corner-radius);
       color: #ffffff;
       font-family: inherit;
-      font-size: 14px;
-      padding: 8px 12px;
+      font-size: 13px;
+      padding: 6px 10px;
       outline: none;
+      min-width: 0;
     }
     .cli-desktop-input:focus {
       border-color: var(--panel-border-glow);
@@ -267,23 +284,24 @@
       border: none;
       border-radius: var(--corner-radius);
       font-family: inherit;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
-      padding: 9px 18px;
+      padding: 7px 14px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     /* Right Scope & Waypoint */
     .tactical-display-body {
-      padding: 12px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       flex: 1;
       overflow-y: auto;
     }
     .frequency-scope {
-      height: 80px;
+      height: 60px;
       background: rgba(0, 0, 0, 0.5);
       border: 1.5px solid var(--panel-border);
       border-radius: var(--corner-radius);
@@ -291,6 +309,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      flex-shrink: 0;
     }
     .carrier-wave {
       width: 100%;
@@ -309,16 +328,16 @@
       background: rgba(0, 0, 0, 0.3);
       border: 1.5px solid var(--panel-border);
       border-radius: var(--corner-radius);
-      padding: 10px 12px;
+      padding: 8px 10px;
     }
     .waypoint-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 900;
       color: var(--text-highlight);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .waypoint-coords {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
       color: #ffffff;
     }
@@ -326,8 +345,9 @@
     .macro-board {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      gap: 6px;
       margin-top: auto;
+      flex-shrink: 0;
     }
     .btn-macro-tile {
       background: rgba(0, 0, 0, 0.4);
@@ -335,12 +355,12 @@
       border-radius: var(--corner-radius);
       color: var(--text-accent);
       font-family: inherit;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
-      padding: 10px 6px;
+      padding: 8px 4px;
       cursor: pointer;
       text-align: center;
-      transition: all 0.15s ease;
+      white-space: nowrap;
     }
     .btn-macro-tile:hover {
       border-color: var(--panel-border-glow);
@@ -350,12 +370,12 @@
 
     .bezel-badge {
       text-align: center;
-      font-size: 11px;
-      letter-spacing: 2px;
+      font-size: 10px;
+      letter-spacing: 1.5px;
       color: var(--text-accent);
       opacity: 0.6;
       font-weight: 900;
-      margin-top: 8px;
+      margin-top: 6px;
     }
   </style>
 </head>
@@ -378,8 +398,8 @@
       <!-- 3-Pane Center Grid -->
       <div class="console-grid">
 
-        <!-- LEFT: Shop Ladder / Acme Gadget Inspector -->
-        <aside class="crt-panel">
+        <!-- LEFT: Shop Ladder / Acme Gadget Inspector (Collapses gracefully on small/split view) -->
+        <aside class="crt-panel matrix-pane">
           <div class="panel-header">
             <span id="left-panel-title">RELAY LADDER JIG</span>
             <span id="matrix-status-label" style="font-size: 10px; color: var(--text-accent);">LOCKED</span>
