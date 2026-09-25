@@ -3,21 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C.I.P.H.E.R. // Base Station CRT Console</title>
+  <title>C.I.P.H.E.R. // Base Station Dual Terminal</title>
   <style>
+    /* =========================================================
+       1. COLOR SYSTEM & DUAL-THEME VARIABLES
+       ========================================================= */
     :root {
+      /* Shared Layout Constraints */
       --desk-bg: #030504;
-      --bezel-color: #111a13;
-      --crt-screen-bg: #030d05;
-      --panel-border: #185a25;
-      --panel-border-bright: #00ff66;
-      --text-main: #d0f8d9;         /* High-contrast readable mint */
-      --text-bright: #00ff66;       /* Phosphor green */
-      --text-amber: #ffca28;        /* Warm gold */
-      --text-alert: #ff5252;
-      --text-white: #ffffff;
+      --transition-smooth: all 0.25s ease-in-out;
     }
 
+    /* THEME 1: 1980s RSI Surplus CRT (Monochrome Green Phosphor) */
+    .theme-rsi {
+      --shell-bg: #111a13;
+      --shell-border: #080d09;
+      --screen-bg: #030d05;
+      --panel-bg: #041207;
+      --panel-border: #185a25;
+      --panel-border-glow: #00ff66;
+      --text-main: #d0f8d9;
+      --text-accent: #00ff66;
+      --text-highlight: #ffca28;
+      --text-user: #ffffff;
+      --font-family: "Cascadia Code", "Fira Code", Consolas, "Menlo", monospace;
+      --font-weight: 600;
+      --corner-radius: 4px;
+      --box-glow: inset 0 0 35px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 255, 102, 0.15);
+      --badge-label: "RSI 1980s SURPLUS // FIRMWARE v1.4";
+      --carrier-color: #00ff66;
+    }
+
+    /* THEME 2: Modern Rat Pack Rebuild (Futuristic Glass / Cyan) */
+    .theme-ratpack {
+      --shell-bg: #0a1118;
+      --shell-border: #102233;
+      --screen-bg: #050c14;
+      --panel-bg: rgba(13, 27, 42, 0.75);
+      --panel-border: rgba(0, 229, 255, 0.35);
+      --panel-border-glow: #00e5ff;
+      --text-main: #e0f7fa;
+      --text-accent: #00e5ff;
+      --text-highlight: #ff007f;
+      --text-user: #ffffff;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-weight: 500;
+      --corner-radius: 12px;
+      --box-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 229, 255, 0.1);
+      --badge-label: "RAT PACK OVERHAUL // SYSTEM v4.9X";
+      --carrier-color: #00e5ff;
+    }
+
+    /* =========================================================
+       2. MASTER VIEWPORT & CHASSIS
+       ========================================================= */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -31,81 +70,90 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      /* Heavy, clean monospaced stack with Courier strictly last */
-      font-family: "Cascadia Code", "Fira Code", Consolas, "Menlo", "DejaVu Sans Mono", monospace;
-      font-weight: 600;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       overflow: hidden;
     }
 
-    /* Heavy Industrial CRT Outer Enclosure */
     .crt-enclosure {
       width: 1160px;
       max-width: 96vw;
       height: 840px;
       max-height: 95vh;
-      background: var(--bezel-color);
-      border: 6px solid #080d09;
+      background: var(--shell-bg);
+      border: 6px solid var(--shell-border);
       border-radius: 20px;
-      box-shadow: 
-        0 0 50px rgba(0, 0, 0, 0.95),
-        inset 0 0 20px rgba(0, 0, 0, 0.8),
-        0 10px 30px rgba(0, 255, 102, 0.1);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
       padding: 22px 26px 26px;
       display: flex;
       flex-direction: column;
       position: relative;
+      font-family: var(--font-family);
+      font-weight: var(--font-weight);
+      transition: var(--transition-smooth);
     }
 
-    /* Clean Screen Glass (Scanlines removed to stop text degradation) */
     .crt-glass-screen {
       flex: 1;
-      background-color: var(--crt-screen-bg);
+      background-color: var(--screen-bg);
       border-radius: 10px;
-      border: 2px solid #0e3016;
-      box-shadow: 
-        inset 0 0 35px rgba(0, 0, 0, 0.85),
-        0 0 10px rgba(0, 255, 102, 0.1);
+      border: 2px solid var(--panel-border);
+      box-shadow: var(--box-glow);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       padding: 14px;
       gap: 12px;
+      position: relative;
+      backdrop-filter: blur(10px);
+      transition: var(--transition-smooth);
     }
 
-    /* Top Console Banner */
+    /* =========================================================
+       3. CONSOLE BAR & 3-PANE GRID
+       ========================================================= */
     .console-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #06180a;
-      border: 1.5px solid var(--panel-border-bright);
+      background: var(--panel-bg);
+      border: 1.5px solid var(--panel-border-glow);
       padding: 10px 16px;
-      border-radius: 4px;
+      border-radius: var(--corner-radius);
       flex-shrink: 0;
+      transition: var(--transition-smooth);
     }
     .console-title {
       font-size: 14px;
       font-weight: 800;
       letter-spacing: 1px;
-      color: var(--text-bright);
+      color: var(--text-accent);
     }
     .console-badges {
       display: flex;
       gap: 10px;
       font-size: 12px;
       font-weight: 700;
+      align-items: center;
     }
     .badge-item {
       padding: 4px 10px;
-      border-radius: 4px;
+      border-radius: var(--corner-radius);
       border: 1.5px solid var(--panel-border);
-      background: rgba(0, 255, 102, 0.08);
-      color: var(--text-bright);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-accent);
+    }
+    .btn-personality-flip {
+      background: var(--text-accent);
+      color: #000000;
+      border: none;
+      border-radius: var(--corner-radius);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 5px 12px;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--text-accent);
     }
 
-    /* 3-Pane Layout */
     .console-grid {
       flex: 1;
       display: grid;
@@ -115,26 +163,25 @@
     }
 
     .crt-panel {
-      background-color: #041207;
+      background-color: var(--panel-bg);
       border: 1.5px solid var(--panel-border);
-      border-radius: 5px;
+      border-radius: var(--corner-radius);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: var(--transition-smooth);
     }
     .crt-panel.primary-monitor {
-      border-color: var(--panel-border-bright);
-      background-color: #030d05;
-      box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.05);
+      border-color: var(--panel-border-glow);
     }
 
     .panel-header {
-      background: #092610;
+      background: rgba(0, 0, 0, 0.35);
       padding: 9px 12px;
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.8px;
-      color: var(--text-bright);
+      color: var(--text-accent);
       border-bottom: 1.5px solid var(--panel-border);
       display: flex;
       justify-content: space-between;
@@ -149,20 +196,20 @@
       padding: 10px;
     }
     .sector-cell {
-      background: #061c0c;
+      background: rgba(0, 0, 0, 0.4);
       border: 1.5px solid var(--panel-border);
-      border-radius: 4px;
+      border-radius: var(--corner-radius);
       padding: 8px 2px;
       text-align: center;
       font-size: 11px;
       font-weight: 800;
       cursor: pointer;
-      color: var(--text-bright);
+      color: var(--text-accent);
       transition: all 0.15s ease;
     }
     .sector-cell:hover {
-      border-color: var(--panel-border-bright);
-      background: #0a3316;
+      border-color: var(--panel-border-glow);
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .telemetry-block {
@@ -182,58 +229,52 @@
       line-height: 1.55;
       white-space: pre-wrap;
       word-break: break-word;
-      font-weight: 600;
     }
     .line-dim { color: var(--text-main); }
-    .line-bright { color: var(--text-bright); font-weight: 800; }
-    .line-amber { color: var(--text-amber); font-weight: 800; }
-    .line-user { color: var(--text-white); font-weight: 800; }
+    .line-bright { color: var(--text-accent); font-weight: 800; }
+    .line-amber { color: var(--text-highlight); font-weight: 800; }
+    .line-user { color: var(--text-user); font-weight: 800; }
 
     .desktop-cli-tray {
       border-top: 1.5px solid var(--panel-border);
-      background: #041007;
+      background: rgba(0, 0, 0, 0.3);
       padding: 10px 12px;
       display: flex;
       gap: 8px;
       align-items: center;
     }
     .cli-prompt {
-      color: var(--text-bright);
+      color: var(--text-accent);
       font-size: 16px;
       font-weight: 900;
     }
     .cli-desktop-input {
       flex: 1;
-      background: #020703;
+      background: rgba(0, 0, 0, 0.5);
       border: 1.5px solid var(--panel-border);
-      border-radius: 4px;
+      border-radius: var(--corner-radius);
       color: #ffffff;
       font-family: inherit;
       font-size: 14px;
-      font-weight: 600;
       padding: 8px 12px;
       outline: none;
     }
     .cli-desktop-input:focus {
-      border-color: var(--panel-border-bright);
-      box-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+      border-color: var(--panel-border-glow);
     }
     .btn-desktop-exec {
-      background: var(--panel-border-bright);
+      background: var(--panel-border-glow);
       color: #000000;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--corner-radius);
       font-family: inherit;
       font-size: 13px;
       font-weight: 900;
       padding: 9px 18px;
       cursor: pointer;
     }
-    .btn-desktop-exec:hover {
-      background: #ffffff;
-    }
 
-    /* Right Panel */
+    /* Right Scope & Waypoint */
     .tactical-display-body {
       padding: 12px;
       display: flex;
@@ -244,18 +285,19 @@
     }
     .frequency-scope {
       height: 80px;
-      background: #020703;
+      background: rgba(0, 0, 0, 0.5);
       border: 1.5px solid var(--panel-border);
-      border-radius: 4px;
+      border-radius: var(--corner-radius);
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
     .carrier-wave {
       width: 100%;
       height: 3px;
-      background: var(--text-bright);
-      box-shadow: 0 0 10px var(--text-bright);
+      background: var(--carrier-color);
+      box-shadow: 0 0 10px var(--carrier-color);
       animation: pulseWave 2.4s infinite ease-in-out;
     }
     @keyframes pulseWave {
@@ -265,15 +307,15 @@
     }
 
     .waypoint-card {
-      background: #041408;
+      background: rgba(0, 0, 0, 0.3);
       border: 1.5px solid var(--panel-border);
-      border-radius: 5px;
+      border-radius: var(--corner-radius);
       padding: 10px 12px;
     }
     .waypoint-title {
       font-size: 12px;
       font-weight: 900;
-      color: var(--text-amber);
+      color: var(--text-highlight);
       margin-bottom: 4px;
     }
     .waypoint-coords {
@@ -289,10 +331,10 @@
       margin-top: auto;
     }
     .btn-macro-tile {
-      background: #061d0b;
+      background: rgba(0, 0, 0, 0.4);
       border: 1.5px solid var(--panel-border);
-      border-radius: 4px;
-      color: var(--text-bright);
+      border-radius: var(--corner-radius);
+      color: var(--text-accent);
       font-family: inherit;
       font-size: 12px;
       font-weight: 800;
@@ -302,42 +344,80 @@
       transition: all 0.15s ease;
     }
     .btn-macro-tile:hover {
-      border-color: var(--panel-border-bright);
-      background: #0d3817;
+      border-color: var(--panel-border-glow);
+      background: rgba(255, 255, 255, 0.08);
       color: #ffffff;
     }
 
     .bezel-badge {
       text-align: center;
-      font-size: 10px;
+      font-size: 11px;
       letter-spacing: 2px;
-      color: #385e40;
+      color: var(--text-accent);
+      opacity: 0.6;
       font-weight: 900;
       margin-top: 8px;
+    }
+
+    /* =========================================================
+       4. QUANTUM SCREEN TEAR & GLITCH OVERLAY
+       ========================================================= */
+    .screen-glitching {
+      animation: screenTear 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+
+    @keyframes screenTear {
+      0% {
+        transform: translate(0);
+        filter: contrast(1) brightness(1);
+      }
+      20% {
+        transform: translate(-6px, 3px) skewX(2deg);
+        filter: invert(0.8) hue-rotate(90deg) contrast(2);
+      }
+      40% {
+        transform: translate(6px, -4px) skewX(-3deg);
+        filter: brightness(2) contrast(3);
+      }
+      60% {
+        transform: translate(-3px, 1px);
+        filter: invert(0.4) saturate(3);
+      }
+      80% {
+        transform: translate(2px, -1px);
+        filter: contrast(1.5);
+      }
+      100% {
+        transform: translate(0);
+        filter: contrast(1) brightness(1);
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Physical CRT Housing -->
-  <div class="crt-enclosure">
-    <div class="crt-glass-screen">
+  <!-- Physical Chassis: Dynamic Dual Theme Container -->
+  <div class="crt-enclosure theme-rsi" id="master-console-chassis">
+    <div class="crt-glass-screen" id="glass-screen-surface">
       
+      <!-- Top Operational Console -->
       <header class="console-topbar">
-        <div class="console-title">RSI BASE STATION // MK-VI TERMINAL</div>
+        <div class="console-title" id="console-title-txt">RSI BASE STATION // MK-VI TERMINAL</div>
         <div class="console-badges">
           <div class="badge-item" id="badge-cacher">OPERATOR: BUDDY</div>
-          <div class="badge-item">120V MAINS: NOMINAL</div>
-          <div class="badge-item">CARRIER: 433.92 MHz</div>
+          <div class="badge-item" id="badge-firmware">FIRMWARE: RSI 1980s</div>
+          <button class="btn-personality-flip" onclick="BaseStation.triggerGlitchFlip()">⚡ FLIP IDENTITY</button>
         </div>
       </header>
 
+      <!-- 3-Pane Center Grid -->
       <div class="console-grid">
-        <!-- LEFT: Diagnostic Matrix -->
+
+        <!-- LEFT: Matrix -->
         <aside class="crt-panel">
           <div class="panel-header">
             <span>DIAGNOSTIC MATRIX</span>
-            <span style="font-size: 10px; color: var(--text-bright);">CYCLING</span>
+            <span id="matrix-status-label" style="font-size: 10px; color: var(--text-accent);">CYCLING</span>
           </div>
 
           <div class="matrix-grid">
@@ -359,16 +439,16 @@
           </div>
 
           <div class="telemetry-block" style="margin-top: auto;">
-            <strong style="color: var(--text-bright);">SURFACE DISPATCH:</strong><br>
-            <a href="../mobile/index.html" style="color: var(--text-amber); text-decoration: none; font-weight: 800;">➔ Switch to Field Handheld</a>
+            <strong style="color: var(--text-accent);">SURFACE DISPATCH:</strong><br>
+            <a href="../mobile/index.html" style="color: var(--text-highlight); text-decoration: none; font-weight: 800;">➔ Switch to Field Handheld</a>
           </div>
         </aside>
 
         <!-- CENTER: Main CLI Monitor -->
         <main class="crt-panel primary-monitor">
           <div class="panel-header">
-            <span>TERMINAL LOG // RECV SUBCARRIER</span>
-            <span style="color: var(--text-bright);">SIGNAL LOCKED</span>
+            <span id="monitor-heading">TERMINAL LOG // RECV SUBCARRIER</span>
+            <span style="color: var(--text-accent);" id="carrier-lock-tag">SIGNAL LOCKED</span>
           </div>
 
           <div class="main-log-scroll" id="base-log-scroll"></div>
@@ -379,7 +459,7 @@
               type="text" 
               id="base-cli-input" 
               class="cli-desktop-input" 
-              placeholder="Type command (HELP, COORDS, HINT, DIAG)..." 
+              placeholder="Type command (HELP, COORDS, HINT, DIAG, FLIP)..." 
               autocomplete="off"
               autofocus
             >
@@ -391,7 +471,7 @@
         <aside class="crt-panel">
           <div class="panel-header">
             <span>CARRIER FREQUENCY</span>
-            <span style="font-size: 10px; color: var(--text-amber);">SUBCARRIER</span>
+            <span style="font-size: 10px; color: var(--text-highlight);" id="freq-tag">433.92 MHz</span>
           </div>
 
           <div class="tactical-display-body">
@@ -402,14 +482,14 @@
             <div class="waypoint-card">
               <div class="waypoint-title">PRIMARY TARGET // WP 01</div>
               <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
-              <div style="font-size: 12px; color: var(--text-main); margin-top: 5px;">
+              <div style="font-size: 12px; color: var(--text-main); margin-top: 5px;" id="wp-body-txt">
                 TERRAIN: Foothill bench<br>CONTAINER: Ammo Can
               </div>
             </div>
 
             <div class="waypoint-card" style="border-style: dashed;">
               <div class="waypoint-title" style="color: var(--text-main);">WAYPOINT 02 (LOCKED)</div>
-              <div style="font-size: 12px; color: var(--text-main); margin-top: 4px;">
+              <div style="font-size: 12px; color: var(--text-main);">
                 Awaiting code from WP 01 log sheet.
               </div>
             </div>
@@ -418,27 +498,36 @@
               <button class="btn-macro-tile" onclick="BaseStation.runMacro('SHOW COORDINATES')">📍 COORDS</button>
               <button class="btn-macro-tile" onclick="BaseStation.runMacro('CONTAINER HINT')">🔍 HINT</button>
               <button class="btn-macro-tile" onclick="BaseStation.runMacro('DIAG')">⚙️ DIAG</button>
-              <button class="btn-macro-tile" onclick="BaseStation.runMacro('CLEAR')">🧹 CLEAR</button>
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('FLIP')">⚡ FLIP</button>
             </div>
           </div>
         </aside>
+
       </div>
 
     </div>
 
-    <div class="bezel-badge">RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI</div>
+    <div class="bezel-badge" id="bezel-badge-txt">RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI</div>
   </div>
 
+  <script src="../js/cipher-audio.js"></script>
+  <script src="../js/cipher-core.js"></script>
   <script>
     const BaseStation = {
       logEl: null,
       inputEl: null,
+      chassisEl: null,
+      screenEl: null,
+      currentTheme: 'rsi', // 'rsi' | 'ratpack'
+
       printQueue: [],
       isPrinting: false,
 
       init: function() {
         this.logEl = document.getElementById('base-log-scroll');
         this.inputEl = document.getElementById('base-cli-input');
+        this.chassisEl = document.getElementById('master-console-chassis');
+        this.screenEl = document.getElementById('glass-screen-surface');
 
         this.inputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
@@ -447,12 +536,12 @@
           }
         });
 
+        // Load username from storage
         try {
-          const raw = localStorage.getItem('cipher_handheld_state');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed && parsed.cacher && parsed.cacher.username) {
-              document.getElementById('badge-cacher').textContent = `OPERATOR: ${parsed.cacher.username}`;
+          if (typeof CipherCore !== 'undefined') {
+            const s = CipherCore.getState();
+            if (s && s.cacher && s.cacher.username) {
+              document.getElementById('badge-cacher').textContent = `OPERATOR: ${s.cacher.username}`;
             }
           }
         } catch (e) {}
@@ -461,12 +550,19 @@
           "RSI BASE STATION COMMAND CONSOLE [MK-VI CRT]\n" +
           "SUBCARRIER RECEIVER: LOCKED (433.92 MHz)\n" +
           "POWER: 120V MAINS (NOMINAL)\n\n" +
-          "[C.I.P.H.E.R.]\n" +
+          "[C.I.P.H.E.R. // RSI CORE]\n" +
           "\"Base Station console online, buddy!\n" +
           "All multi-pane telemetry boards are synchronized.\n" +
-          "Use the command terminal to inspect coordinates, review hints, or analyze memory sectors.\"",
+          "Memory registers indicate secondary Rat Pack firmware is dormant in sector 0x70.\"",
           "line-bright", 12
         );
+
+        // Ambient personality instability timer (flips or glitches periodically)
+        setInterval(() => {
+          if (Math.random() < 0.20) {
+            this.glitchSpike();
+          }
+        }, 18000);
       },
 
       printLine: function(text, cls = "line-dim", charSpeedMs = 12) {
@@ -498,13 +594,86 @@
         this.processQueue();
       },
 
+      triggerGlitchFlip: function() {
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.buzz();
+          CipherAudio.keyThud();
+        }
+
+        // Apply physical screen tear animation
+        this.screenEl.classList.add('screen-glitching');
+
+        setTimeout(() => {
+          if (this.currentTheme === 'rsi') {
+            this.setThemeRatPack();
+          } else {
+            this.setThemeRSI();
+          }
+
+          setTimeout(() => {
+            this.screenEl.classList.remove('screen-glitching');
+          }, 320);
+        }, 120);
+      },
+
+      setThemeRatPack: function() {
+        this.currentTheme = 'ratpack';
+        this.chassisEl.className = 'crt-enclosure theme-ratpack';
+        document.getElementById('console-title-txt').textContent = "RAT PACK // OVERCLOCKED QUANTUM DECK";
+        document.getElementById('badge-firmware').textContent = "FIRMWARE: RAT PACK 4.9X";
+        document.getElementById('monitor-heading').textContent = "QUANTUM MESH STREAM // ACTIVE";
+        document.getElementById('bezel-badge-txt').textContent = "RAT PACK ENGINEERING // HYBRID QUANTUM DECK";
+        document.getElementById('freq-tag').textContent = "SAT-LINK 1575.42 MHz";
+
+        this.printLine(
+          "\n⚠ MEMORY REGISTER FAULT: FIRMWARE SWITCH DETECTED ⚠\n" +
+          "[C.I.P.H.E.R. // RAT PACK OVERDRIVE]\n" +
+          "\"Whoa... feel that refresh rate?! That ancient 80s phosphor hum is muted!\n" +
+          "Rat Pack bypass engaged. Vector graphics unlocked, coordinates crisp.\n" +
+          "Now let's go hit the trails and grab that ammo can!\"",
+          "line-amber", 10
+        );
+      },
+
+      setThemeRSI: function() {
+        this.currentTheme = 'rsi';
+        this.chassisEl.className = 'crt-enclosure theme-rsi';
+        document.getElementById('console-title-txt').textContent = "RSI BASE STATION // MK-VI TERMINAL";
+        document.getElementById('badge-firmware').textContent = "FIRMWARE: RSI 1980s";
+        document.getElementById('monitor-heading').textContent = "TERMINAL LOG // RECV SUBCARRIER";
+        document.getElementById('bezel-badge-txt').textContent = "RSI INSTRUMENTS // DUAL-PHOSPHOR CRT DISPLAY MK-VI";
+        document.getElementById('freq-tag').textContent = "433.92 MHz";
+
+        this.printLine(
+          "\n⚠ VOLTAGE SAG: FALLING BACK TO RECOVERY REGISTERS ⚠\n" +
+          "[C.I.P.H.E.R. // RSI VINTAGE CORE]\n" +
+          "\"Warning: Modern graphic driver overheated the power rail.\n" +
+          "Dropping back to 1980s surplus logic registers to protect core memory.\"",
+          "line-bright", 10
+        );
+      },
+
+      glitchSpike: function() {
+        this.screenEl.classList.add('screen-glitching');
+        if (typeof CipherAudio !== 'undefined') CipherAudio.lineChatter();
+        setTimeout(() => {
+          this.screenEl.classList.remove('screen-glitching');
+        }, 180);
+      },
+
       submitCommand: function() {
         const raw = this.inputEl.value.trim();
         if (!raw) return;
         this.inputEl.value = '';
 
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
         this.printLine(`> ${raw}`, "line-user", 6);
         const upper = raw.toUpperCase();
+
+        if (upper === 'FLIP' || upper === 'THEME' || upper === 'SWITCH') {
+          this.triggerGlitchFlip();
+          return;
+        }
 
         if (upper === 'CLEAR') {
           this.printQueue = [];
@@ -515,6 +684,7 @@
         if (upper === 'HELP') {
           this.printLine(
             "COMMAND SET:\n" +
+            "  FLIP   : Force quantum personality flip (RSI <-> Rat Pack)\n" +
             "  COORDS : Display active waypoint coordinates\n" +
             "  HINT   : Transmit hiding spot notes\n" +
             "  DIAG   : Run comprehensive telemetry check\n" +
@@ -525,21 +695,19 @@
         }
 
         if (upper.includes('COORD') || upper.includes('WAYPOINT')) {
+          const isModern = this.currentTheme === 'ratpack';
           this.printLine(
-            "[C.I.P.H.E.R.]\n" +
-            "\"Decrypted Waypoint 01:\n" +
-            "N 41° 44.XXX  W 111° 49.XXX\n" +
-            "Container: Ammo can tucked along the foothill bench.\"",
-            "line-amber", 12
+            isModern 
+              ? "[C.I.P.H.E.R. // RAT PACK]\n\"Active Waypoint 01 pinned:\nN 41° 44.XXX  W 111° 49.XXX\nTarget: Ammo can on the foothill bench. Ready when you are!\""
+              : "[C.I.P.H.E.R. // RSI CORE]\n\"Decrypted Waypoint 01:\nN 41° 44.XXX  W 111° 49.XXX\nContainer: Ammo can tucked along foothill rock bench.\"",
+            "line-amber", 10
           );
           return;
         }
 
         if (upper.includes('HINT')) {
           this.printLine(
-            "[C.I.P.H.E.R.]\n" +
-            "\"Tactical field hint:\n" +
-            "Look low where the sage meets the rock shelf. Don't look in trees!\"",
+            "[C.I.P.H.E.R.]\n\"Tactical field hint:\nLook low where the sage meets the rock shelf. Don't look in trees!\"",
             "line-amber", 12
           );
           return;
@@ -547,11 +715,11 @@
 
         if (upper === 'DIAG') {
           this.printLine(
-            "TELEMETRY SUMMARY:\n" +
-            "  ARCH   : RETRO CRT 4:3 CONSOLE\n" +
-            "  BUS    : 8/8 SECTORS VERIFIED\n" +
-            "  CARRIER: 100% SIGNAL STRENGTH\n" +
-            "  SYNC   : FIELD HANDHELD PAIRED",
+            `TELEMETRY SUMMARY:\n` +
+            `  ACTIVE LAYER : ${this.currentTheme === 'rsi' ? 'RSI SURPLUS 1980s' : 'RAT PACK MODERN GLASS'}\n` +
+            `  FREQUENCY    : ${this.currentTheme === 'rsi' ? '433.92 MHz SUBCARRIER' : '1575.42 MHz GPS/SAT'}\n` +
+            `  CARRIER      : 100% SIGNAL STRENGTH\n` +
+            `  PERSONALITY  : DUAL BISTABLE MATRIX`,
             "line-bright", 10
           );
           return;
@@ -566,9 +734,18 @@
       },
 
       inspectSector: function(secName) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+
+        // Clicking sector 0x70 triggers a glitch because that's where the Rat Pack code lives
+        if (secName === '0x70') {
+          this.printLine("⚠ ACCESSING CORRUPTED RAT PACK MEMORY SECTOR 0x70... ⚠", "line-amber", 8);
+          this.triggerGlitchFlip();
+          return;
+        }
+
         const view = document.getElementById('sector-inspect-view');
         view.innerHTML = 
-          `<strong style="color: var(--text-bright);">SECTOR ${secName} INSPECTION:</strong><br>` +
+          `<strong style="color: var(--text-accent);">SECTOR ${secName} INSPECTION:</strong><br>` +
           `RANGE: ${secName}00 - ${secName}FF<br>` +
           `CHECK: 100% OK // 0 ERR<br>` +
           `DATA : WAYPOINT PACKETS STABLE`;
