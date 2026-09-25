@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>C.I.P.H.E.R. // Field Mission Dashboard</title>
+  <link rel="stylesheet" href="css/cipher-style.css?v=3.80">
+  <style>
+    :root {
+      --crt-bg: #050d07;
+      --crt-text-dim: #7ee787;
+      --crt-text-bright: #00ff66;
+      --crt-text-white: #ffffff;
+      --crt-amber: #ffb300;
+      --crt-alert: #ff5252;
+      --crt-border: #1b5e20;
+      --crt-border-bright: #00e676;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      color: var(--crt-text-dim);
+      font-family: 'Courier New', Courier, monospace;
+      -webkit-font-smoothing: antialiased;
+      box-sizing: border-box;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-viewport-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      background-color: var(--crt-bg);
+      border-left: 1px solid var(--crt-border);
+      border-right: 1px solid var(--crt-border);
+      position: relative;
+    }
+
+    /* Top Operational Header */
+    .terminal-top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background-color: #030804;
+      border-bottom: 1.5px solid var(--crt-border-bright);
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .status-title { color: var(--crt-text-bright); font-weight: 900; }
+    .status-volts { color: var(--crt-text-bright); font-weight: 900; }
+
+    /* Operational Status Bar */
+    .mission-telemetry-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      padding: 8px 10px;
+      background-color: #020603;
+      border-bottom: 1px dashed var(--crt-border);
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .telem-box {
+      border: 1px solid var(--crt-border);
+      border-radius: 4px;
+      padding: 5px;
+      text-align: center;
+      background: rgba(0, 255, 102, 0.05);
+    }
+    .telem-val { color: #ffffff; font-size: 12px; }
+
+    /* Main CRT Viewport */
+    .crt-monitor-frame {
+      flex: 1;
+      margin: 8px 10px;
+      background-color: #020503;
+      border: 2px solid var(--crt-border-bright);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 15px rgba(0, 230, 118, 0.15), 0 0 15px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .crt-monitor-frame::after {
+      content: " ";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .crt-screen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding-right: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Embedded Cypher-Wheel Field Tool Drawer */
+    .cypher-tool-drawer {
+      display: none;
+      background-color: #06150a;
+      border: 1px solid var(--crt-border-bright);
+      border-radius: 4px;
+      padding: 8px;
+      margin: 6px 0;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .wheel-rotor-display {
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: var(--crt-amber);
+      font-weight: 900;
+      padding: 4px 0;
+    }
+
+    /* Typography */
+    .line-dim { color: var(--crt-text-dim); }
+    .line-bright { color: var(--crt-text-bright); font-weight: bold; }
+    .line-white { color: var(--crt-text-white); font-weight: bold; }
+    .line-warn { color: var(--crt-amber); font-weight: bold; }
+    .line-alert { color: var(--crt-alert); font-weight: bold; }
+    .line-glitch { color: #00ff66; font-weight: 900; text-shadow: 0 0 8px #00ff66; }
+
+    /* Tactical Input Dock */
+    .cli-dock-tray {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px dashed var(--crt-border);
+      padding-top: 8px;
+      margin-top: 6px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .cli-input-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cli-prompt-symbol {
+      color: var(--crt-text-bright);
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .cli-text-input {
+      flex: 1;
+      min-height: 44px;
+      background-color: #09170c;
+      border: 1.5px solid var(--crt-border);
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 0 10px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .cli-text-input:focus {
+      border-color: var(--crt-border-bright);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+    }
+
+    .btn-cli-exec {
+      min-height: 44px;
+      background-color: var(--crt-border-bright);
+      color: #000000;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 0 16px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-cli-exec:active { background-color: #ffffff; }
+
+    .cli-macro-keys {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .btn-macro-key {
+      min-height: 40px;
+      background-color: #08170c;
+      border: 1.5px solid var(--crt-border);
+      border-radius: 4px;
+      color: var(--crt-text-bright);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+      padding: 4px;
+      text-align: center;
+    }
+    .btn-macro-key:active {
+      background-color: var(--crt-border-bright);
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport-shell" id="master-shell">
+    <header class="terminal-top-header">
+      <span class="status-title" id="status-user-title">BUDDY ACTIVE</span>
+      <span class="status-volts">POWER: 12.6V STABLE</span>
+    </header>
+
+    <div class="mission-telemetry-bar">
+      <div class="telem-box">
+        <span style="font-size: 9px; color: var(--crt-text-dim);">DEVICE:</span><br>
+        <strong class="telem-val">HANDHELD</strong>
+      </div>
+      <div class="telem-box">
+        <span style="font-size: 9px; color: var(--crt-text-dim);">SIGNAL:</span><br>
+        <strong class="telem-val" style="color: var(--crt-text-bright);">LOCKED 100%</strong>
+      </div>
+      <div class="telem-box">
+        <span style="font-size: 9px; color: var(--crt-text-dim);">TARGET:</span><br>
+        <strong class="telem-val" id="target-telem-txt">WAYPOINT 01</strong>
+      </div>
+    </div>
+
+    <main class="crt-monitor-frame" onclick="MissionTerminal.flushActiveTypewriter()">
+      <div style="font-size: 11px; color: var(--crt-text-bright); font-weight: bold; margin-bottom: 6px; border-bottom: 1px dashed var(--crt-border); padding-bottom: 4px;">
+        MISSION FEED // SIGNAL PACKETS READY
+      </div>
+
+      <div id="cli-screen-log" class="crt-screen-scroll" role="status" aria-live="polite"></div>
+
+      <!-- Quick Cypher-Wheel Field Solver Drawer -->
+      <div id="wheel-drawer" class="cypher-tool-drawer">
+        <div style="font-size: 10px; color: var(--crt-text-dim); margin-bottom: 4px;">FIELD CYPHER-WHEEL ALIGNMENT</div>
+        <div class="wheel-rotor-display" id="wheel-rotor-txt">ROTOR A: [ A B C D E F G H I J K L M ]<br>ROTOR B: [ N O P Q R S T U V W X Y Z ]</div>
+        <button class="btn-macro-key" style="margin-top: 6px; width: 100%; min-height: 32px;" onclick="MissionTerminal.rotateFieldWheel()">ROTATE ROTOR (+1)</button>
+      </div>
+
+      <section class="cli-dock-tray">
+        <form class="cli-input-line" onsubmit="event.preventDefault(); MissionTerminal.submitCommandLine();">
+          <span class="cli-prompt-symbol">&gt;</span>
+          <label for="cli-input-field" class="sr-only" style="position: absolute; width: 1px; height: 1px; overflow: hidden;">Command</label>
+          <input 
+            type="text" 
+            id="cli-input-field" 
+            class="cli-text-input" 
+            placeholder="TYPE COMMAND OR CODE..." 
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            required
+          >
+          <button type="submit" class="btn-cli-exec">
+            EXEC
+          </button>
+        </form>
+
+        <div class="cli-macro-keys" id="macro-keys-container"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/cipher-audio.js"></script>
+  <script src="js/cipher-fx.js"></script>
+  <script src="js/cipher-core.js"></script>
+  <script src="js/cipher-dialog.js"></script>
+  <script>
+    const MissionTerminal = {
+      logEl: null,
+      inputEl: null,
+      buttonsBay: null,
+      wheelDrawerEl: null,
+      rotorOffset: 13,
+
+      printQueue: [],
+      isPrinting: false,
+      skipActiveLine: false,
+
+      init: function() {
+        this.logEl = document.getElementById('cli-screen-log');
+        this.inputEl = document.getElementById('cli-input-field');
+        this.buttonsBay = document.getElementById('macro-keys-container');
+        this.wheelDrawerEl = document.getElementById('wheel-drawer');
+
+        const unlock = () => {
+          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
+        };
+        window.addEventListener('touchstart', unlock, { once: true, passive: true });
+        window.addEventListener('click', unlock, { once: true });
+
+        // Update header with username
+        if (typeof CipherCore !== 'undefined') {
+          const s = CipherCore.getState();
+          if (s && s.cacher && s.cacher.username) {
+            document.getElementById('status-user-title').textContent = `${s.cacher.username} // BUDDY`;
+          }
+        }
+
+        // Initialize dialogue arc
+        const firstStage = CipherDialog.init('MISSION_COMMAND_ARC');
+        if (firstStage) {
+          this.printLine(firstStage.screenText, "line-bright", 16);
+          if (firstStage.buttons) {
+            this.renderButtons(firstStage.buttons);
+          }
+        }
+      },
+
+      flushActiveTypewriter: function() {
+        this.skipActiveLine = true;
+      },
+
+      printLine: function(text, cls = "line-dim", charSpeedMs = 16) {
+        this.printQueue.push({ text, cls, charSpeedMs });
+        if (!this.isPrinting) {
+          this.processQueue();
+        }
+      },
+
+      processQueue: async function() {
+        if (this.printQueue.length === 0) {
+          this.isPrinting = false;
+          return;
+        }
+
+        this.isPrinting = true;
+        const current = this.printQueue.shift();
+        const p = document.createElement('div');
+        p.className = current.cls;
+        this.logEl.appendChild(p);
+
+        this.skipActiveLine = false;
+
+        for (let i = 0; i < current.text.length; i++) {
+          p.textContent += current.text[i];
+          this.logEl.scrollTop = this.logEl.scrollHeight;
+
+          if (!this.skipActiveLine) {
+            await new Promise(r => setTimeout(r, current.charSpeedMs));
+          }
+        }
+
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.lineChatter();
+        }
+
+        await new Promise(r => setTimeout(r, this.skipActiveLine ? 15 : 100));
+        this.processQueue();
+      },
+
+      renderButtons: function(buttonsList) {
+        this.buttonsBay.innerHTML = '';
+        buttonsList.forEach(btn => {
+          const b = document.createElement('button');
+          b.className = 'btn-macro-key';
+          b.textContent = btn.label;
+          b.onclick = () => {
+            this.handleTap(btn.textToSend);
+          };
+          this.buttonsBay.appendChild(b);
+        });
+      },
+
+      handleTap: function(cmd) {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+
+        if (cmd === 'OPEN CYPHER TOOL') {
+          this.toggleWheelDrawer();
+          return;
+        }
+
+        this.inputEl.value = cmd;
+        this.submitCommandLine();
+      },
+
+      submitCommandLine: function() {
+        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+
+        const raw = this.inputEl.value.trim();
+        if (!raw) return;
+        this.inputEl.value = '';
+
+        this.printLine(`> ${raw}`, "line-white", 8);
+
+        // Custom in-page tools
+        if (raw.toUpperCase().includes('CYPHER') || raw.toUpperCase().includes('WHEEL')) {
+          this.toggleWheelDrawer();
+          return;
+        }
+
+        // Process through Conversation Engine
+        const handled = CipherDialog.processInput(raw, this);
+        if (handled) return;
+
+        // Command Fallbacks
+        const upper = raw.toUpperCase();
+        if (upper === 'HELP') {
+          this.printLine(
+            "FIELD COMMANDS:\n" +
+            "  SHOW COORDINATES : Display active waypoint\n" +
+            "  CONTAINER HINT   : Read hiding spot details\n" +
+            "  CYPHER TOOL      : Toggle mechanical cipher rotor\n" +
+            "  DIAG             : Read handheld telemetry",
+            "line-dim", 14
+          );
+          return;
+        }
+
+        if (upper === 'DIAG') {
+          this.printLine(
+            "HANDHELD STATUS: OPTIMAL\n" +
+            "POWER SUPPLY   : 12.6V BALANCED\n" +
+            "SIGNAL         : SUBCARRIER LOCKED (0% STATIC)\n" +
+            "RELATIONSHIP   : CONFIRMED BUDDY",
+            "line-dim", 14
+          );
+          return;
+        }
+
+        this.printLine(`INPUT RECEIVED: "${raw}". Checking signal packets...`, "line-warn", 14);
+      },
+
+      toggleWheelDrawer: function() {
+        const isClosed = this.wheelDrawerEl.style.display === 'none' || !this.wheelDrawerEl.style.display;
+        this.wheelDrawerEl.style.display = isClosed ? 'block' : 'none';
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.wheelTick();
+        }
+      },
+
+      rotateFieldWheel: function() {
+        this.rotorOffset = (this.rotorOffset + 1) % 26;
+        if (typeof CipherAudio !== 'undefined') {
+          CipherAudio.wheelTick();
+        }
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const shifted = alphabet.slice(this.rotorOffset) + alphabet.slice(0, this.rotorOffset);
+        document.getElementById('wheel-rotor-txt').innerHTML = 
+          `ROTOR A: [ ${alphabet.slice(0, 13).split('').join(' ')} ]<br>` +
+          `ROTOR B: [ ${shifted.slice(0, 13).split('').join(' ')} ]`;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      MissionTerminal.init();
+    });
+  </script>
+</body>
+</html>
