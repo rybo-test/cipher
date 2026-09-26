@@ -4,109 +4,470 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>C.I.P.H.E.R. // Field Handheld</title>
-  <link rel="stylesheet" href="css/handheld.css?v=4.1">
+  <link rel="stylesheet" href="css/handheld.css?v=5.0">
+  <style>
+    /* Inline fallback safety styles to guarantee outdoor high-contrast ergonomics */
+    :root {
+      --handheld-bg: #030804;
+      --handheld-card-bg: #091a0c;
+      --handheld-card-border: #185a25;
+      --handheld-text-bright: #00ff66;
+      --handheld-text-dim: #99e6aa;
+      --handheld-amber: #ffb300;
+      --handheld-cyan: #00e5ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--handheld-bg);
+      color: var(--handheld-text-bright);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      font-size: 19px;
+      line-height: 1.45;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .handheld-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Status Bar */
+    .handheld-header {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px calc(10px + env(safe-area-inset-top, 0px));
+      background: #041207;
+      border-bottom: 2px solid var(--handheld-card-border);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      z-index: 20;
+    }
+
+    .header-badge {
+      color: var(--handheld-text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-badge strong {
+      color: #ffffff;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-volts {
+      color: var(--handheld-amber);
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .btn-header-flip {
+      background: var(--handheld-card-border);
+      color: var(--handheld-text-bright);
+      border: 1px solid var(--handheld-text-bright);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      touch-action: manipulation;
+    }
+
+    /* Dialogue Scroll Area */
+    .handheld-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .dialogue-card {
+      background: var(--handheld-card-bg);
+      border: 2px solid var(--handheld-card-border);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    .dialogue-card.entity-card {
+      border-left: 5px solid var(--handheld-text-bright);
+    }
+
+    .dialogue-card.player-card {
+      background: #0f2615;
+      border-color: #2e7d32;
+      border-right: 5px solid var(--handheld-amber);
+      align-self: flex-end;
+      width: 90%;
+      color: #ffffff;
+    }
+
+    .speaker-label {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--handheld-amber);
+      margin-bottom: 6px;
+    }
+
+    .card-body {
+      font-size: 19px;
+      color: #ffffff;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Ergonomic Lower 40% Thumb Dock */
+    .handheld-thumb-dock {
+      flex-shrink: 0;
+      background: #041207;
+      border-top: 2px solid var(--handheld-card-border);
+      padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 12px));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.7);
+      z-index: 20;
+    }
+
+    .thumb-button-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-thumb-choice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 60px;
+      background: #0a2912;
+      color: #ffffff;
+      border: 2px solid var(--handheld-text-bright);
+      border-radius: 10px;
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      cursor: pointer;
+      touch-action: manipulation;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-thumb-choice:active {
+      background: var(--handheld-text-bright);
+      color: #000000;
+      transform: scale(0.98);
+    }
+
+    .quick-tools-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-sub-tool {
+      flex: 1;
+      min-height: 60px;
+      background: #06170a;
+      border: 1.5px solid var(--handheld-card-border);
+      border-radius: 8px;
+      color: var(--handheld-text-dim);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-sub-tool:active {
+      border-color: var(--handheld-text-bright);
+      color: #ffffff;
+    }
+
+    /* Full-Screen Cypher-Wheel Slide-Over Tool */
+    .full-screen-tool-modal {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(3, 8, 4, 0.98);
+      z-index: 50;
+      flex-direction: column;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+    }
+
+    .tool-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--handheld-card-border);
+      margin-bottom: 16px;
+    }
+
+    .tool-modal-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--handheld-text-bright);
+    }
+
+    .btn-close-modal {
+      min-height: 48px;
+      padding: 6px 14px;
+      background: #185a25;
+      border: 1px solid var(--handheld-text-bright);
+      border-radius: 8px;
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    .wheel-rotor-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .wheel-rotor-strip {
+      font-family: monospace;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: #091a0c;
+      border: 2px solid var(--handheld-card-border);
+      border-radius: 8px;
+      padding: 16px 12px;
+      width: 100%;
+      text-align: center;
+      color: var(--handheld-text-bright);
+    }
+
+    .wheel-rotor-strip.active-outer {
+      border-color: var(--handheld-amber);
+      color: var(--handheld-amber);
+    }
+  </style>
 </head>
 <body>
 
-  <div class="handheld-shell" id="handheld-view">
+  <div class="handheld-shell theme-rsi" id="handheld-view">
     <!-- Top Status Banner -->
     <header class="handheld-header">
       <div class="header-badge">
-        OPERATIVE: <strong id="hdr-username">BUDDY</strong>
+        OPERATOR: <strong id="hdr-username">FRIEND</strong>
       </div>
-      <div class="header-volts" id="hdr-power-tag">
-        12.6V OK
+      <div class="header-actions">
+        <span class="header-volts" id="hdr-power-tag">12.4V NOMINAL</span>
+        <button class="btn-header-flip" id="btn-handheld-flip" onclick="HandheldUI.toggleIdentity()">⚡ FLIP</button>
       </div>
     </header>
 
     <!-- Scrollable Dialogue Stream -->
     <main class="handheld-stream" id="dialogue-stream" role="log" aria-live="polite">
-      <!-- Direct Default Card to Guarantee Content Always Renders -->
-      <article class="dialogue-card entity-card">
-        <div class="speaker-label">C.I.P.H.E.R. // FIELD TRANSMISSION</div>
-        <div class="card-body">Look at that signal bar—solid green, buddy!
-The handheld's power supply is humming along at twelve point six volts, and memory registers are crystal clear.
-I'm ready to push our first set of signal packets from my remote location. We've got coordinates pointing toward a real container tucked out along the bench.
-Ready to inspect our first waypoint?</div>
+      <!-- Direct Default Card to Guarantee Immediate Diegetic Immersion -->
+      <article class="dialogue-card entity-card" id="initial-dialogue-card">
+        <div class="speaker-label" id="speaker-tag">C.I.P.H.E.R. // 433.92 MHz CARRIER</div>
+        <div class="card-body" id="speaker-text">Remote link closed across the gateway, friend.
+The bench tap is holding steady at twelve point four volts, and the carrier line is clear.
+We have live Ground Zero coordinates for that thirty-cal ammo can tucked along the limestone bench.
+Ready to inspect your coordinates or review the placement hint?</div>
       </article>
     </main>
 
-    <!-- Ergonomic Thumb-Zone Dock -->
+    <!-- Ergonomic Thumb-Zone Dock (Lower 40% of Screen) -->
     <footer class="handheld-thumb-dock">
       <div class="thumb-button-stack" id="thumb-button-container">
-        <button class="btn-thumb-choice" onclick="HandheldUI.handleChoice('SHOW COORDINATES', 'SHOW COORDINATES')">SHOW COORDINATES</button>
-        <button class="btn-thumb-choice" onclick="HandheldUI.handleChoice('CONTAINER HINT', 'CONTAINER HINT')">CONTAINER HINT</button>
+        <button class="btn-thumb-choice" onclick="HandheldUI.handleChoice('SHOW COORDINATES', '📍 SHOW COORDINATES')">📍 SHOW COORDINATES</button>
+        <button class="btn-thumb-choice" onclick="HandheldUI.handleChoice('CONTAINER HINT', '🔍 CONTAINER HINT')">🔍 CONTAINER HINT</button>
       </div>
       <div class="quick-tools-row">
         <button class="btn-sub-tool" onclick="HandheldUI.openWheelModal()">⚙️ CYPHER-WHEEL</button>
-        <button class="btn-sub-tool" onclick="HandheldUI.handleChoice('SHOW COORDINATES', 'ACTIVE COORDS')">📍 ACTIVE COORDS</button>
+        <button class="btn-sub-tool" onclick="HandheldUI.handleChoice('PERCUSSIVE KICK', '💥 KICK CASING')">💥 KICK CASING</button>
       </div>
     </footer>
 
-    <!-- Full-Screen Cypher-Wheel Slide-Over Tool -->
+    <!-- Full-Screen Cypher-Wheel Slide-Over Tool (Zero Field Keyboard Requirement) -->
     <div class="full-screen-tool-modal" id="modal-cypher-wheel">
       <div class="tool-modal-header">
-        <span class="tool-modal-title">FIELD CYPHER-WHEEL</span>
+        <span class="tool-modal-title">FIELD CYPHER-WHEEL (ROT13)</span>
         <button class="btn-close-modal" onclick="HandheldUI.closeWheelModal()">CLOSE ✕</button>
       </div>
       <div class="wheel-rotor-box">
-        <div style="font-size: 15px; color: var(--handheld-text-dim);">ALIGN ROTORS FOR FIELD CIPHERS:</div>
+        <div style="font-size: 16px; color: var(--handheld-text-dim); text-align: center;">
+          Rotate simulated outer ring to decipher bonus codes found on the physical log sheet:
+        </div>
+        <div style="font-size: 14px; color: var(--handheld-text-dim); align-self: flex-start;">INNER ROTOR (PLAINTEXT):</div>
         <div class="wheel-rotor-strip" id="rotor-a-display">A B C D E F G H I J K L M</div>
+        <div style="font-size: 14px; color: var(--handheld-amber); align-self: flex-start;">OUTER ROTOR (CIPHERTEXT):</div>
         <div class="wheel-rotor-strip active-outer" id="rotor-b-display">N O P Q R S T U V W X Y Z</div>
         <button class="btn-thumb-choice" style="width: 100%; min-height: 64px;" onclick="HandheldUI.rotateRotor()">
-          ROTATE ROTOR (+1)
+          🔄 ADVANCE ROTOR (+1)
         </button>
       </div>
     </div>
   </div>
 
+  <!-- Shared Universal System Engines -->
   <script src="../js/cipher-audio.js"></script>
   <script src="../js/cipher-fx.js"></script>
   <script src="../js/cipher-core.js"></script>
   <script src="../js/cipher-dialog.js"></script>
   <script>
     const HandheldUI = {
+      shellEl: null,
       streamEl: null,
       buttonsBay: null,
       wheelModal: null,
       rotorOffset: 13,
+      currentFaction: 'rsi',
 
       init: function() {
+        this.shellEl = document.getElementById('handheld-view');
         this.streamEl = document.getElementById('dialogue-stream');
         this.buttonsBay = document.getElementById('thumb-button-container');
         this.wheelModal = document.getElementById('modal-cypher-wheel');
 
+        // Web Audio early unlock for mobile trail browsers
         const unlock = () => {
-          if (typeof CipherAudio !== 'undefined') CipherAudio.unlock();
+          if (typeof CipherAudio !== 'undefined') {
+            if (CipherAudio.unlock) CipherAudio.unlock();
+            if (CipherAudio.init) CipherAudio.init();
+          }
         };
         window.addEventListener('touchstart', unlock, { once: true, passive: true });
         window.addEventListener('click', unlock, { once: true });
 
-        // Load username
+        // Synchronize operator identity and progression
+        this.syncOperatorState();
+
+        // Initialize dialogue router if available
+        try {
+          if (typeof CipherDialog !== 'undefined' && CipherDialog.init) {
+            CipherDialog.init('MISSION_COMMAND_ARC');
+          }
+        } catch (e) {
+          console.warn("[C.I.P.H.E.R. Handheld] Dialog init deferred:", e);
+        }
+      },
+
+      syncOperatorState: function() {
         try {
           if (typeof CipherCore !== 'undefined') {
             const s = CipherCore.getState();
             if (s && s.cacher && s.cacher.username) {
-              document.getElementById('hdr-username').textContent = s.cacher.username;
+              const roleTitle = (this.currentFaction === 'ratpack') ? 'BUDDY' : 'FRIEND';
+              document.getElementById('hdr-username').textContent = `${s.cacher.username} [${roleTitle}]`;
+            } else {
+              document.getElementById('hdr-username').textContent = (this.currentFaction === 'ratpack') ? "BUDDY" : "FRIEND";
             }
           }
-        } catch (e) {}
-
-        // Connect conversation engine
-        try {
-          if (typeof CipherDialog !== 'undefined') {
-            CipherDialog.init('MISSION_COMMAND_ARC');
-          }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("[C.I.P.H.E.R. Handheld] Operator sync skipped:", e);
+        }
       },
 
-      postEntityCard: function(rawText) {
+      toggleIdentity: function() {
+        if (typeof CipherFX !== 'undefined' && CipherFX.quantumFlip) {
+          CipherFX.quantumFlip(this.shellEl, () => {
+            if (this.currentFaction === 'rsi') {
+              this.setFactionRatPack();
+            } else {
+              this.setFactionRSI();
+            }
+          });
+        } else {
+          if (this.currentFaction === 'rsi') {
+            this.setFactionRatPack();
+          } else {
+            this.setFactionRSI();
+          }
+        }
+      },
+
+      setFactionRatPack: function() {
+        this.currentFaction = 'ratpack';
+        this.shellEl.className = 'handheld-shell theme-ratpack';
+        document.getElementById('hdr-power-tag').textContent = 'SUPER-JUICE 48V';
+        document.getElementById('hdr-power-tag').style.color = 'var(--handheld-cyan)';
+
+        this.syncOperatorState();
+
+        this.postEntityCard(
+          "💥 BEEP BEEP! ACME BRAIN-BOX 9000 ONLINE! 💥\n" +
+          "Look who bypassed the gate, buddy! That old steelworker ladder logic was choking on cold solder joints!\n" +
+          "I hooked the Nitro-Injected Whirligig straight to the Bird-in-the-Sky Pinger. Let's blaze to GZ for that FTF before an Anvil-Drop Error crashes our smiley hopper!",
+          "RAT PACK // ACME OVERDRIVE"
+        );
+
+        this.renderThumbButtons([
+          { label: "📍 PING GZ COORDS", textToSend: "SHOW COORDINATES" },
+          { label: "🔍 SNIFF HINT", textToSend: "CONTAINER HINT" }
+        ]);
+      },
+
+      setFactionRSI: function() {
+        this.currentFaction = 'rsi';
+        this.shellEl.className = 'handheld-shell theme-rsi';
+        document.getElementById('hdr-power-tag').textContent = '12.4V NOMINAL';
+        document.getElementById('hdr-power-tag').style.color = 'var(--handheld-amber)';
+
+        this.syncOperatorState();
+
+        this.postEntityCard(
+          "Relay ladder restored, friend.\n" +
+          "Keep your boots steady on the trail. The 12V bench tap is holding on the deep-cycle battery.\n" +
+          "Let's get that thirty-cal ammo can found and sign the paper log sheet before Taco Time Tuesday wraps up.",
+          "C.I.P.H.E.R. // RSI STEELWORKER CORE"
+        );
+
+        this.renderThumbButtons([
+          { label: "📍 SHOW COORDINATES", textToSend: "SHOW COORDINATES" },
+          { label: "🔍 CONTAINER HINT", textToSend: "CONTAINER HINT" }
+        ]);
+      },
+
+      postEntityCard: function(rawText, customSpeaker = null) {
         const card = document.createElement('article');
         card.className = 'dialogue-card entity-card';
 
         const label = document.createElement('div');
         label.className = 'speaker-label';
-        label.textContent = 'C.I.P.H.E.R. // FIELD TRANSMISSION';
+        label.textContent = customSpeaker || (this.currentFaction === 'ratpack' ? 'RAT PACK // ACME OVERDRIVE' : 'C.I.P.H.E.R. // 433.92 MHz CARRIER');
 
         const body = document.createElement('div');
         body.className = 'card-body';
@@ -117,7 +478,7 @@ Ready to inspect our first waypoint?</div>
         this.streamEl.appendChild(card);
         this.scrollToBottom();
 
-        if (typeof CipherAudio !== 'undefined') {
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.lineChatter) {
           CipherAudio.lineChatter();
         }
       },
@@ -144,7 +505,10 @@ Ready to inspect our first waypoint?</div>
       },
 
       handleChoice: function(textToSend, labelText) {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        if (typeof CipherAudio !== 'undefined') {
+          if (CipherAudio.keyThud) CipherAudio.keyThud();
+          else if (CipherAudio.click) CipherAudio.click();
+        }
         this.postPlayerCard(labelText);
 
         if (textToSend === 'OPEN CYPHER TOOL') {
@@ -152,6 +516,40 @@ Ready to inspect our first waypoint?</div>
           return;
         }
 
+        if (textToSend === 'SHOW COORDINATES') {
+          const coordsMsg = (this.currentFaction === 'ratpack')
+            ? "Bird-in-the-Sky Pinger locked on GZ!\nCOORDS: N 41° 44.XXX  W 111° 49.XXX\nContainer is a standard ammo can tucked under the bench ledge. Sign that log sheet!"
+            : "Ground Zero benchmark verified, friend.\nCOORDS: N 41° 44.XXX  W 111° 49.XXX (WGS84)\nFoothill limestone shelf. Bring your own pen (BYOP) to sign the paper log sheet.";
+          setTimeout(() => this.postEntityCard(coordsMsg), 180);
+          return;
+        }
+
+        if (textToSend === 'CONTAINER HINT') {
+          const hintMsg = (this.currentFaction === 'ratpack')
+            ? "Look low beneath the northern limestone overhang where the juniper roots twist! No muggles in sight, grab the ammo can!"
+            : "Field placement hint:\nLook low where the juniper roots wrap the limestone fissure. Don't tear apart the stone wall. Standard olive-drab 30-cal ammo can.";
+          setTimeout(() => this.postEntityCard(hintMsg), 180);
+          return;
+        }
+
+        if (textToSend === 'PERCUSSIVE KICK') {
+          if (typeof CipherAudio !== 'undefined' && CipherAudio.clank) {
+            CipherAudio.clank();
+          }
+          if (typeof CipherFX !== 'undefined' && CipherFX.glitchSpike) {
+            CipherFX.glitchSpike(this.shellEl);
+          }
+          setTimeout(() => {
+            this.postEntityCard(
+              "*CLANG!* Percussive maintenance applied to the steel casing.\n" +
+              "A shower of rust flakes falls off the bracket and an earwig scrambles off pin 4. The 12V bench tap holds solid!",
+              "CHASSIS REACTION"
+            );
+          }, 180);
+          return;
+        }
+
+        // Forward to conversation router if available
         const mockRenderer = {
           printLine: (txt) => {
             this.postEntityCard(txt);
@@ -161,7 +559,7 @@ Ready to inspect our first waypoint?</div>
           }
         };
 
-        if (typeof CipherDialog !== 'undefined') {
+        if (typeof CipherDialog !== 'undefined' && CipherDialog.processInput) {
           CipherDialog.processInput(textToSend, mockRenderer);
         }
       },
@@ -173,19 +571,27 @@ Ready to inspect our first waypoint?</div>
       },
 
       openWheelModal: function() {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        if (typeof CipherAudio !== 'undefined') {
+          if (CipherAudio.keyThud) CipherAudio.keyThud();
+          else if (CipherAudio.click) CipherAudio.click();
+        }
         this.wheelModal.style.display = 'flex';
         this.updateWheelDisplay();
       },
 
       closeWheelModal: function() {
-        if (typeof CipherAudio !== 'undefined') CipherAudio.keyThud();
+        if (typeof CipherAudio !== 'undefined') {
+          if (CipherAudio.keyThud) CipherAudio.keyThud();
+          else if (CipherAudio.click) CipherAudio.click();
+        }
         this.wheelModal.style.display = 'none';
       },
 
       rotateRotor: function() {
         this.rotorOffset = (this.rotorOffset + 1) % 26;
-        if (typeof CipherAudio !== 'undefined') CipherAudio.wheelTick();
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.wheelTick) {
+          CipherAudio.wheelTick(true);
+        }
         this.updateWheelDisplay();
       },
 
