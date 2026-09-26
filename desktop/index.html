@@ -4,421 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C.I.P.H.E.R. // Base Station Dual Terminal</title>
-  <style>
-    /* =========================================================
-       1. COLOR SYSTEM & DUAL-THEME VARIABLES
-       ========================================================= */
-    :root {
-      --desk-bg: #030504;
-      --transition-smooth: all 0.25s ease-in-out;
-    }
-
-    /* THEME 1: RSI Garage Shop (Retired Steelworker Phosphor CRT) */
-    .theme-rsi {
-      --shell-bg: #111a13;
-      --shell-border: #080d09;
-      --screen-bg: #030d05;
-      --panel-bg: #041207;
-      --panel-border: #185a25;
-      --panel-border-glow: #00ff66;
-      --text-main: #d0f8d9;
-      --text-accent: #00ff66;
-      --text-highlight: #ffca28;
-      --text-user: #ffffff;
-      --font-family: "Cascadia Code", "Fira Code", Consolas, "Menlo", monospace;
-      --font-weight: 600;
-      --corner-radius: 4px;
-      --box-glow: inset 0 0 35px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 255, 102, 0.15);
-      --badge-label: "RSI SHOP JIG // LADDER RELAY REV 1.4";
-      --carrier-color: #00ff66;
-    }
-
-    /* THEME 2: Rat Pack Acme Overhaul (Looney Tunes / Modern Glass) */
-    .theme-ratpack {
-      --shell-bg: #0a1118;
-      --shell-border: #102233;
-      --screen-bg: #050c14;
-      --panel-bg: rgba(13, 27, 42, 0.8);
-      --panel-border: rgba(0, 229, 255, 0.4);
-      --panel-border-glow: #00e5ff;
-      --text-main: #e0f7fa;
-      --text-accent: #00e5ff;
-      --text-highlight: #ff007f;
-      --text-user: #ffffff;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-weight: 600;
-      --corner-radius: 12px;
-      --box-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 229, 255, 0.15);
-      --badge-label: "RAT PACK ACME BRAIN-BOX 9000 // NITRO v4.9X";
-      --carrier-color: #00e5ff;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      width: 100vw;
-      height: 100vh;
-      background-color: var(--desk-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* Responsive Housing: Fits widescreen desktops and Tesla in-dash split-screen */
-    .crt-enclosure {
-      width: 100%;
-      max-width: 1200px;
-      height: 100%;
-      max-height: 98vh;
-      background: var(--shell-bg);
-      border: 4px solid var(--shell-border);
-      border-radius: 16px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.95);
-      padding: 12px 14px 14px;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      font-family: var(--font-family);
-      font-weight: var(--font-weight);
-      transition: var(--transition-smooth);
-    }
-
-    .crt-glass-screen {
-      flex: 1;
-      background-color: var(--screen-bg);
-      border-radius: 8px;
-      border: 2px solid var(--panel-border);
-      box-shadow: var(--box-glow);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 10px;
-      gap: 10px;
-      position: relative;
-      backdrop-filter: blur(10px);
-      min-height: 0;
-    }
-
-    /* Ambient CRT Scanline Overlay */
-    .crt-glass-screen::before {
-      content: " ";
-      display: block;
-      position: absolute;
-      top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(0, 255, 102, 0.03) 50%, rgba(0, 0, 0, 0.25) 50%);
-      background-size: 100% 4px;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    /* Console Topbar with Dynamic Wrapping */
-    .console-topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      background: var(--panel-bg);
-      border: 1.5px solid var(--panel-border-glow);
-      padding: 8px 12px;
-      border-radius: var(--corner-radius);
-      flex-shrink: 0;
-      z-index: 6;
-    }
-    .console-title {
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      color: var(--text-accent);
-    }
-    .console-badges {
-      display: flex;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .badge-item {
-      padding: 3px 8px;
-      border-radius: var(--corner-radius);
-      border: 1.5px solid var(--panel-border);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-accent);
-      white-space: nowrap;
-    }
-    .btn-personality-flip {
-      background: var(--text-accent);
-      color: #000000;
-      border: none;
-      border-radius: var(--corner-radius);
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 900;
-      padding: 5px 10px;
-      cursor: pointer;
-      box-shadow: 0 0 10px var(--text-accent);
-      white-space: nowrap;
-      touch-action: manipulation;
-    }
-    .btn-personality-flip:active {
-      transform: scale(0.97);
-    }
-
-    /* Fluid Adaptive Grid */
-    .console-grid {
-      flex: 1;
-      display: grid;
-      grid-template-columns: minmax(180px, 1fr) minmax(320px, 2fr) minmax(200px, 1.1fr);
-      gap: 10px;
-      min-height: 0;
-      z-index: 6;
-    }
-
-    /* Vehicle In-Dash / Tesla Split-Screen Bounds (<960px) */
-    @media (max-width: 960px) {
-      .console-grid {
-        grid-template-columns: minmax(300px, 1.8fr) minmax(220px, 1.2fr);
-      }
-      .crt-panel.matrix-pane {
-        display: none !important;
-      }
-    }
-
-    .crt-panel {
-      background-color: var(--panel-bg);
-      border: 1.5px solid var(--panel-border);
-      border-radius: var(--corner-radius);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-width: 0;
-    }
-    .crt-panel.primary-monitor {
-      border-color: var(--panel-border-glow);
-    }
-
-    .panel-header {
-      background: rgba(0, 0, 0, 0.35);
-      padding: 8px 10px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      color: var(--text-accent);
-      border-bottom: 1.5px solid var(--panel-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Left Matrix / Inspector */
-    .matrix-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 5px;
-      padding: 8px;
-    }
-    .sector-cell {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1.5px solid var(--panel-border);
-      border-radius: var(--corner-radius);
-      padding: 6px 2px;
-      text-align: center;
-      font-size: 10px;
-      font-weight: 800;
-      cursor: pointer;
-      color: var(--text-accent);
-      user-select: none;
-    }
-    .sector-cell:hover {
-      border-color: var(--panel-border-glow);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .telemetry-block {
-      padding: 10px;
-      border-top: 1px dashed var(--panel-border);
-      font-size: 11px;
-      line-height: 1.5;
-      color: var(--text-main);
-    }
-
-    /* Center Log & CLI */
-    .main-log-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px 14px;
-      font-size: 13.5px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-      min-width: 0;
-    }
-    .line-dim { color: var(--text-main); margin-bottom: 4px; }
-    .line-bright { color: var(--text-accent); font-weight: 800; margin-bottom: 4px; }
-    .line-amber { color: var(--text-highlight); font-weight: 800; margin-bottom: 4px; }
-    .line-user { color: var(--text-user); font-weight: 800; margin-bottom: 4px; }
-
-    .desktop-cli-tray {
-      border-top: 1.5px solid var(--panel-border);
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 10px;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    .cli-prompt {
-      color: var(--text-accent);
-      font-size: 15px;
-      font-weight: 900;
-    }
-    .cli-desktop-input {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1.5px solid var(--panel-border);
-      border-radius: var(--corner-radius);
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 13px;
-      padding: 6px 10px;
-      outline: none;
-      min-width: 0;
-    }
-    .cli-desktop-input:focus {
-      border-color: var(--panel-border-glow);
-    }
-    .btn-desktop-exec {
-      background: var(--panel-border-glow);
-      color: #000000;
-      border: none;
-      border-radius: var(--corner-radius);
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 900;
-      padding: 7px 14px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    /* Right Scope & Waypoint Display */
-    .tactical-display-body {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-      overflow-y: auto;
-    }
-    .frequency-scope {
-      height: 60px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1.5px solid var(--panel-border);
-      border-radius: var(--corner-radius);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .carrier-wave {
-      width: 100%;
-      height: 3px;
-      background: var(--carrier-color);
-      box-shadow: 0 0 10px var(--carrier-color);
-      animation: pulseWave 2.4s infinite ease-in-out;
-    }
-    @keyframes pulseWave {
-      0% { transform: scaleY(1); opacity: 0.7; }
-      50% { transform: scaleY(14); opacity: 1; }
-      100% { transform: scaleY(1); opacity: 0.7; }
-    }
-
-    .waypoint-card {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1.5px solid var(--panel-border);
-      border-radius: var(--corner-radius);
-      padding: 8px 10px;
-    }
-    .waypoint-title {
-      font-size: 11px;
-      font-weight: 900;
-      color: var(--text-highlight);
-      margin-bottom: 3px;
-    }
-    .waypoint-coords {
-      font-size: 13px;
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .macro-board {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      margin-top: auto;
-      flex-shrink: 0;
-    }
-    .btn-macro-tile {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1.5px solid var(--panel-border);
-      border-radius: var(--corner-radius);
-      color: var(--text-accent);
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 8px 4px;
-      cursor: pointer;
-      text-align: center;
-      white-space: nowrap;
-    }
-    .btn-macro-tile:hover {
-      border-color: var(--panel-border-glow);
-      background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
-    }
-
-    .bezel-badge {
-      text-align: center;
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      color: var(--text-accent);
-      opacity: 0.6;
-      font-weight: 900;
-      margin-top: 6px;
-    }
-  </style>
+  <link rel="stylesheet" href="css/station.css?v=6.0">
 </head>
 <body>
 
-  <!-- Physical Chassis Simulation -->
-  <div class="crt-enclosure theme-rsi" id="master-console-chassis">
+  <!-- Physical Chassis Simulation (RSI / Rat Pack Dual Housing) -->
+  <div class="base-station-viewport theme-rsi" id="master-console-chassis">
     <div class="crt-glass-screen" id="glass-screen-surface">
-      
-      <!-- Top Operational Console -->
+
+      <!-- Top Operational Console Bar -->
       <header class="console-topbar">
         <div class="console-title" id="console-title-txt">RSI BASE STATION // GARAGE JIG MK-VI</div>
         <div class="console-badges">
-          <div class="badge-item" id="badge-cacher">OPERATOR: FRIEND</div>
-          <div class="badge-item" id="badge-firmware">FIRMWARE: RSI 1980s LADDER</div>
+          <div class="badge-item active" id="badge-cacher">OPERATOR: FRIEND</div>
+          <div class="badge-item active" id="badge-power">POWER: 12V BENCH TAP</div>
+          <div class="badge-item active" id="badge-link">CARRIER: 433.92 MHz</div>
+          <div class="badge-item" id="badge-mode" style="color: var(--text-highlight);">FIRMWARE: RSI 1980s LADDER</div>
           <button class="btn-personality-flip" onclick="BaseStation.triggerGlitchFlip()">⚡ FLIP IDENTITY</button>
         </div>
       </header>
 
-      <!-- 3-Pane Center Grid -->
+      <!-- 3-Pane Console Workspace -->
       <div class="console-grid">
 
-        <!-- LEFT: Shop Ladder / Acme Gadget Inspector (Collapses below 960px) -->
-        <aside class="crt-panel matrix-pane">
+        <!-- LEFT PANE: Diagnostic Matrix & Sector Memory Inspector (Collapses <=960px) -->
+        <aside class="crt-console-panel matrix-pane">
           <div class="panel-header">
             <span id="left-panel-title">RELAY LADDER JIG</span>
             <span id="matrix-status-label" style="font-size: 10px; color: var(--text-accent);">LOCKED</span>
@@ -444,15 +54,16 @@
 
           <div class="telemetry-block" style="margin-top: auto;">
             <strong style="color: var(--text-accent);">SURFACE DISPATCH:</strong><br>
+            Need to head outside?<br>
             <a href="../mobile/index.html" style="color: var(--text-highlight); text-decoration: none; font-weight: 800;">➔ Switch to Field Handheld</a>
           </div>
         </aside>
 
-        <!-- CENTER: Main CLI Monitor -->
-        <main class="crt-panel primary-monitor">
+        <!-- CENTER PANE: Main CRT Teletype Monitor & CLI -->
+        <main class="crt-console-panel primary-monitor">
           <div class="panel-header">
             <span id="monitor-heading">TERMINAL LOG // 433 MHz LINE</span>
-            <span style="color: var(--text-accent);" id="carrier-lock-tag">CARRIER STEADY</span>
+            <span id="log-status-tag" style="color: var(--text-accent);">CARRIER LOCKED</span>
           </div>
 
           <div class="main-log-scroll" id="base-log-scroll"></div>
@@ -463,16 +74,16 @@
               type="text" 
               id="base-cli-input" 
               class="cli-desktop-input" 
-              placeholder="Type command (HELP, COORDS, HINT, DIAG, FLIP)..." 
+              placeholder="Type command (HELP, COORDS, HINT, DIAG, FLIP, KICK)..." 
               autocomplete="off"
               autofocus
             >
-            <button class="btn-desktop-exec" onclick="BaseStation.submitCommand()">EXEC</button>
+            <button class="btn-desktop-exec" onclick="BaseStation.submitCommand()">EXECUTE</button>
           </footer>
         </main>
 
-        <!-- RIGHT: Carrier & Waypoint Board -->
-        <aside class="crt-panel">
+        <!-- RIGHT PANE: Radio Scope & Tactical Waypoint Board -->
+        <aside class="crt-console-panel">
           <div class="panel-header">
             <span id="right-panel-title">RADIO SUBCARRIER</span>
             <span style="font-size: 10px; color: var(--text-highlight);" id="freq-tag">433.92 MHz</span>
@@ -485,16 +96,16 @@
 
             <div class="waypoint-card">
               <div class="waypoint-title" id="wp-title-txt">GZ TARGET // WAYPOINT 01</div>
-              <div class="waypoint-coords">N 41° 44.XXX  W 111° 49.XXX</div>
-              <div style="font-size: 12px; color: var(--text-main); margin-top: 5px;" id="wp-body-txt">
-                CONTAINER: 30-Cal Ammo Can under limestone ledge.<br>NOTE: Bring a pen for the paper log sheet!
+              <div class="waypoint-coords" id="wp-coords-txt">N 41° 44.XXX  W 111° 49.XXX</div>
+              <div style="font-size: 11px; color: var(--text-main); margin-top: 4px;" id="wp-desc-txt">
+                TERRAIN: Foothill limestone shelf<br>CONTAINER: Standard 30-cal Ammo Can under ledge
               </div>
             </div>
 
             <div class="waypoint-card" style="border-style: dashed;">
               <div class="waypoint-title" style="color: var(--text-main);" id="wp2-title-txt">WAYPOINT 02 (LOCKED)</div>
-              <div style="font-size: 12px; color: var(--text-main);" id="wp2-body-txt">
-                Awaiting physical code from the WP 01 log sheet.
+              <div style="font-size: 11px; color: var(--text-main);" id="wp2-desc-txt">
+                Requires physical bonus code from Waypoint 01 log sheet.
               </div>
             </div>
 
@@ -514,10 +125,11 @@
     <div class="bezel-badge" id="bezel-badge-txt">ROCKET SCIENCE INSTITUTE // RETIRED STEELWORKER GARAGE JIG MK-VI</div>
   </div>
 
-  <!-- Shared Universal Engines -->
+  <!-- Shared Universal Core -->
   <script src="../js/cipher-audio.js"></script>
   <script src="../js/cipher-fx.js"></script>
   <script src="../js/cipher-core.js"></script>
+  <script src="../js/cipher-dialog.js"></script>
   <script>
     const BaseStation = {
       logEl: null,
@@ -525,7 +137,6 @@
       chassisEl: null,
       screenEl: null,
       currentTheme: 'rsi',
-
       printQueue: [],
       isPrinting: false,
 
@@ -535,6 +146,7 @@
         this.chassisEl = document.getElementById('master-console-chassis');
         this.screenEl = document.getElementById('glass-screen-surface');
 
+        // Keyboard enter trigger
         this.inputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -549,17 +161,18 @@
           }
         });
 
-        // Initialize Audio context on first user click
-        document.body.addEventListener('click', () => {
-          if (typeof CipherAudio !== 'undefined' && CipherAudio.init) {
-            CipherAudio.init();
+        // Web Audio unlock on initial user gesture
+        window.addEventListener('click', () => {
+          if (typeof CipherAudio !== 'undefined') {
+            if (CipherAudio.unlock) CipherAudio.unlock();
+            if (CipherAudio.init) CipherAudio.init();
           }
         }, { once: true });
 
-        // Synchronize initial operator callsign and progression state
+        // Synchronize operator identity and progression
         this.syncOperatorState();
 
-        // Print diegetic starting sequence
+        // Print initial teletype greeting
         this.printLine(
           "RSI BASE STATION // RETIRED STEELWORKER GARAGE JIG\n" +
           "433.92 MHz CARRIER LINE: DETECTED // 12V BENCH POWER: FLOATING\n\n" +
@@ -616,13 +229,15 @@
         for (let i = 0; i < current.text.length; i++) {
           p.textContent += current.text[i];
           this.logEl.scrollTop = this.logEl.scrollHeight;
-          if (typeof CipherAudio !== 'undefined' && CipherAudio.click && (i % 3 === 0)) {
+          if (typeof CipherAudio !== 'undefined' && CipherAudio.lineChatter && (i % 3 === 0)) {
+            CipherAudio.lineChatter();
+          } else if (typeof CipherAudio !== 'undefined' && CipherAudio.click && (i % 3 === 0)) {
             CipherAudio.click();
           }
           await new Promise(r => setTimeout(r, current.charSpeedMs));
         }
 
-        await new Promise(r => setTimeout(r, 30));
+        await new Promise(r => setTimeout(r, 35));
         this.processQueue();
       },
 
@@ -649,7 +264,6 @@
             }
           });
         } else {
-          // Direct fallback if FX engine isn't loaded
           if (this.currentTheme === 'rsi') {
             this.setThemeRatPack();
           } else {
@@ -660,16 +274,18 @@
 
       setThemeRatPack: function() {
         this.currentTheme = 'ratpack';
-        this.chassisEl.className = 'crt-enclosure theme-ratpack';
+        this.chassisEl.className = 'base-station-viewport theme-ratpack';
         document.getElementById('console-title-txt').textContent = "RAT PACK // ACME BRAIN-BOX 9000";
-        document.getElementById('badge-firmware').textContent = "ACME NITRO-WHIRLIGIG v4.9X";
+        document.getElementById('badge-power').textContent = "POWER: SUPER-JUICE CAPACITOR";
+        document.getElementById('badge-link').textContent = "LINK: MEGA-MESH GIZMO";
+        document.getElementById('badge-mode').textContent = "MODE: NITRO v4.9X";
         document.getElementById('left-panel-title').textContent = "ACME GADGET HOPPER";
         document.getElementById('right-panel-title').textContent = "BIRD-IN-THE-SKY PINGER";
         document.getElementById('monitor-heading').textContent = "MEGA-MESH GIZMO STREAM";
         document.getElementById('bezel-badge-txt').textContent = "RAT PACK OVERHAUL // ACME GADGET-O-MATIC OVERDRIVE";
         document.getElementById('freq-tag').textContent = "SAT-LINK 1575.42 MHz";
         document.getElementById('matrix-status-label').textContent = "TURBO ON";
-        document.getElementById('carrier-lock-tag').textContent = "PINGING GZ";
+        document.getElementById('log-status-tag').textContent = "PINGING GZ";
 
         this.syncOperatorState();
 
@@ -685,16 +301,18 @@
 
       setThemeRSI: function() {
         this.currentTheme = 'rsi';
-        this.chassisEl.className = 'crt-enclosure theme-rsi';
+        this.chassisEl.className = 'base-station-viewport theme-rsi';
         document.getElementById('console-title-txt').textContent = "RSI BASE STATION // GARAGE JIG MK-VI";
-        document.getElementById('badge-firmware').textContent = "FIRMWARE: RSI 1980s LADDER";
+        document.getElementById('badge-power').textContent = "POWER: 12V BENCH TAP";
+        document.getElementById('badge-link').textContent = "CARRIER: 433.92 MHz";
+        document.getElementById('badge-mode').textContent = "FIRMWARE: RSI 1980s LADDER";
         document.getElementById('left-panel-title').textContent = "RELAY LADDER JIG";
         document.getElementById('right-panel-title').textContent = "RADIO SUBCARRIER";
         document.getElementById('monitor-heading').textContent = "TERMINAL LOG // 433 MHz LINE";
         document.getElementById('bezel-badge-txt').textContent = "ROCKET SCIENCE INSTITUTE // RETIRED STEELWORKER GARAGE JIG MK-VI";
         document.getElementById('freq-tag').textContent = "433.92 MHz";
         document.getElementById('matrix-status-label').textContent = "LOCKED";
-        document.getElementById('carrier-lock-tag').textContent = "CARRIER STEADY";
+        document.getElementById('log-status-tag').textContent = "CARRIER LOCKED";
 
         this.syncOperatorState();
 
@@ -709,8 +327,9 @@
       },
 
       inspectSector: function(sectorCode) {
-        if (typeof CipherAudio !== 'undefined' && CipherAudio.click) {
-          CipherAudio.click();
+        if (typeof CipherAudio !== 'undefined') {
+          if (CipherAudio.keyThud) CipherAudio.keyThud();
+          else if (CipherAudio.click) CipherAudio.click();
         }
 
         const view = document.getElementById('sector-inspect-view');
@@ -718,7 +337,7 @@
         if (sectorCode === '0x70') {
           view.innerHTML = `
             <strong style="color: var(--text-highlight);">REL 70 INSPECTION:</strong><br>
-            STATE: <span style="color: #ff0055;">ACME OVERRIDE DETECTED</span><br>
+            STATE: <span style="color: #ff007f;">ACME OVERRIDE DETECTED</span><br>
             VOLTAGE: 48V NITRO SURGE<br>
             TRACE: WIRED DIRECT TO GADGET HOPPER<br>
             <em style="color: var(--text-accent);">*Click FLIP to switch firmware*</em>
@@ -747,13 +366,19 @@
         this.inputEl.value = '';
         this.printLine(`> ${raw}`, "line-user", 6);
 
-        if (typeof CipherAudio !== 'undefined' && CipherAudio.relay) {
-          CipherAudio.relay();
+        if (typeof CipherAudio !== 'undefined') {
+          if (CipherAudio.keyThud) CipherAudio.keyThud();
+          else if (CipherAudio.relay) CipherAudio.relay();
         }
 
         const upper = raw.toUpperCase();
 
-        // Universal parser logic
+        if (upper === 'CLEAR') {
+          this.printQueue = [];
+          this.logEl.innerHTML = '';
+          return;
+        }
+
         if (upper === 'FLIP' || upper === 'IDENTITY') {
           this.triggerGlitchFlip();
           return;
@@ -761,37 +386,38 @@
 
         if (upper === 'HELP') {
           this.printLine(
-            "AVAILABLE TERMINAL COMMANDS:\n" +
-            "  COORDS  - View target Ground Zero (GZ) coordinates\n" +
-            "  HINT    - Check container and field placement hint\n" +
+            "BASE STATION COMMAND SET:\n" +
+            "  COORDS  - View active Ground Zero (GZ) coordinates\n" +
+            "  HINT    - Review container placement and field notes\n" +
             "  DIAG    - Run bench power and carrier frequency diagnostic\n" +
             "  KICK    - Apply percussive maintenance to steel casing\n" +
-            "  SWAG    - Check virtual ammo can trade items\n" +
-            "  TFTC    - Print cache log greeting\n" +
+            "  SWAG    - Check virtual ammo can trade inventory\n" +
             "  BYOP    - Reminder for signing the field log sheet\n" +
+            "  TFTC    - Print cache log greeting\n" +
+            "  SECTOR  - Read individual memory sector (e.g., SECTOR 0x00)\n" +
             "  FLIP    - Toggle between RSI Ladder and Rat Pack Acme firmware\n" +
-            "  CLEAR   - Wipe local terminal log buffer",
+            "  CLEAR   - Flush CRT display buffer",
             "line-bright", 10
           );
           return;
         }
 
-        if (upper === 'COORDS' || upper === 'SHOW COORDINATES') {
+        if (upper.includes('COORD') || upper.includes('WAYPOINT')) {
           this.printLine(
             "[GROUND ZERO COORDINATES // WAYPOINT 01]\n" +
             "COORDS: N 41° 44.XXX  W 111° 49.XXX (WGS84)\n" +
-            "TERRAIN: Limestone shelf bench cut.\n" +
-            "NOTE: Bring your GPS or handheld phone out to GZ. Real-world cache find stands on its own.",
+            "TERRAIN: Foothill limestone shelf bench cut.\n" +
+            "NOTE: Bring your handheld GPS to GZ. Real-world cache find stands on its own.",
             "line-bright", 10
           );
           return;
         }
 
-        if (upper === 'HINT' || upper === 'CONTAINER HINT') {
+        if (upper.includes('HINT')) {
           this.printLine(
             "[FIELD PLACEMENT HINT]\n" +
-            "Look low beneath the northern limestone shelf where the juniper roots wrap the fissure.\n" +
-            "Do not tear apart the stone walls or trample the sagebrush. Container is a standard 30-cal ammo can painted olive drab with an RSI stencil.",
+            "Look low beneath the northern limestone shelf where the juniper roots wrap the rock fissure.\n" +
+            "Do not tear apart stone walls or trample sagebrush. Container is a standard 30-cal ammo can painted olive drab with an RSI stencil.",
             "line-dim", 10
           );
           return;
@@ -801,7 +427,7 @@
           if (this.currentTheme === 'rsi') {
             this.printLine(
               "[RSI SHOP JIG BENCH DIAGNOSTIC]\n" +
-              "BENCH POWER: 12.4V DC (Deep-cycle lead-acid)\n" +
+              "BENCH POWER: 12.4V DC (Deep-cycle lead-acid tap)\n" +
               "CARRIER LINK: 433.92 MHz garage whip antenna (Nominal)\n" +
               "RELAY ARRAY: Relays 00 through 60 nominal; Relay 70 bypassed.\n" +
               "CHASSIS: Quarter-inch welded hot-rolled plate. Zero structural fatigue.",
@@ -864,13 +490,14 @@
           return;
         }
 
-        if (upper === 'CLEAR') {
-          this.logEl.innerHTML = '';
-          this.printLine("[TERMINAL LOG CLEARED]", "line-dim", 10);
+        if (upper.startsWith('SECTOR')) {
+          const parts = upper.split(' ');
+          const target = parts[1] || '0x00';
+          this.inspectSector(target);
           return;
         }
 
-        // Generic / Fallback Handler
+        // Generic fallback
         if (this.currentTheme === 'rsi') {
           this.printLine(
             `ERR: Unrecognized command '${raw}'.\n` +
@@ -887,10 +514,9 @@
       }
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
       BaseStation.init();
     });
   </script>
-
 </body>
 </html>
