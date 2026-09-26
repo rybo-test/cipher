@@ -3,58 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>C.I.P.H.E.R. // Access Protocol</title>
+  <title>C.I.P.H.E.R. // Remote Gateway</title>
   <style>
     :root {
       --crt-bg: #030804;
+      --crt-panel: #07150a;
       --crt-text-dim: #99e6aa;
       --crt-text-bright: #00ff66;
       --crt-amber: #ffb300;
+      --crt-cyan: #00e5ff;
       --crt-border: #1b5e20;
       --crt-border-bright: #00ff66;
+      --crt-scanline: rgba(0, 255, 102, 0.04);
     }
 
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      padding: 0;
       width: 100%;
-      height: 100dvh;
+      min-height: 100dvh;
       background-color: var(--crt-bg);
       color: var(--crt-text-bright);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Courier New", monospace;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 12px));
+      align-items: center;
+      padding: 20px 16px calc(24px + env(safe-area-inset-bottom, 12px));
+      position: relative;
+      overflow-x: hidden;
     }
 
-    .gateway-card {
+    /* Ambient CRT Scanline Overlay */
+    body::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(var(--crt-scanline) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .gateway-container {
       width: 100%;
+      max-width: 580px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
+      position: relative;
+      z-index: 20;
+    }
+
+    /* Remote Franken-Rig Telemetry Frame */
+    .rig-status-banner {
+      border: 1px solid var(--crt-border);
+      background-color: rgba(7, 21, 10, 0.85);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      letter-spacing: 0.5px;
+      color: var(--crt-text-dim);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    }
+
+    .rig-status-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .rig-tag-alert {
+      color: var(--crt-amber);
+      font-weight: 900;
+    }
+
+    .rig-tag-cyan {
+      color: var(--crt-cyan);
+      font-weight: 700;
+    }
+
+    .header-box {
+      text-align: center;
+      padding: 4px 0;
     }
 
     .gateway-title {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       color: #ffffff;
       text-shadow: 0 0 12px var(--crt-text-bright);
-      text-align: center;
+      margin-bottom: 6px;
     }
 
     .gateway-subtitle {
-      font-size: 16px;
+      font-size: 14px;
       color: var(--crt-text-dim);
-      line-height: 1.45;
-      text-align: center;
-      margin-bottom: 8px;
+      line-height: 1.4;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Surface Selection Controls */
+    .button-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
     }
 
     .surface-choice-btn {
@@ -63,15 +128,21 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      min-height: 84px;
-      background-color: #0a2110;
-      border: 2.5px solid var(--crt-border-bright);
-      border-radius: 12px;
+      min-height: 88px;
+      background-color: var(--crt-panel);
+      border: 2px solid var(--crt-border);
+      border-radius: 10px;
       color: #ffffff;
       text-decoration: none;
       padding: 16px 14px;
       touch-action: manipulation;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    }
+
+    .surface-choice-btn:hover {
+      border-color: var(--crt-border-bright);
+      box-shadow: 0 0 16px rgba(0, 255, 102, 0.25);
     }
 
     .surface-choice-btn:active {
@@ -79,54 +150,129 @@
       color: #000000;
     }
 
-    .btn-headline {
-      font-size: 19px;
+    .surface-choice-btn.recommended {
+      border-color: var(--crt-border-bright);
+      background-color: #0c2b14;
+    }
+
+    .recommended-badge {
+      display: none;
+      font-size: 11px;
+      color: var(--crt-amber);
       font-weight: 900;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .surface-choice-btn.recommended .recommended-badge {
+      display: block;
+    }
+
+    .btn-headline {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
       margin-bottom: 6px;
       text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn-subtext {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--crt-text-dim);
       text-align: center;
-      line-height: 1.35;
+      line-height: 1.4;
+      max-width: 440px;
     }
+
     .surface-choice-btn:active .btn-subtext {
       color: #000000;
     }
 
-    .recommended-badge {
-      font-size: 12px;
-      color: var(--crt-amber);
-      font-weight: 900;
-      margin-bottom: 6px;
-      letter-spacing: 1px;
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #497a52;
+      font-family: "Courier New", Courier, monospace;
+      letter-spacing: 0.5px;
+      padding-top: 4px;
     }
   </style>
 </head>
 <body>
 
-  <div class="gateway-card">
-    <div class="gateway-title">RSI HARDWARE INTERFACE</div>
-    <div class="gateway-subtitle">
-      Select your operational terminal surface to link with C.I.P.H.E.R.:
-    </div>
+  <main class="gateway-container">
+    <!-- Live Remote Telemetry & Rig Ingress Frame -->
+    <header class="rig-status-banner">
+      <div class="rig-status-row">
+        <span>REMOTE ACCESS TERMINAL // FRANKEN-RIG</span>
+        <span class="rig-tag-alert">[ACTIVE CARRIER]</span>
+      </div>
+      <div class="rig-status-row">
+        <span>HOST: RSI-1984 / RAT-PACK-OVERDRIVE</span>
+        <span class="rig-tag-cyan">433.92 MHz</span>
+      </div>
+      <div class="rig-status-row">
+        <span>LOCATION: RAT PACK LAIR (NORTHERN UTAH)</span>
+        <span class="rig-tag-alert">GATEWAY UNSECURED</span>
+      </div>
+    </header>
 
-    <!-- Handheld Choice (Mobile-Optimized) -->
-    <a href="mobile/index.html" class="surface-choice-btn">
-      <span class="recommended-badge" id="badge-handheld">RECOMMENDED FOR THIS DEVICE</span>
-      <span class="btn-headline">📱 ACTIVATE FIELD HANDHELD</span>
-      <span class="btn-subtext">Optimized for phone, large touch controls & outdoor trail use</span>
-    </a>
+    <section class="header-box">
+      <h1 class="gateway-title">C.I.P.H.E.R. GATEWAY</h1>
+      <p class="gateway-subtitle">
+        Remote link established to stationary lair hardware. Select your client terminal to initialize interface buffers:
+      </p>
+    </section>
 
-    <!-- Base Station Choice (Desktop-Optimized) -->
-    <a href="desktop/index.html" class="surface-choice-btn">
-      <span class="btn-headline">🖥️ CONNECT VIA BASE STATION</span>
-      <span class="btn-subtext">Widescreen CRT console, legacy diagnostic boards & full keyboard</span>
-    </a>
-  </div>
+    <!-- Surface Routing Selection -->
+    <nav class="button-stack">
+      <!-- Field Handheld Target -->
+      <a href="mobile/index.html" class="surface-choice-btn" id="btn-handheld">
+        <span class="recommended-badge" id="badge-handheld">⚡ RECOMMENDED FOR TRAIL HARDWARE</span>
+        <span class="btn-headline">📱 ACTIVATE FIELD HANDHELD</span>
+        <span class="btn-subtext">19px high-contrast direct sunlight typography, rotary Cypher-Wheel, 60px thumb dock, and zero mandatory trail typing.</span>
+      </a>
+
+      <!-- Base Station Target -->
+      <a href="desktop/index.html" class="surface-choice-btn" id="btn-desktop">
+        <span class="recommended-badge" id="badge-desktop">⚡ RECOMMENDED FOR BENCH / IN-DASH CONSOLE</span>
+        <span class="btn-headline">🖥️ CONNECT VIA BASE STATION</span>
+        <span class="btn-subtext">Industrial 4:3 CRT console, full CLI keyboard buffer, live carrier scope, and in-dash vehicle split-screen responsive bounds.</span>
+      </a>
+    </nav>
+
+    <footer class="footer-note">
+      BENCH TAP: 12.4V ACTIVE // RAT PACK ACME BRAIN-BOX 9000 LISTENING
+    </footer>
+  </main>
+
+  <script>
+    (function routeIngressParams() {
+      // Preserve query parameters (e.g. ?token=, ?key=, ?restore=, ?inject=) across client selection
+      const searchParams = window.location.search;
+      const handheldLink = document.getElementById('btn-handheld');
+      const desktopLink = document.getElementById('btn-desktop');
+
+      if (searchParams) {
+        handheldLink.href = 'mobile/index.html' + searchParams;
+        desktopLink.href = 'desktop/index.html' + searchParams;
+      }
+
+      // Context detection: surface prioritization based on pointer & screen bounds
+      const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+      if (isMobile) {
+        handheldLink.classList.add('recommended');
+        desktopLink.classList.remove('recommended');
+      } else {
+        desktopLink.classList.add('recommended');
+        handheldLink.classList.remove('recommended');
+      }
+    })();
+  </script>
 
 </body>
 </html>
