@@ -1,32 +1,73 @@
+/* =========================================================
+   C.I.P.H.E.R. FIELD HANDHELD STYLESHEET (v5.0)
+   Module 01: Cache Tales Architecture
+   High-Contrast Trail Typography & Ergonomic 60px Thumb Dock
+   ========================================================= */
+
+/* --- Dual-Personality Variables & Foundations --- */
 :root {
   --handheld-bg: #030804;
-  --handheld-card-bg: #091a0e;
-  --handheld-border: #1b5e20;
+  --handheld-card-bg: #091a0c;
+  --handheld-card-border: #185a25;
   --handheld-border-bright: #00ff66;
   --handheld-text: #ffffff;
   --handheld-text-dim: #99e6aa;
   --handheld-amber: #ffb300;
+  --handheld-cyan: #00e5ff;
   --handheld-alert: #ff5252;
   --handheld-btn-bg: #0e2b17;
   --handheld-btn-active: #00ff66;
+  --transition-fast: all 0.18s ease-out;
+}
+
+/* THEME 1: RSI Steelworker Field Wiretap (Phosphor CRT Green) */
+.theme-rsi {
+  --handheld-bg: #030804;
+  --handheld-card-bg: #091a0c;
+  --handheld-card-border: #185a25;
+  --handheld-border-bright: #00ff66;
+  --handheld-text: #ffffff;
+  --handheld-text-dim: #99e6aa;
+  --handheld-accent: #00ff66;
+  --handheld-highlight: #ffb300;
+  --handheld-btn-bg: #0e2b17;
+  --handheld-btn-active: #00ff66;
+}
+
+/* THEME 2: Rat Pack Acme Overhaul (Looney Tunes / Neon Cyan) */
+.theme-ratpack {
+  --handheld-bg: #050c14;
+  --handheld-card-bg: #0a1726;
+  --handheld-card-border: rgba(0, 229, 255, 0.4);
+  --handheld-border-bright: #00e5ff;
+  --handheld-text: #ffffff;
+  --handheld-text-dim: #b2ebf2;
+  --handheld-accent: #00e5ff;
+  --handheld-highlight: #ff007f;
+  --handheld-btn-bg: #0f2742;
+  --handheld-btn-active: #00e5ff;
 }
 
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
 }
 
 html, body {
-  margin: 0;
-  padding: 0;
   width: 100%;
   height: 100dvh;
+  margin: 0;
+  padding: 0;
   background-color: #000000;
   color: var(--handheld-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   overflow: hidden;
+  user-select: none;
 }
 
+/* Root Shell Enclosure */
 .handheld-shell {
   display: flex;
   flex-direction: column;
@@ -36,6 +77,8 @@ html, body {
   margin: 0;
   background-color: var(--handheld-bg);
   position: relative;
+  overflow: hidden;
+  transition: background-color 0.25s ease-in-out;
 }
 
 /* 1. Substantial Top Status Bar */
@@ -43,32 +86,67 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 18px;
-  background-color: #051408;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+  background-color: #041207;
   border-bottom: 2px solid var(--handheld-border-bright);
   flex-shrink: 0;
+  z-index: 20;
 }
+
 .header-badge {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: var(--handheld-text-dim);
-}
-.header-badge strong {
-  color: var(--handheld-border-bright);
-  font-size: 18px;
-}
-.header-volts {
-  font-size: 15px;
-  font-weight: 900;
-  color: var(--handheld-border-bright);
-  background: rgba(0, 255, 102, 0.15);
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1.5px solid var(--handheld-border-bright);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* 2. Scrollable Dialogue Stream */
+.header-badge strong {
+  color: #ffffff;
+  font-size: 16px;
+  letter-spacing: 0.8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-volts {
+  font-size: 14px;
+  font-weight: 900;
+  font-family: "Courier New", Courier, monospace;
+  color: var(--handheld-border-bright);
+  background: rgba(0, 255, 102, 0.12);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--handheld-border-bright);
+  white-space: nowrap;
+}
+
+.btn-header-flip {
+  background: #0d2b17;
+  color: var(--handheld-border-bright);
+  border: 1.5px solid var(--handheld-border-bright);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.25);
+}
+
+.btn-header-flip:active {
+  background: var(--handheld-border-bright);
+  color: #000000;
+}
+
+/* 2. Scrollable Dialogue Stream (Direct Sunlight Readable) */
 .handheld-stream {
   flex: 1;
   overflow-y: auto;
@@ -80,59 +158,71 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Dialogue Cards */
+/* Dialogue Cards with 19px High-Contrast Body Text */
 .dialogue-card {
   background-color: var(--handheld-card-bg);
-  border: 2px solid var(--handheld-border);
+  border: 2px solid var(--handheld-card-border);
   border-radius: 12px;
-  padding: 18px;
+  padding: 16px 18px;
   font-size: 19px;
-  line-height: 1.5;
+  line-height: 1.48;
   color: var(--handheld-text);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  user-select: text;
 }
+
 .dialogue-card.entity-card {
   border-left: 6px solid var(--handheld-border-bright);
 }
+
 .dialogue-card.player-card {
   align-self: flex-end;
   background-color: #0d3819;
   border: 2px solid var(--handheld-border-bright);
+  border-right: 6px solid var(--handheld-amber);
   color: #ffffff;
   max-width: 90%;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .speaker-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 1px;
   color: var(--handheld-border-bright);
   margin-bottom: 8px;
   text-transform: uppercase;
 }
+
 .card-body {
+  font-size: 19px;
+  line-height: 1.48;
+  color: #ffffff;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-/* 3. Thumb-Zone Dock */
+/* 3. Ergonomic Lower 40% Thumb-Zone Dock */
 .handheld-thumb-dock {
   background-color: #020703;
   border-top: 2px solid var(--handheld-border-bright);
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 12px));
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 12px));
   display: flex;
   flex-direction: column;
   gap: 10px;
   flex-shrink: 0;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.7);
+  z-index: 20;
 }
 
 .thumb-button-stack {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
+/* Mandatory 60px Minimum Tap Targets for Field Operating */
 .btn-thumb-choice {
   width: 100%;
   min-height: 60px;
@@ -140,7 +230,7 @@ html, body {
   border: 2.5px solid var(--handheld-border-bright);
   border-radius: 10px;
   color: #ffffff;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 900;
   letter-spacing: 0.5px;
   display: flex;
@@ -150,8 +240,10 @@ html, body {
   padding: 12px 16px;
   cursor: pointer;
   touch-action: manipulation;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: var(--transition-fast);
 }
+
 .btn-thumb-choice:active {
   background-color: var(--handheld-btn-active);
   color: #000000;
@@ -162,36 +254,49 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  width: 100%;
 }
+
 .btn-sub-tool {
-  min-height: 52px;
+  min-height: 60px;
   background-color: #081a0e;
-  border: 2px solid var(--handheld-border);
+  border: 2px solid var(--handheld-card-border);
   border-radius: 8px;
   color: #ffffff;
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
   touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  transition: var(--transition-fast);
 }
+
 .btn-sub-tool:active {
   background-color: var(--handheld-border-bright);
   color: #000000;
+  border-color: var(--handheld-border-bright);
+  transform: scale(0.98);
 }
 
-/* 4. Full-Screen Cypher-Wheel Slide-Over */
+/* 4. Full-Screen Cypher-Wheel Slide-Over Tool */
 .full-screen-tool-modal {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.96);
+  background-color: rgba(3, 8, 4, 0.98);
   z-index: 100;
   display: none;
   flex-direction: column;
-  padding: 24px 16px calc(20px + env(safe-area-inset-bottom, 12px));
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 12px));
+  backdrop-filter: blur(8px);
 }
+
 .tool-modal-header {
   display: flex;
   justify-content: space-between;
@@ -200,19 +305,30 @@ html, body {
   padding-bottom: 14px;
   margin-bottom: 20px;
 }
+
 .tool-modal-title {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 900;
+  letter-spacing: 0.8px;
   color: var(--handheld-border-bright);
 }
+
 .btn-close-modal {
+  min-height: 48px;
   background: #0d2614;
   border: 2px solid var(--handheld-border-bright);
   border-radius: 6px;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   padding: 8px 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-close-modal:active {
+  background: var(--handheld-border-bright);
+  color: #000000;
 }
 
 .wheel-rotor-box {
@@ -221,21 +337,40 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
+  width: 100%;
 }
+
 .wheel-rotor-strip {
   width: 100%;
   background-color: #08170c;
-  border: 2px solid var(--handheld-border);
+  border: 2px solid var(--handheld-card-border);
   border-radius: 10px;
-  padding: 18px 10px;
+  padding: 16px 10px;
   text-align: center;
+  font-family: "Courier New", Courier, monospace;
   font-size: 20px;
   font-weight: 900;
-  letter-spacing: 2px;
-  color: var(--handheld-amber);
+  letter-spacing: 3px;
+  color: var(--handheld-border-bright);
 }
+
 .wheel-rotor-strip.active-outer {
-  border-color: var(--handheld-border-bright);
-  color: #ffffff;
+  border-color: var(--handheld-amber);
+  color: var(--handheld-amber);
+  background-color: #121c08;
+}
+
+/* Accessibility & Direct Sunlight Enhancements */
+@media (max-width: 480px) {
+  .dialogue-card {
+    padding: 14px 16px;
+  }
+  .card-body {
+    font-size: 19px;
+  }
+  .wheel-rotor-strip {
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
 }
