@@ -1,24 +1,76 @@
 /**
- * C.I.P.H.E.R. Acoustic Audio Core & Speech Synthesizer (v5.0)
+ * C.I.P.H.E.R. Acoustic Core & Mechanical Sound Engine (v6.0)
  * Module 01: Cache Tales Architecture
  * 
- * Synthesizes analog relay ladder clicks, 12V bench power hums,
- * 1/4-inch casing metallic clanks, squelch tails, and rotary Cypher-Wheel ratchets.
+ * Physically modeled mechanical switches, damped 12V relay coils, 
+ * low-frequency chassis resonance, and warm analog acoustic feedback.
+ * Engineered for prolonged listening comfort without ear fatigue.
+ * Strictly adheres to Master Canon Section 3 and Section 5.1.
  */
 
 const CipherAudio = (function () {
   let audioCtx = null;
+  let masterGain = null;
+  let warmFilter = null;
   let voiceEnabled = true;
 
+  /**
+   * Initializes or resumes the AudioContext with master warmth stage
+   */
   function getContext() {
     if (!audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+
+      // Master output conditioning: soft high-cut filter rolls off harsh digital spikes
+      warmFilter = audioCtx.createBiquadFilter();
+      warmFilter.type = 'lowpass';
+      warmFilter.frequency.setValueAtTime(2400, audioCtx.currentTime);
+      warmFilter.Q.setValueAtTime(0.707, audioCtx.currentTime);
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.85, audioCtx.currentTime);
+
+      warmFilter.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
     }
     if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
     return audioCtx;
+  }
+
+  /**
+   * Generates a brief, highly damped burst of warm filtered noise (simulates mechanical impact/air)
+   */
+  function createDampedImpulse(ctx, destination, duration = 0.02, cutoff = 1200) {
+    const bufferSize = Math.max(256, Math.floor(ctx.sampleRate * duration));
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      // Decaying pink-weighted impulse
+      const decay = Math.exp(-i / (bufferSize * 0.25));
+      data[i] = (Math.random() * 2 - 1) * decay;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(cutoff, ctx.currentTime);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+
+    noise.start();
+    noise.stop(ctx.currentTime + duration);
   }
 
   return {
@@ -50,286 +102,369 @@ const CipherAudio = (function () {
     },
 
     /**
-     * Standard mechanical teletype / keyboard click
+     * Subdued mechanical tactile key click (replaces harsh 1400Hz piezo chirp)
+     * Models a weighted mechanical keyboard switch latching in a metal chassis.
      */
     click: function () {
       try {
         const ctx = getContext();
+        const now = ctx.currentTime;
+
+        // Subtle mechanical snick (low transient)
         const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(1400, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.03);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.03);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.035);
+        const oscGain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.022);
+
+        oscGain.gain.setValueAtTime(0.18, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.024);
+
+        osc.connect(oscGain);
+        oscGain.connect(warmFilter);
+
+        osc.start(now);
+        osc.stop(now + 0.025);
+
+        // Micro chassis tap
+        createDampedImpulse(ctx, warmFilter, 0.015, 800);
       } catch (e) {}
     },
 
     /**
-     * Heavy terminal key-thud (high-mass mechanical switches)
+     * Heavy terminal key-thud (heavy mechanical spacebar/chassis contact)
      */
     keyThud: function () {
       try {
         const ctx = getContext();
+        const now = ctx.currentTime;
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(160, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.04);
-        gain.gain.setValueAtTime(0.45, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.045);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.045);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.048);
+
         osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.05);
+        gain.connect(warmFilter);
+
+        osc.start(now);
+        osc.stop(now + 0.05);
+
+        createDampedImpulse(ctx, warmFilter, 0.028, 600);
       } catch (e) {}
     },
 
     /**
-     * Rapid serial carrier chatter burst
+     * Muted teletype line chatter (soft mechanical rhythm, no digital buzz)
      */
     lineChatter: function () {
       try {
         const ctx = getContext();
         const now = ctx.currentTime;
-        const count = 3;
+        const count = 2; // Reduced density for comfortable background cadence
+
         for (let i = 0; i < count; i++) {
+          const t = now + (i * 0.028);
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(600 + Math.random() * 400, now + (i * 0.015));
-          gain.gain.setValueAtTime(0.12, now + (i * 0.015));
-          gain.gain.linearRampToValueAtTime(0.001, now + (i * 0.015) + 0.012);
+
+          osc.type = 'sine';
+          // Warm harmonic pitch cluster (240Hz - 380Hz)
+          osc.frequency.setValueAtTime(240 + Math.random() * 120, t);
+          osc.frequency.exponentialRampToValueAtTime(90, t + 0.018);
+
+          gain.gain.setValueAtTime(0.08, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+
           osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now + (i * 0.015));
-          osc.stop(now + (i * 0.015) + 0.014);
+          gain.connect(warmFilter);
+
+          osc.start(t);
+          osc.stop(t + 0.022);
         }
       } catch (e) {}
     },
 
     /**
-     * Rotary Ratchet Tooth Tick (Different pitch for Inner vs Outer wheels)
+     * Tactile Rotary Ratchet Tooth Tick (warm gear pawl escapement)
      */
     wheelTick: function (isOuter = false) {
       try {
         const ctx = getContext();
+        const now = ctx.currentTime;
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine';
-        const baseFreq = isOuter ? 950 : 1600;
-        osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.25, ctx.currentTime + 0.02);
-        gain.gain.setValueAtTime(0.35, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+        osc.type = 'triangle';
+
+        // Organic low-mid gear frequencies (320Hz outer / 460Hz inner)
+        const baseFreq = isOuter ? 320 : 460;
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.35, now + 0.02);
+
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+
         osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.025);
+        gain.connect(warmFilter);
+
+        osc.start(now);
+        osc.stop(now + 0.025);
+
+        createDampedImpulse(ctx, warmFilter, 0.018, 900);
       } catch (e) {}
     },
 
     /**
-     * Mechanical Lock Detent Snap (Dual-harmonic heavy latch)
+     * Mechanical Lock Detent Snap (Dual-harmonic heavy latch closing)
      */
     wheelSlam: function () {
       try {
         const ctx = getContext();
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const now = ctx.currentTime;
 
-        osc1.type = 'square';
-        osc1.frequency.setValueAtTime(220, ctx.currentTime);
-        osc1.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.15);
+        // Sub-bass physical latch impact
+        const sub = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(160, now);
+        sub.frequency.exponentialRampToValueAtTime(40, now + 0.14);
 
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(880, ctx.currentTime);
-        osc2.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.12);
+        subGain.gain.setValueAtTime(0.5, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
-        gain.gain.setValueAtTime(0.6, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+        sub.connect(subGain);
+        subGain.connect(warmFilter);
 
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
+        // Resonant lock body snap
+        const body = ctx.createOscillator();
+        const bodyGain = ctx.createGain();
+        body.type = 'triangle';
+        body.frequency.setValueAtTime(480, now);
+        body.frequency.exponentialRampToValueAtTime(95, now + 0.1);
 
-        osc1.start();
-        osc2.start();
-        osc1.stop(ctx.currentTime + 0.18);
-        osc2.stop(ctx.currentTime + 0.18);
+        bodyGain.gain.setValueAtTime(0.25, now);
+        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+        body.connect(bodyGain);
+        bodyGain.connect(warmFilter);
+
+        sub.start(now);
+        body.start(now);
+        sub.stop(now + 0.16);
+        body.stop(now + 0.16);
+
+        createDampedImpulse(ctx, warmFilter, 0.06, 750);
       } catch (e) {}
     },
 
     /**
-     * 12V Industrial Relay Step / Solenoid Click
+     * 12V Industrial Relay Step (satisfying mechanical solenoid clack)
      */
     relay: function () {
       try {
         const ctx = getContext();
         const now = ctx.currentTime;
 
-        // Coil energize snap
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'square';
-        osc1.frequency.setValueAtTime(320, now);
-        osc1.frequency.exponentialRampToValueAtTime(80, now + 0.05);
-        gain1.gain.setValueAtTime(0.5, now);
-        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 0.055);
+        // Coil energize snap (magnetic coil pull)
+        const coil = ctx.createOscillator();
+        const coilGain = ctx.createGain();
+        coil.type = 'triangle';
+        coil.frequency.setValueAtTime(180, now);
+        coil.frequency.exponentialRampToValueAtTime(65, now + 0.045);
 
-        // Contact bounce tick
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(1800, now + 0.02);
-        osc2.frequency.linearRampToValueAtTime(300, now + 0.04);
-        gain2.gain.setValueAtTime(0.3, now + 0.02);
-        gain2.gain.linearRampToValueAtTime(0.01, now + 0.04);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.02);
-        osc2.stop(now + 0.045);
+        coilGain.gain.setValueAtTime(0.35, now);
+        coilGain.gain.exponentialRampToValueAtTime(0.001, now + 0.048);
+
+        coil.connect(coilGain);
+        coilGain.connect(warmFilter);
+
+        coil.start(now);
+        coil.stop(now + 0.05);
+
+        // Contact closure bounce (soft snick at 18ms)
+        const bounce = ctx.createOscillator();
+        const bounceGain = ctx.createGain();
+        bounce.type = 'sine';
+        bounce.frequency.setValueAtTime(620, now + 0.016);
+        bounce.frequency.exponentialRampToValueAtTime(180, now + 0.038);
+
+        bounceGain.gain.setValueAtTime(0.18, now + 0.016);
+        bounceGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+        bounce.connect(bounceGain);
+        bounceGain.connect(warmFilter);
+
+        bounce.start(now + 0.016);
+        bounce.stop(now + 0.042);
+
+        createDampedImpulse(ctx, warmFilter, 0.025, 1100);
       } catch (e) {}
     },
 
     /**
      * Percussive Maintenance: 1/4-inch welded steel casing clank
+     * Resonant, heavy metal strike with deep low-end shelf and zero harsh high sibilance.
      */
     clank: function () {
       try {
         const ctx = getContext();
         const now = ctx.currentTime;
 
-        // Low-end steel thud
-        const oscLow = ctx.createOscillator();
-        const gainLow = ctx.createGain();
-        oscLow.type = 'sawtooth';
-        oscLow.frequency.setValueAtTime(95, now);
-        oscLow.frequency.exponentialRampToValueAtTime(25, now + 0.35);
-        gainLow.gain.setValueAtTime(0.8, now);
-        gainLow.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-        oscLow.connect(gainLow);
-        gainLow.connect(ctx.destination);
-        oscLow.start(now);
-        oscLow.stop(now + 0.4);
+        // Heavy steel mass fundamental
+        const mass = ctx.createOscillator();
+        const massGain = ctx.createGain();
+        mass.type = 'triangle';
+        mass.frequency.setValueAtTime(85, now);
+        mass.frequency.exponentialRampToValueAtTime(32, now + 0.28);
 
-        // High metallic sheet ringing resonance
-        const oscRing = ctx.createOscillator();
-        const gainRing = ctx.createGain();
-        oscRing.type = 'sine';
-        oscRing.frequency.setValueAtTime(1120, now);
-        oscRing.frequency.exponentialRampToValueAtTime(740, now + 0.28);
-        gainRing.gain.setValueAtTime(0.4, now);
-        gainRing.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-        oscRing.connect(gainRing);
-        gainRing.connect(ctx.destination);
-        oscRing.start(now);
-        oscRing.stop(now + 0.32);
+        massGain.gain.setValueAtTime(0.65, now);
+        massGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+        mass.connect(massGain);
+        massGain.connect(warmFilter);
+
+        // Steel enclosure resonant harmonics (damped room resonance)
+        const ring = ctx.createOscillator();
+        const ringGain = ctx.createGain();
+        ring.type = 'sine';
+        ring.frequency.setValueAtTime(340, now);
+        ring.frequency.exponentialRampToValueAtTime(190, now + 0.22);
+
+        ringGain.gain.setValueAtTime(0.22, now);
+        ringGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+        ring.connect(ringGain);
+        ringGain.connect(warmFilter);
+
+        mass.start(now);
+        ring.start(now);
+        mass.stop(now + 0.32);
+        ring.stop(now + 0.32);
+
+        createDampedImpulse(ctx, warmFilter, 0.08, 650);
       } catch (e) {}
     },
 
     /**
-     * Line error / brownout buzz
+     * Line error / brownout: warm 60Hz/120Hz transformer hum (replaces harsh 110Hz sawtooth)
      */
     buzz: function () {
       try {
         const ctx = getContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(110, ctx.currentTime);
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.26);
+        const now = ctx.currentTime;
+
+        const fundamental = ctx.createOscillator();
+        const fGain = ctx.createGain();
+        fundamental.type = 'triangle';
+        fundamental.frequency.setValueAtTime(60, now); // Authentic 60Hz transformer mains
+        fundamental.frequency.linearRampToValueAtTime(58, now + 0.22);
+
+        fGain.gain.setValueAtTime(0.3, now);
+        fGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+        const harmonic = ctx.createOscillator();
+        const hGain = ctx.createGain();
+        harmonic.type = 'sine';
+        harmonic.frequency.setValueAtTime(120, now); // 2nd harmonic hum
+        hGain.gain.setValueAtTime(0.15, now);
+        hGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+        fundamental.connect(fGain);
+        harmonic.connect(hGain);
+        fGain.connect(warmFilter);
+        hGain.connect(warmFilter);
+
+        fundamental.start(now);
+        harmonic.start(now);
+        fundamental.stop(now + 0.25);
+        harmonic.stop(now + 0.25);
       } catch (e) {}
     },
 
     /**
-     * Upward harmonic parity chime
+     * Warm, musical minor/major chord progression for sector restoration & achievements
      */
     chime: function () {
       try {
         const ctx = getContext();
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+        const now = ctx.currentTime;
+        // Warm C-major triad (E4, G4, C5, E5) with gentle envelope
+        const chords = [329.63, 392.00, 523.25, 659.25];
+
+        chords.forEach((freq, i) => {
+          const t = now + (i * 0.065);
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
+
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-          gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.35);
+          osc.frequency.setValueAtTime(freq, t);
+
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0005, t + 0.32);
+
           osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(ctx.currentTime + i * 0.08);
-          osc.stop(ctx.currentTime + i * 0.08 + 0.36);
+          gain.connect(warmFilter);
+
+          osc.start(t);
+          osc.stop(t + 0.34);
         });
       } catch (e) {}
     },
 
     /**
-     * Analog radio squelch tail
+     * Analog radio squelch tail (soft filtered pink-noise breath, no white-noise hiss)
      */
     squelchTail: function () {
       try {
         const ctx = getContext();
-        const bufferSize = ctx.sampleRate * 0.08;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.07);
-        noise.connect(gain);
-        gain.connect(ctx.destination);
-        noise.start();
+        createDampedImpulse(ctx, warmFilter, 0.07, 700);
       } catch (e) {}
     },
 
     /**
-     * Push-to-talk mic click
+     * Push-to-talk mic click (soft mechanical switch snap)
      */
     micClick: function () {
       try {
         const ctx = getContext();
+        const now = ctx.currentTime;
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(320, ctx.currentTime);
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.04);
+        osc.frequency.setValueAtTime(210, now);
+        osc.frequency.exponentialRampToValueAtTime(70, now + 0.03);
+
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.035);
+
         osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.045);
+        gain.connect(warmFilter);
+
+        osc.start(now);
+        osc.stop(now + 0.04);
       } catch (e) {}
     },
 
     /**
-     * Web Speech API integration with faction-tuned pitch
+     * Web Speech API integration with balanced, non-robotic rate & pitch
      */
     speak: function (text) {
       if (!voiceEnabled || !window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.pitch = 0.65;
-      utterance.rate = 1.05;
-      utterance.volume = 0.85;
-      window.speechSynthesis.speak(utterance);
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.pitch = 0.85; // Slightly grounded tone
+        utterance.rate = 1.0;   // Natural pacing
+        utterance.volume = 0.75;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {}
     }
   };
 })();
