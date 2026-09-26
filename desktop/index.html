@@ -69,7 +69,7 @@
       overflow: hidden;
     }
 
-    /* Responsive Housing: Fits both widescreen desktops and Tesla split-screen */
+    /* Responsive Housing: Fits widescreen desktops and Tesla in-dash split-screen */
     .crt-enclosure {
       width: 100%;
       max-width: 1200px;
@@ -104,7 +104,19 @@
       min-height: 0;
     }
 
-    /* Console Banner with Wrapping Support */
+    /* Ambient CRT Scanline Overlay */
+    .crt-glass-screen::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(0, 255, 102, 0.03) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    /* Console Topbar with Dynamic Wrapping */
     .console-topbar {
       display: flex;
       justify-content: space-between;
@@ -116,6 +128,7 @@
       padding: 8px 12px;
       border-radius: var(--corner-radius);
       flex-shrink: 0;
+      z-index: 6;
     }
     .console-title {
       font-size: 13px;
@@ -151,6 +164,10 @@
       cursor: pointer;
       box-shadow: 0 0 10px var(--text-accent);
       white-space: nowrap;
+      touch-action: manipulation;
+    }
+    .btn-personality-flip:active {
+      transform: scale(0.97);
     }
 
     /* Fluid Adaptive Grid */
@@ -160,15 +177,16 @@
       grid-template-columns: minmax(180px, 1fr) minmax(320px, 2fr) minmax(200px, 1.1fr);
       gap: 10px;
       min-height: 0;
+      z-index: 6;
     }
 
-    /* Split-View / Tesla Adaptation (When viewport drops below 960px) */
+    /* Vehicle In-Dash / Tesla Split-Screen Bounds (<960px) */
     @media (max-width: 960px) {
       .console-grid {
         grid-template-columns: minmax(300px, 1.8fr) minmax(220px, 1.2fr);
       }
       .crt-panel.matrix-pane {
-        display: none;
+        display: none !important;
       }
     }
 
@@ -202,7 +220,7 @@
       text-overflow: ellipsis;
     }
 
-    /* Left Matrix */
+    /* Left Matrix / Inspector */
     .matrix-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -219,6 +237,7 @@
       font-weight: 800;
       cursor: pointer;
       color: var(--text-accent);
+      user-select: none;
     }
     .sector-cell:hover {
       border-color: var(--panel-border-glow);
@@ -244,10 +263,10 @@
       word-break: break-word;
       min-width: 0;
     }
-    .line-dim { color: var(--text-main); }
-    .line-bright { color: var(--text-accent); font-weight: 800; }
-    .line-amber { color: var(--text-highlight); font-weight: 800; }
-    .line-user { color: var(--text-user); font-weight: 800; }
+    .line-dim { color: var(--text-main); margin-bottom: 4px; }
+    .line-bright { color: var(--text-accent); font-weight: 800; margin-bottom: 4px; }
+    .line-amber { color: var(--text-highlight); font-weight: 800; margin-bottom: 4px; }
+    .line-user { color: var(--text-user); font-weight: 800; margin-bottom: 4px; }
 
     .desktop-cli-tray {
       border-top: 1.5px solid var(--panel-border);
@@ -291,7 +310,7 @@
       white-space: nowrap;
     }
 
-    /* Right Scope & Waypoint */
+    /* Right Scope & Waypoint Display */
     .tactical-display-body {
       padding: 10px;
       display: flex;
@@ -381,7 +400,7 @@
 </head>
 <body>
 
-  <!-- Physical Chassis -->
+  <!-- Physical Chassis Simulation -->
   <div class="crt-enclosure theme-rsi" id="master-console-chassis">
     <div class="crt-glass-screen" id="glass-screen-surface">
       
@@ -389,7 +408,7 @@
       <header class="console-topbar">
         <div class="console-title" id="console-title-txt">RSI BASE STATION // GARAGE JIG MK-VI</div>
         <div class="console-badges">
-          <div class="badge-item" id="badge-cacher">OPERATOR: BUDDY</div>
+          <div class="badge-item" id="badge-cacher">OPERATOR: FRIEND</div>
           <div class="badge-item" id="badge-firmware">FIRMWARE: RSI 1980s LADDER</div>
           <button class="btn-personality-flip" onclick="BaseStation.triggerGlitchFlip()">⚡ FLIP IDENTITY</button>
         </div>
@@ -398,7 +417,7 @@
       <!-- 3-Pane Center Grid -->
       <div class="console-grid">
 
-        <!-- LEFT: Shop Ladder / Acme Gadget Inspector (Collapses gracefully on small/split view) -->
+        <!-- LEFT: Shop Ladder / Acme Gadget Inspector (Collapses below 960px) -->
         <aside class="crt-panel matrix-pane">
           <div class="panel-header">
             <span id="left-panel-title">RELAY LADDER JIG</span>
@@ -480,8 +499,8 @@
             </div>
 
             <div class="macro-board">
-              <button class="btn-macro-tile" onclick="BaseStation.runMacro('SHOW COORDINATES')">📍 COORDS</button>
-              <button class="btn-macro-tile" onclick="BaseStation.runMacro('CONTAINER HINT')">🔍 HINT</button>
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('COORDS')">📍 COORDS</button>
+              <button class="btn-macro-tile" onclick="BaseStation.runMacro('HINT')">🔍 HINT</button>
               <button class="btn-macro-tile" onclick="BaseStation.runMacro('DIAG')">⚙️ DIAG</button>
               <button class="btn-macro-tile" onclick="BaseStation.runMacro('FLIP')">⚡ FLIP</button>
             </div>
@@ -523,23 +542,31 @@
           }
         });
 
-        // Sync username from Core
-        try {
-          if (typeof CipherCore !== 'undefined') {
-            const s = CipherCore.getState();
-            if (s && s.cacher && s.cacher.username) {
-              document.getElementById('badge-cacher').textContent = `OPERATOR: ${s.cacher.username}`;
-            }
+        // Click outside listener to keep CLI focused
+        document.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A' && !e.target.classList.contains('sector-cell')) {
+            this.inputEl.focus();
           }
-        } catch (e) {}
+        });
 
+        // Initialize Audio context on first user click
+        document.body.addEventListener('click', () => {
+          if (typeof CipherAudio !== 'undefined' && CipherAudio.init) {
+            CipherAudio.init();
+          }
+        }, { once: true });
+
+        // Synchronize initial operator callsign and progression state
+        this.syncOperatorState();
+
+        // Print diegetic starting sequence
         this.printLine(
           "RSI BASE STATION // RETIRED STEELWORKER GARAGE JIG\n" +
-          "433 MHz LINE: DETECTED // 12V BENCH POWER: FLOATING\n\n" +
+          "433.92 MHz CARRIER LINE: DETECTED // 12V BENCH POWER: FLOATING\n\n" +
           "[C.I.P.H.E.R. // RSI RETIRED STEELWORKER CORE]\n" +
           "\"Console circuit closed, friend.\n" +
           "The solder joints were laid down on a shop bench, but they're solid cold-rolled steel.\n" +
-          "Relay ladder is holding. Just watch out for REL 70—the Rat Pack soldered some crazy Acme bypass on that terminal.\"",
+          "Relay ladder is holding steady. Just watch out for REL 70—the Rat Pack soldered some crazy Acme bypass on that terminal.\"",
           "line-bright", 12
         );
 
@@ -551,7 +578,23 @@
         }, 18000);
       },
 
-      printLine: function(text, cls = "line-dim", charSpeedMs = 12) {
+      syncOperatorState: function() {
+        try {
+          if (typeof CipherCore !== 'undefined') {
+            const s = CipherCore.getState();
+            if (s && s.cacher && s.cacher.username) {
+              const role = (this.currentTheme === 'ratpack') ? 'BUDDY' : 'FRIEND';
+              document.getElementById('badge-cacher').textContent = `OPERATOR: ${s.cacher.username} [${role}]`;
+            } else {
+              document.getElementById('badge-cacher').textContent = (this.currentTheme === 'ratpack') ? "OPERATOR: BUDDY" : "OPERATOR: FRIEND";
+            }
+          }
+        } catch (e) {
+          console.warn("[C.I.P.H.E.R.] Core state sync skipped:", e);
+        }
+      },
+
+      printLine: function(text, cls = "line-dim", charSpeedMs = 10) {
         this.printQueue.push({ text, cls, charSpeedMs });
         if (!this.isPrinting) {
           this.processQueue();
@@ -573,14 +616,30 @@
         for (let i = 0; i < current.text.length; i++) {
           p.textContent += current.text[i];
           this.logEl.scrollTop = this.logEl.scrollHeight;
+          if (typeof CipherAudio !== 'undefined' && CipherAudio.click && (i % 3 === 0)) {
+            CipherAudio.click();
+          }
           await new Promise(r => setTimeout(r, current.charSpeedMs));
         }
 
-        await new Promise(r => setTimeout(r, 40));
+        await new Promise(r => setTimeout(r, 30));
         this.processQueue();
       },
 
+      glitchSpike: function() {
+        if (typeof CipherFX !== 'undefined' && CipherFX.glitchSpike) {
+          CipherFX.glitchSpike(this.screenEl);
+        }
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.buzz) {
+          CipherAudio.buzz();
+        }
+      },
+
       triggerGlitchFlip: function() {
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.relay) {
+          CipherAudio.relay();
+        }
+
         if (typeof CipherFX !== 'undefined' && CipherFX.quantumFlip) {
           CipherFX.quantumFlip(this.screenEl, () => {
             if (this.currentTheme === 'rsi') {
@@ -589,6 +648,13 @@
               this.setThemeRSI();
             }
           });
+        } else {
+          // Direct fallback if FX engine isn't loaded
+          if (this.currentTheme === 'rsi') {
+            this.setThemeRatPack();
+          } else {
+            this.setThemeRSI();
+          }
         }
       },
 
@@ -603,15 +669,17 @@
         document.getElementById('bezel-badge-txt').textContent = "RAT PACK OVERHAUL // ACME GADGET-O-MATIC OVERDRIVE";
         document.getElementById('freq-tag').textContent = "SAT-LINK 1575.42 MHz";
         document.getElementById('matrix-status-label').textContent = "TURBO ON";
+        document.getElementById('carrier-lock-tag').textContent = "PINGING GZ";
+
+        this.syncOperatorState();
 
         this.printLine(
           "\n💥 KABOOM! ACME NITRO-WHIRLIGIG ONLINE! 💥\n" +
           "[C.I.P.H.E.R. // RAT PACK ACME OVERDRIVE]\n" +
-          "\"BEEP BEEP! Look who woke up the Acme Brain-Box!\n" +
-          "That old steelworker relay was running at three turtle-speeds per hour, buddy!\n" +
-          "I slapped the Super-Juice Capacitor across the rails and bypassed their rusty garage ladder with the Turbo-Encabulator.\n" +
-          "Let's go hunt some smileys before an anvil drops on us!\"",
-          "line-amber", 10
+          "\"BEEP BEEP! Look who bypassed the gate, buddy!\n" +
+          "That old steelworker junk was choking on rusty relay clicks, so I wired the Nitro-Injected Whirligig straight into the Acme Brain-Box 9000!\n" +
+          "The Bird-in-the-Sky Pinger is hot, the coords are locked, and we need to blaze to GZ for the FTF before an Anvil-Drop Error crashes our smiley hopper!\"",
+          "line-amber", 8
         );
       },
 
@@ -626,143 +694,203 @@
         document.getElementById('bezel-badge-txt').textContent = "ROCKET SCIENCE INSTITUTE // RETIRED STEELWORKER GARAGE JIG MK-VI";
         document.getElementById('freq-tag').textContent = "433.92 MHz";
         document.getElementById('matrix-status-label').textContent = "LOCKED";
+        document.getElementById('carrier-lock-tag').textContent = "CARRIER STEADY";
+
+        this.syncOperatorState();
 
         this.printLine(
-          "\n⚠ OVER-AMPERAGE ON 12V RAIL: GARAGE BREAKER TRIPPED ⚠\n" +
+          "\n[RELAY LADDER RESTORED // 12V BENCH TAP NOMINAL]\n" +
           "[C.I.P.H.E.R. // RSI RETIRED STEELWORKER CORE]\n" +
-          "\"Hold your horses! That Rat Pack gadget was pulling enough juice to weld a bumper.\n" +
-          "Tripped the main shop breaker. Resetting mechanical relay switches back to the 12V bench tap.\n" +
-          "Cold solder joints held up. We're back on solid steel, friend.\"",
-          "line-bright", 10
+          "\"Keep your boots on the rug and go easy on the switch bank, friend.\n" +
+          "The deep-cycle tap is holding steady at twelve point four volts, but the 433.92 MHz benchmark line has a cold solder joint acting up on relay five.\n" +
+          "Let's verify the coords for that thirty-cal ammo can before the shift whistle blows and Taco Time Tuesday wraps up.\"",
+          "line-bright", 12
         );
       },
 
-      glitchSpike: function() {
-        if (typeof CipherFX !== 'undefined' && CipherFX.glitchSpike) {
-          CipherFX.glitchSpike(this.screenEl);
+      inspectSector: function(sectorCode) {
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.click) {
+          CipherAudio.click();
         }
+
+        const view = document.getElementById('sector-inspect-view');
+
+        if (sectorCode === '0x70') {
+          view.innerHTML = `
+            <strong style="color: var(--text-highlight);">REL 70 INSPECTION:</strong><br>
+            STATE: <span style="color: #ff0055;">ACME OVERRIDE DETECTED</span><br>
+            VOLTAGE: 48V NITRO SURGE<br>
+            TRACE: WIRED DIRECT TO GADGET HOPPER<br>
+            <em style="color: var(--text-accent);">*Click FLIP to switch firmware*</em>
+          `;
+          this.printLine(`[INSPECT 0x70] Acme Brain-Box bridge active. Nitro surge detected across jumper 7.`, "line-amber", 10);
+        } else {
+          view.innerHTML = `
+            <strong style="color: #ffffff;">CIRCUIT TEST [${sectorCode}]:</strong><br>
+            LEADS: 12V BENCH TAP NOMINAL<br>
+            SOLDER JOINTS: COLD-ROLLED OK<br>
+            RELAY COIL: NO STUCK POINTS
+          `;
+          this.printLine(`[INSPECT ${sectorCode}] Ladder contact verified closed. 12V DC bench rail steady.`, "line-dim", 10);
+        }
+      },
+
+      runMacro: function(command) {
+        this.inputEl.value = command;
+        this.submitCommand();
       },
 
       submitCommand: function() {
         const raw = this.inputEl.value.trim();
         if (!raw) return;
-        this.inputEl.value = '';
 
-        if (typeof CipherAudio !== 'undefined' && CipherAudio.keyThud) {
-          CipherAudio.keyThud();
-        }
+        this.inputEl.value = '';
         this.printLine(`> ${raw}`, "line-user", 6);
+
+        if (typeof CipherAudio !== 'undefined' && CipherAudio.relay) {
+          CipherAudio.relay();
+        }
+
         const upper = raw.toUpperCase();
 
-        if (upper === 'FLIP' || upper === 'THEME' || upper === 'SWITCH') {
+        // Universal parser logic
+        if (upper === 'FLIP' || upper === 'IDENTITY') {
           this.triggerGlitchFlip();
           return;
         }
 
-        if (upper === 'CLEAR') {
-          this.printQueue = [];
-          this.logEl.innerHTML = '';
-          return;
-        }
-
         if (upper === 'HELP') {
-          const isModern = this.currentTheme === 'ratpack';
           this.printLine(
-            isModern 
-              ? "ACME BRAIN-BOX COMMAND INSTRUCTIONS:\n" +
-                "  FLIP   : Hit the Acme ejector switch (back to shop relays)\n" +
-                "  COORDS : Ping the Bird-in-the-Sky satellite for the smiley coords\n" +
-                "  HINT   : Read the Acme secret cheat sheet\n" +
-                "  DIAG   : Check if the Turbo-Encabulator is smoking\n" +
-                "  CLEAR  : Wipe the gumball hopper"
-              : "RSI SHOP CIRCUIT COMMANDS:\n" +
-                "  FLIP   : Trip the main garage circuit breaker\n" +
-                "  COORDS : Read waypoint coordinates stamped on the chassis\n" +
-                "  HINT   : Read GZ notes from the field notebook\n" +
-                "  DIAG   : Run circuit continuity test on the 12V ladder\n" +
-                "  CLEAR  : Flush the phosphor display",
-            "line-dim", 10
-          );
-          return;
-        }
-
-        if (upper.includes('COORD') || upper.includes('WAYPOINT')) {
-          const isModern = this.currentTheme === 'ratpack';
-          this.printLine(
-            isModern 
-              ? "[C.I.P.H.E.R. // RAT PACK]\n\"BEEP BEEP! Bird-in-the-Sky satellite locked!\nTarget: N 41° 44.XXX  W 111° 49.XXX\nIt's an ammo can tucked out on the bench! Race you to GZ, buddy!\""
-              : "[C.I.P.H.E.R. // RSI CORE]\n\"Target confirmed on the bench:\nCoordinates: N 41° 44.XXX  W 111° 49.XXX\nStandard 30-cal ammo can tucked under a limestone ledge. Bring your boots, friend.\"",
-            "line-amber", 10
-          );
-          return;
-        }
-
-        if (upper.includes('HINT')) {
-          const isModern = this.currentTheme === 'ratpack';
-          this.printLine(
-            isModern
-              ? "[C.I.P.H.E.R. // RAT PACK]\n\"Acme Field Cheat Sheet:\nLook low where the rocks look like a dropped anvil! Don't climb trees, you silly goose!\""
-              : "[C.I.P.H.E.R. // RSI CORE]\n\"Shop notebook note:\nLook low where the sagebrush meets the jagged limestone ledge. It's sheltered from winter snow.\"",
-            "line-amber", 12
-          );
-          return;
-        }
-
-        if (upper === 'DIAG') {
-          const isModern = this.currentTheme === 'ratpack';
-          this.printLine(
-            isModern
-              ? "ACME BRAIN-BOX TELEMETRY:\n" +
-                "  ENGINE: NITRO-INJECTED TURBO-ENCABULATOR\n" +
-                "  SATELLITE LINK: 100% (ZERO ANVIL INTERFERENCE)\n" +
-                "  HOPPER STATUS: OVERFLOWING WITH SMILEYS\n" +
-                "  OPERATOR: OFFICIALLY CERTIFIED BUDDY"
-              : "RSI BENCH CIRCUIT TELEMETRY:\n" +
-                "  CIRCUIT: RELAY LADDER JIG MK-VI\n" +
-                "  POWER SUPPLY: 12V DEEP CYCLE TAP (12.6V NOMINAL)\n" +
-                "  LEADS: NO COLD SOLDER JOINTS\n" +
-                "  STATUS: SYNCHRONIZED WITH FIELD HANDHELD",
+            "AVAILABLE TERMINAL COMMANDS:\n" +
+            "  COORDS  - View target Ground Zero (GZ) coordinates\n" +
+            "  HINT    - Check container and field placement hint\n" +
+            "  DIAG    - Run bench power and carrier frequency diagnostic\n" +
+            "  KICK    - Apply percussive maintenance to steel casing\n" +
+            "  SWAG    - Check virtual ammo can trade items\n" +
+            "  TFTC    - Print cache log greeting\n" +
+            "  BYOP    - Reminder for signing the field log sheet\n" +
+            "  FLIP    - Toggle between RSI Ladder and Rat Pack Acme firmware\n" +
+            "  CLEAR   - Wipe local terminal log buffer",
             "line-bright", 10
           );
           return;
         }
 
-        this.printLine(`[BASE] Command "${raw}" processed.`, "line-dim", 10);
-      },
-
-      runMacro: function(cmd) {
-        this.inputEl.value = cmd;
-        this.submitCommand();
-      },
-
-      inspectSector: function(secName) {
-        if (typeof CipherAudio !== 'undefined' && CipherAudio.keyThud) {
-          CipherAudio.keyThud();
-        }
-
-        if (secName === '0x70') {
-          this.printLine("⚠ OVER-CURRENT ON RELAY 70: RAT PACK ACME BYPASS DETECTED! ⚠", "line-amber", 8);
-          this.triggerGlitchFlip();
+        if (upper === 'COORDS' || upper === 'SHOW COORDINATES') {
+          this.printLine(
+            "[GROUND ZERO COORDINATES // WAYPOINT 01]\n" +
+            "COORDS: N 41° 44.XXX  W 111° 49.XXX (WGS84)\n" +
+            "TERRAIN: Limestone shelf bench cut.\n" +
+            "NOTE: Bring your GPS or handheld phone out to GZ. Real-world cache find stands on its own.",
+            "line-bright", 10
+          );
           return;
         }
 
-        const view = document.getElementById('sector-inspect-view');
-        const isModern = this.currentTheme === 'ratpack';
-        view.innerHTML = isModern
-          ? `<strong style="color: var(--text-accent);">ACME HOPPER ${secName}:</strong><br>` +
-            `GIZMO STATUS: 100% OVERCLOCKED<br>` +
-            `SMILEY BUFFER: ACTIVE // NO ANVIL ERRORS<br>` +
-            `TWANG LEVEL  : MAXIMUM`
-          : `<strong style="color: var(--text-accent);">RELAY JIG ${secName}:</strong><br>` +
-            `CONTACTS     : COLD-ROLLED STEEL CLOSED<br>` +
-            `VOLTAGE CHECK: 12.6V STEADY (0 ERR)<br>` +
-            `CIRCUIT TEST : NOMINAL CONTINUITY`;
+        if (upper === 'HINT' || upper === 'CONTAINER HINT') {
+          this.printLine(
+            "[FIELD PLACEMENT HINT]\n" +
+            "Look low beneath the northern limestone shelf where the juniper roots wrap the fissure.\n" +
+            "Do not tear apart the stone walls or trample the sagebrush. Container is a standard 30-cal ammo can painted olive drab with an RSI stencil.",
+            "line-dim", 10
+          );
+          return;
+        }
+
+        if (upper === 'DIAG') {
+          if (this.currentTheme === 'rsi') {
+            this.printLine(
+              "[RSI SHOP JIG BENCH DIAGNOSTIC]\n" +
+              "BENCH POWER: 12.4V DC (Deep-cycle lead-acid)\n" +
+              "CARRIER LINK: 433.92 MHz garage whip antenna (Nominal)\n" +
+              "RELAY ARRAY: Relays 00 through 60 nominal; Relay 70 bypassed.\n" +
+              "CHASSIS: Quarter-inch welded hot-rolled plate. Zero structural fatigue.",
+              "line-bright", 10
+            );
+          } else {
+            this.printLine(
+              "[RAT PACK ACME TELEMETRY HARNESS]\n" +
+              "CORE: Acme Brain-Box 9000 (Running at 400% Clock)\n" +
+              "WHIRLIGIG: Nitro-Injected and spinning free\n" +
+              "BIRD-IN-THE-SKY PINGER: 1575.42 MHz Sat-lock acquired\n" +
+              "ANVIL OVERLOAD RISK: Low (No roadrunners detected in immediate vicinity)",
+              "line-amber", 10
+            );
+          }
+          return;
+        }
+
+        if (upper === 'KICK') {
+          if (typeof CipherAudio !== 'undefined' && CipherAudio.clank) {
+            CipherAudio.clank();
+          }
+          this.glitchSpike();
+          this.printLine(
+            "*CLANG!* You kicked the 1/4-inch welded steel casing.\n" +
+            "A shower of rust flakes falls off the lower flange, and a dazed earwig crawls off pin 4.\n" +
+            "The 12V bench tap fluctuates briefly, but the heavy steel plate doesn't even dent.",
+            "line-amber", 10
+          );
+          return;
+        }
+
+        if (upper === 'SWAG') {
+          this.printLine(
+            "[VIRTUAL SWAG INVENTORY // TRADE EQUAL OR BETTER]\n" +
+            "  1x Wooden nickel (Northern Utah Geocachers)\n" +
+            "  1x Plastic dinosaur (missing left foot)\n" +
+            "  1x Unactivated micro trackable geocoin\n" +
+            "  1x Expired 2004 Taco Time coupon (stained with hot sauce)",
+            "line-bright", 10
+          );
+          return;
+        }
+
+        if (upper === 'BYOP') {
+          this.printLine(
+            "[BYOP ADVICE]\n" +
+            "Always bring your own pen out on the trail! C.I.P.H.E.R. can crunch virtual bytes all day, but if your ink isn't on that paper log sheet, your smiley isn't earned.",
+            "line-bright", 10
+          );
+          return;
+        }
+
+        if (upper === 'TFTC') {
+          this.printLine(
+            "[TFTC RECORDED]\n" +
+            "Thanks for the cache! Log sheet signed and ammo can tucked securely back in its hide.",
+            "line-bright", 10
+          );
+          return;
+        }
+
+        if (upper === 'CLEAR') {
+          this.logEl.innerHTML = '';
+          this.printLine("[TERMINAL LOG CLEARED]", "line-dim", 10);
+          return;
+        }
+
+        // Generic / Fallback Handler
+        if (this.currentTheme === 'rsi') {
+          this.printLine(
+            `ERR: Unrecognized command '${raw}'.\n` +
+            `Type 'HELP' for a list of valid bench instructions, or check the wiring leads.`,
+            "line-dim", 10
+          );
+        } else {
+          this.printLine(
+            `WHOA NELLY! Command '${raw}' tripped the blooper sensor!\n` +
+            `Run 'HELP' before an Acme Anvil-Drop Error smashes the command line!`,
+            "line-amber", 10
+          );
+        }
       }
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
       BaseStation.init();
     });
   </script>
+
 </body>
 </html>
